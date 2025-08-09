@@ -164,8 +164,11 @@ const els = {
 };
 
 // ===== Google bits
-let placesPickup, placesDrop, geocoder, directions;
-let pickupPlace = null, dropPlace = null;
+let placesPickup, placesDrop, directions;
+let pickupAddress = "", dropAddress = "";
+let placeSessionToken = null; // improves billing/accuracy for Places
+
+function newPlacesSession(){ placeSessionToken = new google.maps.places.AutocompleteSessionToken(); }
 
 function updateMeasureLabel(){
   const t = els.wasteType.value;
@@ -210,47 +213,51 @@ function calculate(){
 // Build route based on job type
 function getRouteStops(){
   const jt = els.jobType.value;
-  const pick = pickupPlace || els.addrPickup.value;
-  const drop = dropPlace || els.addrDrop.value;
+  const pick = pickupAddress || els.addrPickup.value.trim();
+  const drop = dropAddress || els.addrDrop.value.trim();
   if(jt==="tip"){
     return { origin: HOME_ADDR, waypoints: [pick, WATERBEACH_ADDR], destination: HOME_ADDR };
   } else {
-    // pd, move, other: Home → Pickup → Drop → Home
     return { origin: HOME_ADDR, waypoints: [pick, drop], destination: HOME_ADDR };
   }
 }
 
-async function calcMileage(){
-  const jt = els.jobType.value;
-  els.routeHint.textContent =
-    (jt==="tip")
-      ? "Home → Collection → Waterbeach → Home"
-      : "Home → Pickup → Drop-off → Home";
+// Inline status message (no popups)
+function setStatus(msg){
+  els.routeHint.textContent = msg || "";
+}
 
-  const pickText = els.addrPickup.value.trim();
-  if(!pickText){ alert("Enter a collection address"); return; }
+// Calculate mileage ONLY when inputs are valid
+function calcMileage(){
+  const jt = els.jobType.value;
+  setStatus(jt==="tip" ? "Home → Collection → Waterbeach → Home" : "Home → Pickup → Drop-off → Home");
+
+  const pick = (pickupAddress || els.addrPickup.value.trim());
+  if(!pick){ setStatus("Enter collection address to calculate mileage."); return; }
+
   if(jt!=="tip"){
-    const dropText = els.addrDrop.value.trim();
-    if(!dropText){ alert("Enter a delivery address"); return; }
+    const drop = (dropAddress || els.addrDrop.value.trim());
+    if(!drop){ setStatus("Enter delivery address to calculate mileage."); return; }
   }
 
   const { origin, waypoints, destination } = getRouteStops();
-  const request = {
-    origin, destination, travelMode: google.maps.TravelMode.DRIVING,
-    waypoints: waypoints.filter(Boolean).map(a => ({ location: a, stopover: true })),
+  const req = {
+    origin, destination,
+    travelMode: google.maps.TravelMode.DRIVING,
+    waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})),
     optimizeWaypoints: false
   };
 
-  directions.route(request, (result, status)=>{
+  directions.route(req, (result, status)=>{
     if(status !== "OK" || !result || !result.routes || !result.routes[0]){
-      alert("Couldn’t calculate route. Check addresses and try again.");
+      setStatus("Couldn’t calculate route. Check addresses or API key restrictions.");
       return;
     }
     const legs = result.routes[0].legs || [];
-    let meters = 0;
-    legs.forEach(l => meters += (l.distance?.value||0));
+    let meters = 0; legs.forEach(l => meters += (l.distance?.value||0));
     const miles = meters / 1609.344;
     els.mileage.value = miles.toFixed(1);
+    setStatus("Mileage updated.");
     calculate();
   });
 }
@@ -260,48 +267,59 @@ function onJobTypeChanged(){
   const jt = els.jobType.value;
   if(jt==="tip"){
     els.addrDropWrap.classList.add('hidden');
-    els.wasteType.disabled = false;
-    els.wasteMeasure.disabled = false;
   } else {
     els.addrDropWrap.classList.remove('hidden');
-    els.wasteType.disabled = false;
-    els.wasteMeasure.disabled = false;
   }
-  calcMileage();
+  // DO NOT auto-calc here; wait for addresses
+  setStatus(jt==="tip" ? "Enter collection address for route." : "Enter pickup and drop-off for route.");
 }
 
 function initAutocomplete(){
-  const opt = { fields: ["formatted_address", "geometry"], componentRestrictions: { country: ["gb"] } };
-  placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
-  placesDrop = new google.maps.places.Autocomplete(els.addrDrop, opt);
+  newPlacesSession();
+  const baseOpt = { fields: ["formatted_address", "geometry"], componentRestrictions: { country: ["gb"] } };
+  const optPickup = Object.assign({ sessionToken: placeSessionToken }, baseOpt);
+  const optDrop   = Object.assign({ sessionToken: placeSessionToken }, baseOpt);
+
+  placesPickup = new google.maps.places.Autocomplete(els.addrPickup, optPickup);
+  placesDrop   = new google.maps.places.Autocomplete(els.addrDrop,   optDrop);
+
   placesPickup.addListener('place_changed', ()=>{
     const p = placesPickup.getPlace();
-    pickupPlace = p?.formatted_address || null;
+    pickupAddress = p?.formatted_address || els.addrPickup.value.trim();
     calcMileage();
   });
+
   placesDrop.addListener('place_changed', ()=>{
     const p = placesDrop.getPlace();
-    dropPlace = p?.formatted_address || null;
+    dropAddress = p?.formatted_address || els.addrDrop.value.trim();
     calcMileage();
   });
+
+  // Also recalc when user hits the button
+  els.btnCalcMiles.addEventListener('click', calcMileage);
 }
 
-window.initMapsStuff = function(){
-  geocoder = new google.maps.Geocoder();
+function initApp(){
   directions = new google.maps.DirectionsService();
-  initAutocomplete();
   onJobTypeChanged();
   updateMeasureLabel();
   calculate();
+}
+
+window.initMapsStuff = function(){
+  try {
+    initAutocomplete();
+    initApp();
+  } catch(e){
+    setStatus("Maps failed to initialise. Check API key and enabled APIs.");
+  }
 };
 
-// Events
+// Events (no alerts)
 document.querySelectorAll('input,select').forEach(el=>{
   el.addEventListener('input', ()=>{ updateMeasureLabel(); calculate(); });
   el.addEventListener('change', ()=>{ updateMeasureLabel(); calculate(); });
 });
-els.jobType.addEventListener('change', onJobTypeChanged);
-els.btnCalcMiles.addEventListener('click', calcMileage);
 
 document.getElementById('btnWhatsApp').addEventListener('click', ()=>{
   const { total } = calculate();
