@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ben’s Humpin’ & Dumpin’ Quick Quote Tool</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0; padding: 0;
+  background-color: #000;
+  color: #fff;
+}
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+h1 {
+  color: #ff4500;
+  text-align: center;
+}
+label { display: block; margin-top: 10px; }
+input, select, button {
+  width: 100%; padding: 8px; margin-top: 5px;
+  border-radius: 5px; border: none;
+}
+button {
+  background-color: #ff4500; color: #fff;
+  font-weight: bold; cursor: pointer;
+}
+.hidden { display: none; }
+.breakdown { margin-top: 20px; font-size: 0.9rem; }
+.total { font-size: 1.2rem; font-weight: bold; margin-top: 10px; }
+.sm { font-size: .85rem; opacity: 0.8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Ben’s Quick Quote Tool</h1>
+
+  <label for="jobType">Job Type</label>
+  <select id="jobType" onchange="onJobTypeChanged()">
+    <option value="tip">Tip Run</option>
+    <option value="pickup">Pickup & Deliver</option>
+    <option value="move">House Move / Relocation</option>
+    <option value="business">Business / Barter</option>
+    <option value="other">Other</option>
+  </select>
+
+  <label for="addrPickup">Collection Address</label>
+  <input type="text" id="addrPickup" placeholder="Enter collection address">
+
+  <div id="addrDropWrap">
+    <label for="addrDrop">Delivery Address</label>
+    <input type="text" id="addrDrop" placeholder="Enter delivery address">
+  </div>
+
+  <label>Mileage (auto-calculated)</label>
+  <input type="number" id="mileage" readonly>
+
+  <label for="trips">Number of Trips</label>
+  <input type="number" id="trips" value="1" min="1">
+
+  <label for="twoMan">Two-person job?</label>
+  <select id="twoMan">
+    <option value="no">No</option>
+    <option value="yes">Yes</option>
+  </select>
+
+  <label for="stairsPickup">Stairs at Pickup (floors)</label>
+  <input type="number" id="stairsPickup" value="0" min="0">
+
+  <label for="stairsDrop">Stairs at Drop-off (floors)</label>
+  <input type="number" id="stairsDrop" value="0" min="0">
+
+  <label for="wasteType">Waste Type (Tip Runs)</label>
+  <select id="wasteType" onchange="updateMeasureLabel()">
+    <option value="mixed">Mixed Waste</option>
+    <option value="inert">Inert Waste</option>
+    <option value="wood">Wood</option>
+    <option value="green">Green Waste</option>
+    <option value="plaster">Plasterboard</option>
+    <option value="mattress">Mattress</option>
+    <option value="tyre">Tyre</option>
+  </select>
+
+  <label id="measureLabel">Weight (tonnes)</label>
+  <input type="number" id="wasteMeasure" value="0" step="0.01">
+
+  <button id="btnCalcMiles" type="button">Calculate Mileage</button>
+
+  <div id="routeHint" class="sm"></div>
+  <div id="breakdown" class="breakdown"></div>
+  <div id="total" class="total"></div>
+
+  <button id="btnWhatsApp" type="button">Send to WhatsApp</button>
+  <button id="btnCopy" type="button">Copy Quote</button>
+</div>
+
+<script>
+// ===== Fixed addresses =====
+const HOME_ADDR = "15 Primrose Hill, Doddington, Cambs, PE15 0SU";
+const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG";
+
+// ===== Rates =====
+const RATES = {
+  baseFee: 35, mileagePerMile: 0.40, handling: 10, twoMan: 20, stairsPerFloor: 5,
+  disposal: {
+    mixed:{ ratePerTonne: 150, minFee: 40 },
+    inert:{ ratePerTonne: 25,  minFee: 20 },
+    wood:{  ratePerTonne: 75,  minFee: 20 },
+    green:{ ratePerTonne: 30,  minFee: 20 },
+    plaster:{ratePerTonne: 130, minFee: 40 },
+    mattress:{ each: 20 }, tyre:{ each: 6 }
+  }
+};
+const BUSINESS_WHATSAPP = "447717463496";
+const WA_INTRO = "Hey Ben! I need something Humpin' & Dumpin'";
+
+const els = {
+  jobType: document.getElementById('jobType'),
+  mileage: document.getElementById('mileage'),
+  trips: document.getElementById('trips'),
+  twoMan: document.getElementById('twoMan'),
+  stairsPickup: document.getElementById('stairsPickup'),
+  stairsDrop: document.getElementById('stairsDrop'),
+  wasteType: document.getElementById('wasteType'),
+  wasteMeasure: document.getElementById('wasteMeasure'),
+  measureLabel: document.getElementById('measureLabel'),
+  breakdown: document.getElementById('breakdown'),
+  total: document.getElementById('total'),
+  addrPickup: document.getElementById('addrPickup'),
+  addrDrop: document.getElementById('addrDrop'),
+  addrDropWrap: document.getElementById('addrDropWrap'),
+  btnCalcMiles: document.getElementById('btnCalcMiles'),
+  btnWA: document.getElementById('btnWhatsApp'),
+  btnCopy: document.getElementById('btnCopy'),
+  routeHint: document.getElementById('routeHint')
+};
+
+let pickupAddress = "", dropAddress = "";
+let directions, placesPickup, placesDrop;
+
+function updateMeasureLabel(){
+  const t = els.wasteType.value;
+  els.measureLabel.textContent = (t==="mattress"||t==="tyre") ? "Quantity (items)" : "Weight (tonnes)";
+}
+
+function calcDisposal(){
+  const t = els.wasteType.value;
+  const qty = parseFloat(els.wasteMeasure.value)||0;
+  if(t==="mattress") return {fee: qty*RATES.disposal.mattress.each, detail:`Mattress x ${qty}`};
+  if(t==="tyre") return {fee: qty*RATES.disposal.tyre.each, detail:`Tyres x ${qty}`};
+  const rate = RATES.disposal[t].ratePerTonne;
+  const min = RATES.disposal[t].minFee;
+  let fee = qty*rate; if(qty>0 && fee<min) fee = min;
+  return {fee, detail:`${qty}t @ £${rate}/t (min £${min})`};
+}
+
+function calculate(){
+  const miles = parseFloat(els.mileage.value)||0;
+  const trips = parseInt(els.trips.value)||1;
+  const twoManFee = (els.twoMan.value==="yes") ? RATES.twoMan : 0;
+  const stairsCost = ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
+  const mileageCost = miles*RATES.mileagePerMile*trips;
+  const disposal = calcDisposal();
+  const total = RATES.baseFee + RATES.handling + mileageCost + stairsCost + twoManFee + disposal.fee;
+
+  els.breakdown.innerHTML = `• Base: £${RATES.baseFee.toFixed(2)}<br>
+    • Handling: £${RATES.handling.toFixed(2)}<br>
+    • Mileage: £${mileageCost.toFixed(2)} (${miles} mi × £${RATES.mileagePerMile.toFixed(2)} × ${trips} trips)<br>
+    ${stairsCost?`• Stairs: £${stairsCost.toFixed(2)}<br>`:""}
+    ${twoManFee?`• Two-man: £${twoManFee.toFixed(2)}<br>`:""}
+    • Disposal: £${disposal.fee.toFixed(2)} — ${disposal.detail}`;
+  els.total.textContent = `Total: £${total.toFixed(2)}`;
+  return { total: total.toFixed(2) };
+}
+
+function getRouteStops(){
+  const jt = els.jobType.value;
+  if(jt==="tip"){
+    return { origin: HOME_ADDR, waypoints: [pickupAddress, WATERBEACH_ADDR], destination: HOME_ADDR };
+  }
+  return { origin: HOME_ADDR, waypoints: [pickupAddress, dropAddress], destination: HOME_ADDR };
+}
+
+function calcMileage(){
+  const jt = els.jobType.value;
+  if(!pickupAddress) { els.routeHint.textContent = "Enter collection address"; return; }
+  if(jt!=="tip" && !dropAddress) { els.routeHint.textContent = "Enter delivery address"; return; }
+
+  const { origin, waypoints, destination } = getRouteStops();
+  directions.route({ origin, destination, waypoints: waypoints.map(a=>({location:a, stopover:true})), travelMode: 'DRIVING' }, 
+    (res, status)=>{
+      if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+      const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+      els.mileage.value = miles.toFixed(1);
+      els.routeHint.textContent = "Mileage updated";
+      calculate();
+  });
+}
+
+function onJobTypeChanged(){
+  els.addrDropWrap.classList.toggle('hidden', els.jobType.value==="tip");
+}
+
+function initAutocomplete(){
+  const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
+  placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
+  placesDrop = new google.maps.places.Autocomplete(els.addrDrop, opt);
+  placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace().formatted_address; });
+  placesDrop.addListener('place_changed', ()=>{ dropAddress = placesDrop.getPlace().formatted_address; });
+}
+
+function initMapsStuff(){
+  directions = new google.maps.DirectionsService();
+  initAutocomplete();
+}
+
+document.getElementById('btnCalcMiles').addEventListener('click', calcMileage);
+document.getElementById('btnWhatsApp').addEventListener('click', ()=>{
+  const { total } = calculate();
+  window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(`${WA_INTRO}\n\nTotal: £${total}`)}`);
+});
+document.getElementById('btnCopy').addEventListener('click', ()=>{
+  const { total } = calculate();
+  navigator.clipboard?.writeText(`${WA_INTRO}\n\nTotal: £${total}`);
+});
+
+updateMeasureLabel();
+calculate();
+</script>
+
+<!-- Google Maps API with placeholder key -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff"></script>
+
+</body>
+</html>
