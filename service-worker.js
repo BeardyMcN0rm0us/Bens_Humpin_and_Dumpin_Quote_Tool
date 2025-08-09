@@ -1,4 +1,4 @@
-const CACHE = "bhd-quote-v1";
+const CACHE = "bhd-quote-v2"; // was v1
 const ASSETS = [
   "./",
   "./index.html",
