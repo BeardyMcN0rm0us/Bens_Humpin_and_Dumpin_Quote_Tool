@@ -22,10 +22,9 @@
   .brandbar img{width:84px;height:84px;border-radius:14px;border:1px solid var(--line);object-fit:cover;background:#000}
   .tag{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
   label{display:block;margin:10px 0 6px;color:var(--muted)}
-  input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0e0e0e;color:#fff;outline:none;transition:transform .05s ease,border-color .15s ease,box-shadow .15s ease}
-  input:focus,select:focus,textarea:focus{border-color:#3a3a3a; box-shadow:0 0 0 2px rgba(255,122,0,.15)}
+  input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0e0e0e;color:#fff;outline:none}
   textarea{min-height:96px;resize:vertical}
-  .btn{width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer;transition:transform .06s ease,filter .15s ease}
+  .btn{width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer}
   .btn:active{transform:translateY(1px)}
   .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
   .btn.secondary{background:linear-gradient(135deg,#ff7a00,#ff3b30);color:#190a08}
@@ -37,11 +36,10 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
   .photo-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
-  .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px;transition:transform .06s ease}
-  .icon-btn:active{transform:translateY(1px)}
+  .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px}
   .icon-btn svg{width:22px;height:22px}
   #photoPreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  #photoPreview img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line);animation:pop .2s ease}
+  #photoPreview img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
   #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;pointer-events:none}
   .toast-msg{background:#161616;border:1px solid #2a2a2a;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:all .25s ease;font-size:.95rem}
   .toast-msg.show{opacity:1;transform:translateY(0)}
@@ -171,9 +169,9 @@
 <div id="toast"></div>
 
 <script>
+/* ===== Config / State ===== */
 const HOME_ADDR = "15 Primrose Hill, Doddington, Cambs, PE15 0SU";
 const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG";
-
 const RATES = {
   baseFee: 35, mileagePerMile: 0.40, handling: 10, twoMan: 20, stairsPerFloor: 5,
   disposal: {
@@ -187,6 +185,7 @@ const RATES = {
 };
 const BUSINESS_WHATSAPP = "447717463496";
 
+/* DOM cache */
 const els = {
   jobType: document.getElementById('jobType'),
   addrPickup: document.getElementById('addrPickup'),
@@ -218,9 +217,11 @@ const els = {
   splash: document.getElementById('splash')
 };
 
+/* ONE declaration only (bug fix) */
 let pickupAddress = "", dropAddress = "";
-let directions, placesPickup, placesDrop;
+let directions = null, placesPickup = null, placesDrop = null;
 
+/* ===== Utils ===== */
 function toast(msg){
   const host = document.getElementById('toast');
   const div = document.createElement('div');
@@ -228,10 +229,11 @@ function toast(msg){
   div.textContent = msg;
   host.appendChild(div);
   requestAnimationFrame(()=> div.classList.add('show'));
-  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=> host.removeChild(div), 250); }, 1800);
+  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=> host.removeChild(div), 250); }, 1600);
 }
+function hideSplash(){ els.splash?.classList.add('hide'); }
 
-/* --- UI per job type --- */
+/* ===== UI logic ===== */
 function setJobTypeUI(){
   const jt = els.jobType.value;
   const isTip = jt === "tip";
@@ -240,11 +242,6 @@ function setJobTypeUI(){
   els.twoManWrap.style.display   = (isTip || jt==="other" || jt==="business") ? "none" : "";
   els.stairsWrap.style.display   = (isTip || jt==="other" || jt==="business") ? "none" : "";
   els.descWrap.style.display     = (jt==="other" || jt==="business") ? "" : "none";
-  els.routeHint.textContent =
-    isTip ? "Route: Home → Collection → Waterbeach → Home"
-          : (jt==="other"||jt==="business") ? "Enter both addresses and a description, then tap Calculate Quote."
-                                            : "Route: Home → Pickup → Drop-off → Home";
-  onWasteTypeChanged();
   els.quoteMode.textContent = "Mode: " + jt;
 }
 
@@ -258,31 +255,26 @@ function calcDisposal(){
   if (t === "mattress" || t === "tyre"){
     const each = t==="mattress" ? RATES.disposal.mattress.each : RATES.disposal.tyre.each;
     const qty = Math.max(1, parseInt(els.itemQty?.value)||1);
-    return { fee: qty*each, detail: `${t[0].toUpperCase()+t.slice(1)} x ${qty} @ £${each.toFixed(2)}` };
+    return { fee: qty*each, detail: `${t} x ${qty} @ £${each.toFixed(2)}` };
   }
   const d = RATES.disposal[t];
   return { fee: d.minFee, detail: `Minimum disposal for ${t} (rate £${d.ratePerTonne}/t)` };
 }
 
 function setQuoteId(){
-  const now = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  const id = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  els.quoteId.textContent = "Quote ID — " + id;
-  return id;
+  const now = new Date(); const p=n=>String(n).padStart(2,"0");
+  const id = `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+  els.quoteId.textContent = "Quote ID — " + id; return id;
 }
 
 function calculate(){
   const miles = parseFloat(els.mileage.value)||0;
-  const trips = 1;
   const jt = els.jobType.value;
-
   const twoManFee = (jt==="tip" || jt==="other" || jt==="business") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
   const stairsCost = (jt==="tip" || jt==="other" || jt==="business") ? 0 :
     ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
-  const mileageCost = miles * RATES.mileagePerMile * trips;
+  const mileageCost = miles * RATES.mileagePerMile; // trips locked to 1
   const disp = (jt==="tip") ? calcDisposal() : { fee: 0, detail: "" };
-
   const total = RATES.baseFee + RATES.handling + mileageCost + stairsCost + twoManFee + disp.fee;
 
   const lines = [
@@ -294,7 +286,7 @@ function calculate(){
   if (twoManFee) lines.push(`Two-person: £${twoManFee.toFixed(2)}`);
   if (jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
 
-  els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
+  els.breakdown.innerHTML = '• ' + lines.join('<br>• ');
   els.total.textContent = `Total: £${total.toFixed(2)}`;
   return { total: total.toFixed(2) };
 }
@@ -307,18 +299,18 @@ function getRouteStops(){
 
 function calcMileage(){
   const jt = els.jobType.value;
-  if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; toast("Collection address needed"); return; }
-  if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; toast("Delivery address needed"); return; }
+  if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
+  if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
+  if(!directions){ els.routeHint.textContent = "Maps not ready — showing base estimate"; return; }
 
   const { origin, waypoints, destination } = getRouteStops();
-  directions && directions.route(
+  directions.route(
     { origin, destination, waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})), travelMode:'DRIVING' },
     (res, status)=>{
-      if(status!=="OK"){ els.routeHint.textContent = "Couldn’t calculate route. Check addresses."; toast("Route error"); return; }
+      if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
       const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
       els.mileage.value = miles.toFixed(1);
       els.routeHint.textContent = "Mileage updated.";
-      toast("Mileage updated");
       calculate();
     }
   );
@@ -340,73 +332,52 @@ function sendWhatsApp(){
   const textMsg = msgLines.join("\n");
 
   const files = Array.from(els.photos.files || []);
-  const canShareFiles = 'canShare' in navigator && navigator.canShare && files.length>0 && navigator.canShare({ files });
-
-  if (canShareFiles && navigator.share){
-    navigator.share({ text: textMsg, files }).catch(()=>{});
-  } else {
-    const url = `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(textMsg)}`;
-    window.open(url, '_blank');
-  }
+  const canShareFiles = navigator.canShare && files.length>0 && navigator.canShare({ files });
+  if (canShareFiles && navigator.share){ navigator.share({ text: textMsg, files }).catch(()=>{}); }
+  else { window.open(`https://wa.me/447717463496?text=${encodeURIComponent(textMsg)}`, '_blank'); }
 }
 
-/* ===== Google Places ===== */
-let placesPickup, placesDrop, directions;
-function initAutocomplete(){
-  const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
-  placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
-  placesDrop   = new google.maps.places.Autocomplete(els.addrDrop,   opt);
-  placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
-  placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || els.addrDrop.value.trim();   });
-}
-function initMapsStuff(){
-  directions = new google.maps.DirectionsService();
-  initAutocomplete();
-  hideSplashSafe();
-}
-
-/* ===== Splash failsafe ===== */
-function hideSplashSafe(){
-  const el = els.splash;
-  if (!el) return;
-  el.classList.add('hide');
-}
-window.addEventListener('load', ()=> {
-  // Hide splash even if Maps never calls back
-  setTimeout(hideSplashSafe, 1000);
-});
-setTimeout(()=>{ // last-resort timeout after 3s
-  if (document.getElementById('splash')) hideSplashSafe();
-  if (!window.google || !window.google.maps){
-    els.routeHint.textContent = "Maps not loaded. Check API key (Places + Directions + JS) & referrer.";
-  }
-}, 3000);
-
-/* ===== Events ===== */
+/* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  setQuoteId();
-  setJobTypeUI(); calculate();
-  els.jobType.addEventListener('change', ()=>{ setJobTypeUI(); toast("Mode updated"); });
-  els.wasteType.addEventListener('change', ()=>{ onWasteTypeChanged(); });
-  document.getElementById('btnCamera').addEventListener('click', ()=> els.photos.click());
-  document.getElementById('btnCalc').addEventListener('click', ()=>{ calcMileage(); setQuoteId(); calculate(); toast("Quote updated"); });
-  document.getElementById('btnWhatsApp').addEventListener('click', sendWhatsApp);
+  // Basic UI ready
+  setQuoteId(); setJobTypeUI(); onWasteTypeChanged(); calculate();
 
+  // Events
+  els.jobType.addEventListener('change', ()=>{ setJobTypeUI(); });
+  els.wasteType.addEventListener('change', onWasteTypeChanged);
+  els.btnCamera.addEventListener('click', ()=> els.photos.click());
+  els.btnCalc.addEventListener('click', ()=>{ calcMileage(); setQuoteId(); calculate(); });
+  els.btnWA.addEventListener('click', sendWhatsApp);
   els.photos.addEventListener('change', ()=>{
-    const prev = document.getElementById('photoPreview'); prev.innerHTML = "";
+    els.photoPreview.innerHTML = "";
     const files = Array.from(els.photos.files || []);
-    document.getElementById('photoCount').textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
-    files.forEach(file=>{
-      const reader = new FileReader();
-      reader.onload = e=>{ const img=document.createElement('img'); img.src=e.target.result; img.alt="Selected photo"; prev.appendChild(img); };
-      reader.readAsDataURL(file);
-    });
-    if(files.length) toast("Photos added");
+    els.photoCount.textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
+    files.forEach(f=>{ const r=new FileReader(); r.onload=e=>{ const img=new Image(); img.src=e.target.result; img.width=96; img.height=96; img.style.objectFit="cover"; img.style.borderRadius="10px"; img.style.border="1px solid #242424"; els.photoPreview.appendChild(img); }; r.readAsDataURL(f); });
   });
-});
-</script>
 
-<!-- Google Maps API (key injected by GitHub Actions) -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=8"></script>
+  // Kill splash in 3s no matter what
+  setTimeout(hideSplash, 3000);
+});
+
+/* Load Google Maps dynamically (with fallback) */
+(function loadMaps(){
+  const s = document.createElement('script');
+  s.src = "https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=__mapsReady&v=9";
+  s.async = true;
+  s.onerror = ()=>{ els.routeHint.textContent = "Maps failed to load. You can still get a base estimate; mileage requires Maps."; hideSplash(); };
+  document.head.appendChild(s);
+})();
+window.__mapsReady = function(){
+  try{
+    directions = new google.maps.DirectionsService();
+    const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
+    placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
+    placesDrop   = new google.maps.places.Autocomplete(els.addrDrop,   opt);
+    placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
+    placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || els.addrDrop.value.trim();   });
+  }catch(e){}
+  hideSplash();
+};
+</script>
 </body>
 </html>
