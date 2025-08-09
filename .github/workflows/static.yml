@@ -1,0 +1,43 @@
+name: Deploy Quote App (Pages)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare dist
+        run: |
+          mkdir -p dist
+          sed "s/__MAPS_API_KEY__/${{ secrets.MAPS_API_KEY }}/g" index.template.html > dist/index.html
+          [ -f manifest.webmanifest ] && cp manifest.webmanifest dist/
+          [ -f service-worker.js ] && cp service-worker.js dist/
+          [ -f icon-192.png ] && cp icon-192.png dist/ || true
+          [ -f icon-512.png ] && cp icon-512.png dist/ || true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
