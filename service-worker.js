@@ -1,5 +1,5 @@
-// Ben’s Humpin’ & Dumpin’ Quick Quote Tool - Service Worker v5
-const CACHE = "bhd-quote-v5";
+// Ben’s Humpin’ & Dumpin’ — Quick Quote PWA SW v9
+const CACHE = "bhd-quote-v9";
 const ASSETS = [
   "./",
   "./index.html",
