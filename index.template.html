@@ -50,6 +50,8 @@
   .icon-btn svg{width:22px;height:22px}
   #photoPreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   #photoPreview img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+  /* Bigger dropdown */
+  select#jobType{ font-size:1.1rem; min-height:52px; padding:14px 12px; }
   /* Splash */
   #splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:1;transition:opacity .35s ease}
   #splash img{width:160px;height:160px;border-radius:24px;border:1px solid #222;box-shadow:var(--shadow);background:#000}
@@ -108,7 +110,7 @@
       </select>
     </div>
 
-    <!-- Stairs (separate wrapper FIX) -->
+    <!-- Stairs -->
     <div id="stairsWrap" class="grid2 hidden">
       <div>
         <label for="stairsPickup">Stairs at pickup (floors)</label>
@@ -149,6 +151,7 @@
 
   <!-- Estimate -->
   <div class="card">
+    <div id="quoteId" class="muted">Quote ID — (after calc)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
     <div id="total" class="total">Total: £0.00</div>
     <div class="hr"></div>
@@ -188,7 +191,11 @@ const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach,
 
 /* ===== Rates (no handling fee) ===== */
 const RATES = {
-  baseFee: 35, mileagePerMile: 0.40, twoMan: 20, stairsPerFloor: 5,
+  baseFeeDefault: 35,
+  baseFeeMove: 50, // House Move override
+  mileagePerMile: 0.40,
+  twoMan: 20,
+  stairsPerFloor: 5,
   disposal: {
     mixed:{ ratePerTonne: 150, minFee: 40 },
     inert:{ ratePerTonne: 25,  minFee: 20 },
@@ -223,6 +230,7 @@ const els = {
   routeHint: document.getElementById('routeHint'),
   breakdown: document.getElementById('breakdown'),
   total: document.getElementById('total'),
+  quoteId: document.getElementById('quoteId'),
   mileage: document.getElementById('mileage'),
   photos: document.getElementById('photos'),
   btnCamera: document.getElementById('btnCamera'),
@@ -235,6 +243,22 @@ const els = {
 /* ===== State ===== */
 let pickupAddress = "", dropAddress = "";
 let directions = null, placesPickup = null, placesDrop = null;
+
+/* ===== Quote ID (local persistent counter) ===== */
+function nextQuoteId(){
+  try{
+    const key = "bhdQuoteSeq";
+    let n = parseInt(localStorage.getItem(key) || "0", 10);
+    if (!Number.isFinite(n) || n < 0) n = 0;
+    n += 1;
+    localStorage.setItem(key, String(n));
+    return "ID" + String(n).padStart(6,"0");
+  }catch(e){
+    // Fallback (non-persistent)
+    const t = Date.now()%1e6;
+    return "ID" + String(t).padStart(6,"0");
+  }
+}
 
 /* ===== UI logic per job type ===== */
 function setJobTypeUI(){
@@ -259,7 +283,7 @@ function setJobTypeUI(){
   if (jt === "tip"){
     // Tip Run: pickup + waste only
     els.wasteWrap.classList.remove('hidden');
-    els.routeHint.textContent = "Route: Home → Collection → Waterbeach → Home";
+    els.routeHint.textContent = "Route: (mileage rule applies) → Waterbeach → Home";
   } else if (jt === "move" || jt === "fb" || jt === "shop" || jt === "student"){
     // Moves & marketplace & shop runs & student: pickup + drop + (optional) manpower + stairs
     els.addrDropWrap.classList.remove('hidden');
@@ -292,22 +316,29 @@ function calcDisposal(){
   return { fee: d.minFee, detail: `Minimum disposal for ${t} (rate £${d.ratePerTonne}/t)` };
 }
 
+/* ===== Base fee per job type ===== */
+function baseFeeFor(jt){
+  if (jt === "move") return RATES.baseFeeMove; // House Move = £50
+  return RATES.baseFeeDefault;
+}
+
 /* ===== Calc totals ===== */
 function calculate(){
   const jt = els.jobType.value;
-  if (!jt){ els.breakdown.innerHTML = ""; els.total.textContent = "Total: £0.00"; return 0; }
+  if (!jt){ els.breakdown.innerHTML = ""; els.total.textContent = "Total: £0.00"; return {total:0, lines:[]}; }
 
   const miles = parseFloat(els.mileage.value)||0;
+  const base = baseFeeFor(jt);
   const twoManFee = (jt==="tip" || jt==="other" || jt==="business") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
   const stairsCost = (jt==="tip" || jt==="other" || jt==="business") ? 0 :
     ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
   const mileageCost = miles * RATES.mileagePerMile;
   const disp = (jt==="tip") ? calcDisposal() : { fee: 0, detail: "" };
 
-  const total = RATES.baseFee + mileageCost + stairsCost + twoManFee + disp.fee;
+  const total = base + mileageCost + stairsCost + twoManFee + disp.fee;
 
   const lines = [
-    `Base: £${RATES.baseFee.toFixed(2)}`,
+    `Base: £${base.toFixed(2)}`,
     `Mileage: £${mileageCost.toFixed(2)}`
   ];
   if (stairsCost) lines.push(`Stairs: £${stairsCost.toFixed(2)}`);
@@ -316,16 +347,18 @@ function calculate(){
 
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Total: £${total.toFixed(2)}`;
-  return total;
+  return { total, lines };
 }
 
 /* ===== Route helpers ===== */
-function getRouteStops(){
-  const jt = els.jobType.value;
-  if(jt==="tip") return { origin: HOME_ADDR, waypoints: [pickupAddress, WATERBEACH_ADDR], destination: HOME_ADDR };
+function getRouteStopsNonTip(){
   return { origin: HOME_ADDR, waypoints: [pickupAddress, dropAddress], destination: HOME_ADDR };
 }
 
+/* Tip Run mileage rule:
+   - If Home→Pickup distance <= 50 miles: mileage = Pickup → Waterbeach → Home
+   - Else: mileage = Home → Pickup → Waterbeach → Home
+*/
 function calcMileage(){
   const jt = els.jobType.value;
   if (!jt){ els.routeHint.textContent = "Choose a job type to start."; calculate(); return; }
@@ -337,32 +370,84 @@ function calcMileage(){
   if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
   if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
 
-  const { origin, waypoints, destination } = getRouteStops();
+  if (jt !== "tip"){
+    const { origin, waypoints, destination } = getRouteStopsNonTip();
+    directions.route(
+      { origin, destination, waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})), travelMode:'DRIVING' },
+      (res, status)=>{
+        if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+        const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+        els.mileage.value = miles.toFixed(1);
+        els.routeHint.textContent = `Mileage updated (${miles.toFixed(1)} mi).`;
+        calculate();
+      }
+    );
+    return;
+  }
+
+  // Tip run flow:
+  // Step 1: measure Home -> Pickup
   directions.route(
-    { origin, destination, waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})), travelMode:'DRIVING' },
-    (res, status)=>{
-      if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
-      const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
-      els.mileage.value = miles.toFixed(1);
-      els.routeHint.textContent = `Mileage updated (${miles.toFixed(1)} mi).`;
-      calculate();
+    { origin: HOME_ADDR, destination: pickupAddress, travelMode: 'DRIVING' },
+    (resHP, statusHP)=>{
+      if(statusHP!=="OK"){ els.routeHint.textContent = "Couldn’t measure home distance."; return; }
+      const milesHP = (resHP.routes[0].legs[0].distance?.value || 0)/1609.344;
+
+      if (milesHP <= 50){
+        // Use Collection → Waterbeach → Home
+        directions.route(
+          { origin: pickupAddress,
+            destination: HOME_ADDR,
+            waypoints: [{location: WATERBEACH_ADDR, stopover:true}],
+            travelMode: 'DRIVING'
+          },
+          (res, status)=>{
+            if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+            const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+            els.mileage.value = miles.toFixed(1);
+            els.routeHint.textContent = `Mileage from collection (${miles.toFixed(1)} mi).`;
+            calculate();
+          }
+        );
+      } else {
+        // Use Home → Collection → Waterbeach → Home
+        directions.route(
+          { origin: HOME_ADDR,
+            destination: HOME_ADDR,
+            waypoints: [{location: pickupAddress, stopover:true},{location: WATERBEACH_ADDR, stopover:true}],
+            travelMode: 'DRIVING'
+          },
+          (res, status)=>{
+            if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+            const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+            els.mileage.value = miles.toFixed(1);
+            els.routeHint.textContent = `Mileage from home (>50mi rule) (${miles.toFixed(1)} mi).`;
+            calculate();
+          }
+        );
+      }
     }
   );
 }
 
 /* ===== WhatsApp ===== */
 function sendWhatsApp(){
-  const total = calculate();
+  // Assign Quote ID and compute breakdown
+  const id = nextQuoteId();
+  els.quoteId.textContent = "Quote ID — " + id;
+
+  const { total, lines } = calculate();
   const jt = els.jobType.value;
   if (!jt){ els.routeHint.textContent = "Choose a job type to start."; return; }
 
   const msgLines = [
     "Hey Ben! I need something Humpin' & Dumpin'",
+    `Quote ID: ${id}`,
     `Job Type: ${jt}`,
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
-    ((jt==="other"||jt==="business") && els.jobDesc.value.trim() ? `Details: ${els.jobDesc.value.trim()}` : ""),
-    `Estimated total: £${total.toFixed(2)}`
+    (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
+    `\nEstimated total: £${total.toFixed(2)}`
   ].filter(Boolean);
   const textMsg = msgLines.join("\n");
 
