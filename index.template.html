@@ -44,12 +44,6 @@
   .hr{height:1px;background:var(--line);margin:12px 0}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
-  /* Photos */
-  .photo-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
-  .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px;cursor:pointer}
-  .icon-btn svg{width:22px;height:22px}
-  #photoPreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  #photoPreview img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
   /* Bigger dropdown */
   select#jobType{ font-size:1.1rem; min-height:52px; padding:14px 12px; }
   /* Splash */
@@ -151,14 +145,14 @@
 
   <!-- Estimate -->
   <div class="card">
-    <div id="quoteId" class="muted">Quote ID — (after calc)</div>
+    <div id="quoteId" class="muted">Quote ID — (after send)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
     <div id="total" class="total">Total: £0.00</div>
     <div class="hr"></div>
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
 
-  <!-- Photos (HIDDEN FOR NOW; keep structure so code doesn't break) -->
+  <!-- Photos (HIDDEN FOR NOW; kept for future) -->
   <div class="card" id="photosCard" style="display:none;">
     <label class="muted" for="photos">Add photos (photo picker)</label>
     <input id="photos" class="hidden" type="file" accept="image/*" multiple>
@@ -190,7 +184,7 @@
 const HOME_ADDR = "15 Primrose Hill, Doddington, Cambs, PE15 0SU";
 const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG";
 
-/* ===== Rates (no handling fee) ===== */
+/* ===== Rates & Rules ===== */
 const RATES = {
   baseFeeDefault: 35,
   baseFeeMove: 50, // House Move = £50
@@ -206,7 +200,7 @@ const RATES = {
     mattress:{ each: 20 }, tyre:{ each: 6 }
   }
 };
-
+const MIN_TOTAL = 55;
 const BUSINESS_WHATSAPP = "447717463496";
 
 /* ===== DOM ===== */
@@ -216,28 +210,23 @@ const els = {
   addrPickup: document.getElementById('addrPickup'),
   addrDrop: document.getElementById('addrDrop'),
   addrDropWrap: document.getElementById('addrDropWrap'),
-  twoMan: document.getElementById('twoMan'),
   twoManWrap: document.getElementById('twoManWrap'),
+  twoMan: document.getElementById('twoMan'),
+  stairsWrap: document.getElementById('stairsWrap'),
   stairsPickup: document.getElementById('stairsPickup'),
   stairsDrop: document.getElementById('stairsDrop'),
-  stairsWrap: document.getElementById('stairsWrap'),
   wasteType: document.getElementById('wasteType'),
   wasteWrap: document.getElementById('wasteWrap'),
   qtyWrap: document.getElementById('qtyWrap'),
   itemQty: document.getElementById('itemQty'),
-  jobDesc: document.getElementById('jobDesc'),
   descWrap: document.getElementById('descWrap'),
+  jobDesc: document.getElementById('jobDesc'),
   btnCalc: document.getElementById('btnCalc'),
   routeHint: document.getElementById('routeHint'),
   breakdown: document.getElementById('breakdown'),
   total: document.getElementById('total'),
   quoteId: document.getElementById('quoteId'),
   mileage: document.getElementById('mileage'),
-  // Photo elements remain but the whole card is display:none
-  photos: document.getElementById('photos'),
-  btnCamera: document.getElementById('btnCamera'),
-  photoPreview: document.getElementById('photoPreview'),
-  photoCount: document.getElementById('photoCount'),
   btnWA: document.getElementById('btnWhatsApp'),
   splash: document.getElementById('splash')
 };
@@ -246,18 +235,18 @@ const els = {
 let pickupAddress = "", dropAddress = "";
 let directions = null, placesPickup = null, placesDrop = null;
 
-/* ===== Quote ID (local persistent counter) ===== */
+/* ===== Quote ID (persistent counter starting at ID000001) ===== */
 function nextQuoteId(){
   try{
     const key = "bhdQuoteSeq";
     let n = parseInt(localStorage.getItem(key) || "0", 10);
     if (!Number.isFinite(n) || n < 0) n = 0;
-    n += 1;
+    n += 1; // first call => 1
     localStorage.setItem(key, String(n));
     return "ID" + String(n).padStart(6,"0");
   }catch(e){
-    // Fallback (non-persistent)
-    const t = Date.now()%1e6;
+    // Fallback if localStorage blocked
+    const t = 1 + (Date.now() % 999999);
     return "ID" + String(t).padStart(6,"0");
   }
 }
@@ -286,11 +275,15 @@ function setJobTypeUI(){
     // Tip Run: pickup + waste only
     els.wasteWrap.classList.remove('hidden');
     els.routeHint.textContent = "Route: (mileage rule applies) → Waterbeach → Home";
-  } else if (jt === "move" || jt === "fb" || jt === "shop" || jt === "student"){
-    // Moves & marketplace & shop runs & student: pickup + drop + manpower + stairs
+  } else if (jt === "move" || jt === "fb" || jt === "student"){
+    // Show delivery, two-man & stairs (except 'shop' which hides them)
     els.addrDropWrap.classList.remove('hidden');
     els.twoManWrap.classList.remove('hidden');
     els.stairsWrap.classList.remove('hidden');
+    els.routeHint.textContent = "Route: Home → Pickup → Drop-off → Home";
+  } else if (jt === "shop"){
+    // Emergency Shop Run: no two-man, no stairs
+    els.addrDropWrap.classList.remove('hidden');
     els.routeHint.textContent = "Route: Home → Pickup → Drop-off → Home";
   } else if (jt === "business" || jt === "other"){
     // Business/Other: pickup + drop + description
@@ -324,20 +317,20 @@ function baseFeeFor(jt){
   return RATES.baseFeeDefault;
 }
 
-/* ===== Calc totals ===== */
+/* ===== Calc totals (with £55 minimum) ===== */
 function calculate(){
   const jt = els.jobType.value;
   if (!jt){ els.breakdown.innerHTML = ""; els.total.textContent = "Total: £0.00"; return {total:0, lines:[]}; }
 
   const miles = parseFloat(els.mileage.value)||0;
   const base = baseFeeFor(jt);
-  const twoManFee = (jt==="tip" || jt==="other" || jt==="business") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
-  const stairsCost = (jt==="tip" || jt==="other" || jt==="business") ? 0 :
+  const twoManFee = (jt==="tip" || jt==="shop" || jt==="business" || jt==="other") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
+  const stairsCost = (jt==="tip" || jt==="shop" || jt==="business" || jt==="other") ? 0 :
     ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
   const mileageCost = miles * RATES.mileagePerMile;
   const disp = (jt==="tip") ? calcDisposal() : { fee: 0, detail: "" };
 
-  const total = base + mileageCost + stairsCost + twoManFee + disp.fee;
+  let total = base + mileageCost + stairsCost + twoManFee + disp.fee;
 
   const lines = [
     `Base: £${base.toFixed(2)}`,
@@ -347,6 +340,11 @@ function calculate(){
   if (twoManFee) lines.push(`Two-person: £${twoManFee.toFixed(2)}`);
   if (jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
 
+  if (total < MIN_TOTAL){
+    lines.push(`Minimum charge applied`);
+    total = MIN_TOTAL;
+  }
+
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Total: £${total.toFixed(2)}`;
   return { total, lines };
@@ -354,29 +352,26 @@ function calculate(){
 
 /* ===== Route helpers ===== */
 function getRouteStopsNonTip(){
+  // Generic Home → Pickup → Drop → Home
   return { origin: HOME_ADDR, waypoints: [pickupAddress, dropAddress], destination: HOME_ADDR };
 }
 
-/* Tip Run mileage rule:
-   - If Home→Pickup distance <= 50 miles: mileage = Pickup → Waterbeach → Home
-   - Else: mileage = Home → Pickup → Waterbeach → Home
+/* Mileage rules:
+   - Tip: if Home→Pickup <= 50mi, use Pickup→Waterbeach→Home; else Home→Pickup→Waterbeach→Home
+   - Student: ALWAYS Home→Pickup→Drop→Home
+   - Others (move/fb/shop): Home→Pickup→Drop→Home
 */
 function calcMileage(){
   const jt = els.jobType.value;
-  if (!jt){ els.routeHint.textContent = "Choose a job type to start."; calculate(); return; }
+  if (!directions){ calculate(); return; }
+  if (!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
+  if (jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
 
-  if(!directions){
-    els.routeHint.textContent = "Mileage unavailable (Maps not loaded). Showing base estimate.";
-    calculate(); return;
-  }
-  if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
-  if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
-
-  if (jt !== "tip"){
+  if (jt === "student" || jt === "move" || jt === "fb" || jt === "shop"){
     const { origin, waypoints, destination } = getRouteStopsNonTip();
     directions.route(
       { origin, destination, waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})), travelMode:'DRIVING' },
-      (res, status)=>{
+      (res,status)=>{
         if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
         const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
         els.mileage.value = miles.toFixed(1);
@@ -387,41 +382,33 @@ function calcMileage(){
     return;
   }
 
-  // Tip run flow:
-  // Step 1: measure Home -> Pickup
+  // Tip run special rule
+  // Step 1: Home -> Pickup
   directions.route(
-    { origin: HOME_ADDR, destination: pickupAddress, travelMode: 'DRIVING' },
-    (resHP, statusHP)=>{
+    { origin: HOME_ADDR, destination: pickupAddress, travelMode:'DRIVING' },
+    (resHP,statusHP)=>{
       if(statusHP!=="OK"){ els.routeHint.textContent = "Couldn’t measure home distance."; return; }
       const milesHP = (resHP.routes[0].legs[0].distance?.value || 0)/1609.344;
 
       if (milesHP <= 50){
-        // Use Collection → Waterbeach → Home
+        // Pickup → Waterbeach → Home
         directions.route(
-          { origin: pickupAddress,
-            destination: HOME_ADDR,
-            waypoints: [{location: WATERBEACH_ADDR, stopover:true}],
-            travelMode: 'DRIVING'
-          },
-          (res, status)=>{
+          { origin: pickupAddress, destination: HOME_ADDR, waypoints:[{location:WATERBEACH_ADDR, stopover:true}], travelMode:'DRIVING' },
+          (res,status)=>{
             if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
-            const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+            const miles = res.routes[0].legs.reduce((s,l)=> s+(l.distance?.value||0), 0) / 1609.344;
             els.mileage.value = miles.toFixed(1);
             els.routeHint.textContent = `Mileage from collection (${miles.toFixed(1)} mi).`;
             calculate();
           }
         );
       } else {
-        // Use Home → Collection → Waterbeach → Home
+        // Home → Pickup → Waterbeach → Home
         directions.route(
-          { origin: HOME_ADDR,
-            destination: HOME_ADDR,
-            waypoints: [{location: pickupAddress, stopover:true},{location: WATERBEACH_ADDR, stopover:true}],
-            travelMode: 'DRIVING'
-          },
-          (res, status)=>{
+          { origin: HOME_ADDR, destination: HOME_ADDR, waypoints:[{location:pickupAddress, stopover:true},{location:WATERBEACH_ADDR, stopover:true}], travelMode:'DRIVING' },
+          (res,status)=>{
             if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
-            const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
+            const miles = res.routes[0].legs.reduce((s,l)=> s+(l.distance?.value||0), 0) / 1609.344;
             els.mileage.value = miles.toFixed(1);
             els.routeHint.textContent = `Mileage from home (>50mi rule) (${miles.toFixed(1)} mi).`;
             calculate();
@@ -434,33 +421,23 @@ function calcMileage(){
 
 /* ===== WhatsApp ===== */
 function sendWhatsApp(){
-  // Always use wa.me so the number is prefilled (photos hidden for now)
+  // Assign persistent Quote ID
   const id = nextQuoteId();
   els.quoteId.textContent = "Quote ID — " + id;
 
   const { total, lines } = calculate();
   const jt = els.jobType.value;
-  if (!jt){ els.routeHint.textContent = "Choose a job type to start."; return; }
 
   const msgLines = [
     "Hey Ben! I need something Humpin' & Dumpin'",
     `Quote ID: ${id}`,
-    `Job Type: ${jt}`,
+    `Job Type: ${jt || "N/A"}`,
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
     (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
     `\nEstimated total: £${total.toFixed(2)}`
   ].filter(Boolean);
   const textMsg = msgLines.join("\n");
-
-  // --- Keep photo share code for later (disabled) ---
-  // const files = Array.from(els.photos?.files || []);
-  // const canShareFiles = navigator.canShare && files.length>0 && navigator.canShare({ files });
-  // if (canShareFiles && navigator.share){
-  //   navigator.share({ text: textMsg, files }).catch(()=>{});
-  //   return;
-  // }
-  // --- End disabled block ---
 
   const url = `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(textMsg)}`;
   window.open(url, '_blank');
@@ -473,17 +450,20 @@ function initMapsStuff(){
     const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
     const ap = document.getElementById('addrPickup');
     const ad = document.getElementById('addrDrop');
-    if (ap) { placesPickup = new google.maps.places.Autocomplete(ap, opt);
-      placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || ap.value.trim(); }); }
-    if (ad) { placesDrop   = new google.maps.places.Autocomplete(ad, opt);
-      placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || ad.value.trim();   }); }
+    if (ap){
+      placesPickup = new google.maps.places.Autocomplete(ap, opt);
+      placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || ap.value.trim(); });
+    }
+    if (ad){
+      placesDrop = new google.maps.places.Autocomplete(ad, opt);
+      placesDrop.addListener('place_changed', ()=>{ dropAddress = placesDrop.getPlace()?.formatted_address || ad.value.trim(); });
+    }
   }catch(e){}
 }
 window.initMapsStuff = initMapsStuff;
 
 /* ===== Events ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Initial state
   setJobTypeUI();
   onWasteTypeChanged();
   calculate();
@@ -492,26 +472,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   els.wasteType.addEventListener('change', onWasteTypeChanged);
   els.btnCalc.addEventListener('click', ()=>{ calcMileage(); calculate(); });
   els.btnWA.addEventListener('click', sendWhatsApp);
-
-  // Photo picker wiring left in place (card is hidden)
-  if (els.btnCamera && els.photos){
-    els.btnCamera.addEventListener('click', ()=> els.photos.click());
-    els.photos.addEventListener('change', ()=>{
-      if (!els.photoPreview || !els.photoCount) return;
-      els.photoPreview.innerHTML = "";
-      const files = Array.from(els.photos.files || []);
-      els.photoCount.textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
-      files.forEach(file=>{
-        const reader = new FileReader();
-        reader.onload = e=>{
-          const img = document.createElement('img');
-          img.src = e.target.result; img.alt = "Selected photo";
-          els.photoPreview.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-  }
 
   // Always kill splash after 4 seconds
   setTimeout(()=>{ els.splash?.classList.add('hide'); }, 4000);
