@@ -75,7 +75,7 @@
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
       <label for="jobType" style="margin:0;color:#fff">Job Type</label>
-      <span class="tag">WhatsApp checkout • Photos supported</span>
+      <span class="tag">WhatsApp checkout</span>
     </div>
     <select id="jobType">
       <option value="" selected disabled hidden>Choose a job type…</option>
@@ -158,8 +158,8 @@
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
 
-  <!-- Photos -->
-  <div class="card">
+  <!-- Photos (HIDDEN FOR NOW; keep structure so code doesn't break) -->
+  <div class="card" id="photosCard" style="display:none;">
     <label class="muted" for="photos">Add photos (photo picker)</label>
     <input id="photos" class="hidden" type="file" accept="image/*" multiple>
     <div class="photo-bar">
@@ -174,13 +174,14 @@
     </div>
     <div id="photoPreview"></div>
   </div>
+  <!-- End Photos -->
 
   <!-- CTA -->
   <div class="card">
     <div class="row">
       <button id="btnWhatsApp" class="btn primary" type="button">Send to WhatsApp</button>
     </div>
-    <div class="hint" style="margin-top:8px">On phones, WhatsApp opens with your details (and photos if supported).</div>
+    <div class="hint" style="margin-top:8px">WhatsApp opens with your details and Ben’s number prefilled.</div>
   </div>
 </div>
 
@@ -192,7 +193,7 @@ const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach,
 /* ===== Rates (no handling fee) ===== */
 const RATES = {
   baseFeeDefault: 35,
-  baseFeeMove: 50, // House Move override
+  baseFeeMove: 50, // House Move = £50
   mileagePerMile: 0.40,
   twoMan: 20,
   stairsPerFloor: 5,
@@ -232,6 +233,7 @@ const els = {
   total: document.getElementById('total'),
   quoteId: document.getElementById('quoteId'),
   mileage: document.getElementById('mileage'),
+  // Photo elements remain but the whole card is display:none
   photos: document.getElementById('photos'),
   btnCamera: document.getElementById('btnCamera'),
   photoPreview: document.getElementById('photoPreview'),
@@ -285,7 +287,7 @@ function setJobTypeUI(){
     els.wasteWrap.classList.remove('hidden');
     els.routeHint.textContent = "Route: (mileage rule applies) → Waterbeach → Home";
   } else if (jt === "move" || jt === "fb" || jt === "shop" || jt === "student"){
-    // Moves & marketplace & shop runs & student: pickup + drop + (optional) manpower + stairs
+    // Moves & marketplace & shop runs & student: pickup + drop + manpower + stairs
     els.addrDropWrap.classList.remove('hidden');
     els.twoManWrap.classList.remove('hidden');
     els.stairsWrap.classList.remove('hidden');
@@ -432,7 +434,7 @@ function calcMileage(){
 
 /* ===== WhatsApp ===== */
 function sendWhatsApp(){
-  // Assign Quote ID and compute breakdown
+  // Always use wa.me so the number is prefilled (photos hidden for now)
   const id = nextQuoteId();
   els.quoteId.textContent = "Quote ID — " + id;
 
@@ -451,15 +453,17 @@ function sendWhatsApp(){
   ].filter(Boolean);
   const textMsg = msgLines.join("\n");
 
-  const files = Array.from(els.photos.files || []);
-  const canShareFiles = navigator.canShare && files.length>0 && navigator.canShare({ files });
+  // --- Keep photo share code for later (disabled) ---
+  // const files = Array.from(els.photos?.files || []);
+  // const canShareFiles = navigator.canShare && files.length>0 && navigator.canShare({ files });
+  // if (canShareFiles && navigator.share){
+  //   navigator.share({ text: textMsg, files }).catch(()=>{});
+  //   return;
+  // }
+  // --- End disabled block ---
 
-  if (canShareFiles && navigator.share){
-    navigator.share({ text: textMsg, files }).catch(()=>{});
-  } else {
-    const url = `https://wa.me/${"447717463496"}?text=${encodeURIComponent(textMsg)}`;
-    window.open(url, '_blank');
-  }
+  const url = `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(textMsg)}`;
+  window.open(url, '_blank');
 }
 
 /* ===== Google Places / Directions ===== */
@@ -467,10 +471,12 @@ function initMapsStuff(){
   try{
     directions = new google.maps.DirectionsService();
     const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
-    placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
-    placesDrop   = new google.maps.places.Autocomplete(els.addrDrop,   opt);
-    placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
-    placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || els.addrDrop.value.trim();   });
+    const ap = document.getElementById('addrPickup');
+    const ad = document.getElementById('addrDrop');
+    if (ap) { placesPickup = new google.maps.places.Autocomplete(ap, opt);
+      placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || ap.value.trim(); }); }
+    if (ad) { placesDrop   = new google.maps.places.Autocomplete(ad, opt);
+      placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || ad.value.trim();   }); }
   }catch(e){}
 }
 window.initMapsStuff = initMapsStuff;
@@ -487,22 +493,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
   els.btnCalc.addEventListener('click', ()=>{ calcMileage(); calculate(); });
   els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // Photo picker
-  els.btnCamera.addEventListener('click', ()=> els.photos.click());
-  els.photos.addEventListener('change', ()=>{
-    els.photoPreview.innerHTML = "";
-    const files = Array.from(els.photos.files || []);
-    els.photoCount.textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
-    files.forEach(file=>{
-      const reader = new FileReader();
-      reader.onload = e=>{
-        const img = document.createElement('img');
-        img.src = e.target.result; img.alt = "Selected photo";
-        els.photoPreview.appendChild(img);
-      };
-      reader.readAsDataURL(file);
+  // Photo picker wiring left in place (card is hidden)
+  if (els.btnCamera && els.photos){
+    els.btnCamera.addEventListener('click', ()=> els.photos.click());
+    els.photos.addEventListener('change', ()=>{
+      if (!els.photoPreview || !els.photoCount) return;
+      els.photoPreview.innerHTML = "";
+      const files = Array.from(els.photos.files || []);
+      els.photoCount.textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
+      files.forEach(file=>{
+        const reader = new FileReader();
+        reader.onload = e=>{
+          const img = document.createElement('img');
+          img.src = e.target.result; img.alt = "Selected photo";
+          els.photoPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
     });
-  });
+  }
 
   // Always kill splash after 4 seconds
   setTimeout(()=>{ els.splash?.classList.add('hide'); }, 4000);
