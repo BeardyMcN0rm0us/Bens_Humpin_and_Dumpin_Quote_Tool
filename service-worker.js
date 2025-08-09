@@ -1,6 +1,6 @@
-// Bens Quick Quote Tool Service Worker
-// Cache name bumped to force reload of latest version
-const CACHE = "bhd-quote-v3";
+// Ben’s Humpin’ & Dumpin’ Quick Quote Tool - Service Worker v4
+// Cache name bumped to force browsers to pull the latest version
+const CACHE = "bhd-quote-v4";
 const ASSETS = [
   "./",
   "./index.html",
