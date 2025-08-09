@@ -5,34 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ben’s Humpin’ & Dumpin’ Quick Quote Tool</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0; padding: 0;
-  background-color: #000;
-  color: #fff;
-}
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-h1 {
-  color: #ff4500;
-  text-align: center;
-}
-label { display: block; margin-top: 10px; }
-input, select, button {
-  width: 100%; padding: 8px; margin-top: 5px;
-  border-radius: 5px; border: none;
-}
-button {
-  background-color: #ff4500; color: #fff;
-  font-weight: bold; cursor: pointer;
-}
-.hidden { display: none; }
-.breakdown { margin-top: 20px; font-size: 0.9rem; }
-.total { font-size: 1.2rem; font-weight: bold; margin-top: 10px; }
-.sm { font-size: .85rem; opacity: 0.8; }
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#000; color:#fff; }
+  .container { max-width: 640px; margin: 0 auto; padding: 20px; }
+  h1 { color:#ff4500; text-align:center; margin: 0 0 12px; }
+  label { display:block; margin-top:10px; }
+  input, select, textarea, button {
+    width:100%; padding:10px; margin-top:6px; border-radius:8px; border:none; background:#111; color:#fff;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  button { background:#ff4500; font-weight:700; cursor:pointer; }
+  .hidden { display:none; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .breakdown { margin-top:18px; font-size:0.95rem; line-height:1.35; }
+  .total { font-size:1.25rem; font-weight:800; margin-top:10px; }
+  .sm { font-size:.85rem; opacity:.85; }
+  .disclaimer { margin-top:14px; padding:10px; background:#1b1b1b; border-left:4px solid #ff4500; color:#ccc; font-size:.9rem; }
 </style>
 </head>
 <body>
@@ -48,54 +35,86 @@ button {
     <option value="other">Other</option>
   </select>
 
-  <label for="addrPickup">Collection Address</label>
-  <input type="text" id="addrPickup" placeholder="Enter collection address">
+  <div id="pickupField">
+    <label for="addrPickup">Collection Address</label>
+    <input type="text" id="addrPickup" placeholder="Enter collection address">
+  </div>
 
   <div id="addrDropWrap">
     <label for="addrDrop">Delivery Address</label>
     <input type="text" id="addrDrop" placeholder="Enter delivery address">
   </div>
 
-  <label>Mileage (auto-calculated)</label>
-  <input type="number" id="mileage" readonly>
+  <!-- Mileage is hidden from UI but used in calc -->
+  <input type="number" id="mileage" class="hidden" readonly>
 
-  <label for="trips">Number of Trips</label>
-  <input type="number" id="trips" value="1" min="1">
+  <div id="tripWrap">
+    <label for="trips">Number of Trips</label>
+    <input type="number" id="trips" value="1" min="1">
+  </div>
 
-  <label for="twoMan">Two-person job?</label>
-  <select id="twoMan">
-    <option value="no">No</option>
-    <option value="yes">Yes</option>
-  </select>
+  <div id="twoManWrap">
+    <label for="twoMan">Two-person job?</label>
+    <select id="twoMan">
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </div>
 
-  <label for="stairsPickup">Stairs at Pickup (floors)</label>
-  <input type="number" id="stairsPickup" value="0" min="0">
+  <div id="stairsWrap">
+    <label for="stairsPickup">Stairs at Pickup (floors)</label>
+    <input type="number" id="stairsPickup" value="0" min="0">
+    <label for="stairsDrop">Stairs at Drop-off (floors)</label>
+    <input type="number" id="stairsDrop" value="0" min="0">
+  </div>
 
-  <label for="stairsDrop">Stairs at Drop-off (floors)</label>
-  <input type="number" id="stairsDrop" value="0" min="0">
+  <div id="wasteWrap">
+    <label for="wasteType">Waste Type (Tip Runs)</label>
+    <select id="wasteType">
+      <option value="mixed">Mixed Waste</option>
+      <option value="inert">Inert Waste</option>
+      <option value="wood">Wood</option>
+      <option value="green">Green Waste</option>
+      <option value="plaster">Plasterboard</option>
+      <option value="mattress">Mattress</option>
+      <option value="tyre">Tyre</option>
+    </select>
 
-  <label for="wasteType">Waste Type (Tip Runs)</label>
-  <select id="wasteType">
-    <option value="mixed">Mixed Waste</option>
-    <option value="inert">Inert Waste</option>
-    <option value="wood">Wood</option>
-    <option value="green">Green Waste</option>
-    <option value="plaster">Plasterboard</option>
-    <option value="mattress">Mattress</option>
-    <option value="tyre">Tyre</option>
-  </select>
+    <!-- Weight removed; we’ll use min fee. For item-based, keep quantity -->
+    <div id="qtyWrap" class="hidden">
+      <label for="itemQty">Quantity (items)</label>
+      <input type="number" id="itemQty" value="1" min="1" step="1">
+    </div>
+    <div class="sm">We’ll use the minimum disposal fee. If it’s more, Ben will confirm from your photos.</div>
+  </div>
 
-  <label id="measureLabel">Weight (tonnes)</label>
-  <input type="number" id="wasteMeasure" value="0" step="0.01">
+  <!-- Barter/Other description -->
+  <div id="descWrap" class="hidden">
+    <label for="jobDesc">What is it? (Describe the job)</label>
+    <textarea id="jobDesc" placeholder="e.g., swap a sofa for a table; collect a treadmill; etc."></textarea>
+  </div>
 
-  <button id="btnCalcMiles" type="button">Calculate Mileage</button>
+  <!-- Photos -->
+  <div id="photosWrap">
+    <label for="photos">Add photos (camera or gallery)</label>
+    <input id="photos" type="file" accept="image/*" capture="environment" multiple>
+    <div class="sm">On phones, you can take photos now or pick from your gallery.</div>
+  </div>
 
-  <div id="routeHint" class="sm">Enter your addresses above, then tap "Calculate Mileage".</div>
+  <button id="btnCalc" type="button">Calculate Quote</button>
+
+  <div id="routeHint" class="sm" style="margin-top:10px;">Enter your address(es) above, then tap “Calculate Quote”.</div>
   <div id="breakdown" class="breakdown"></div>
   <div id="total" class="total"></div>
 
-  <button id="btnWhatsApp" type="button">Send to WhatsApp</button>
-  <button id="btnCopy" type="button">Copy Quote</button>
+  <div class="disclaimer">
+    ⚠️ This is an <strong>estimated quote</strong>. Final price depends on access, load, and photos. Ben will confirm before booking.
+  </div>
+
+  <div class="row" style="margin-top:12px">
+    <button id="btnWhatsApp" type="button">Send to WhatsApp</button>
+    <button id="btnCopy" type="button">Copy Quote</button>
+  </div>
 </div>
 
 <script>
@@ -115,65 +134,101 @@ const RATES = {
     mattress:{ each: 20 }, tyre:{ each: 6 }
   }
 };
+
 const BUSINESS_WHATSAPP = "447717463496";
 const WA_INTRO = "Hey Ben! I need something Humpin' & Dumpin'";
 
+// DOM
 const els = {
   jobType: document.getElementById('jobType'),
   mileage: document.getElementById('mileage'),
   trips: document.getElementById('trips'),
   twoMan: document.getElementById('twoMan'),
+  twoManWrap: document.getElementById('twoManWrap'),
   stairsPickup: document.getElementById('stairsPickup'),
   stairsDrop: document.getElementById('stairsDrop'),
+  stairsWrap: document.getElementById('stairsWrap'),
   wasteType: document.getElementById('wasteType'),
-  wasteMeasure: document.getElementById('wasteMeasure'),
-  measureLabel: document.getElementById('measureLabel'),
+  wasteWrap: document.getElementById('wasteWrap'),
+  qtyWrap: document.getElementById('qtyWrap'),
+  itemQty: document.getElementById('itemQty'),
   breakdown: document.getElementById('breakdown'),
   total: document.getElementById('total'),
   addrPickup: document.getElementById('addrPickup'),
   addrDrop: document.getElementById('addrDrop'),
   addrDropWrap: document.getElementById('addrDropWrap'),
-  btnCalcMiles: document.getElementById('btnCalcMiles'),
+  pickupField: document.getElementById('pickupField'),
+  routeHint: document.getElementById('routeHint'),
+  btnCalc: document.getElementById('btnCalc'),
   btnWA: document.getElementById('btnWhatsApp'),
   btnCopy: document.getElementById('btnCopy'),
-  routeHint: document.getElementById('routeHint')
+  descWrap: document.getElementById('descWrap'),
+  jobDesc: document.getElementById('jobDesc'),
+  photos: document.getElementById('photos')
 };
 
 let pickupAddress = "", dropAddress = "";
 let directions, placesPickup, placesDrop;
 
-function updateMeasureLabel(){
-  const t = els.wasteType.value;
-  els.measureLabel.textContent = (t==="mattress"||t==="tyre") ? "Quantity (items)" : "Weight (tonnes)";
+// UI logic per job type
+function setJobTypeUI(){
+  const jt = els.jobType.value;
+  // Tip run: pickup addr + waste, NO two-man, keep stairs hidden, no drop addr
+  const isTip = jt === "tip";
+  els.addrDropWrap.classList.toggle('hidden', isTip || jt==="other" || jt==="business");
+  els.wasteWrap.classList.toggle('hidden', !isTip);
+  els.twoManWrap.classList.toggle('hidden', isTip || jt==="other" || jt==="business");
+  els.stairsWrap.classList.toggle('hidden', isTip || jt==="other" || jt==="business");
+  els.descWrap.classList.toggle('hidden', !(jt==="other" || jt==="business"));
+  els.routeHint.textContent =
+    isTip ? "Route: Home → Collection → Waterbeach → Home"
+          : (jt==="other"||jt==="business" ? "Enter both addresses and a description, then tap Calculate Quote."
+                                            : "Route: Home → Pickup → Drop-off → Home");
+  // Waste quantity UI (only if mattress/tyre)
+  onWasteTypeChanged();
 }
 
+// Disposal calc: weight-based uses MIN fee only; items use qty*each
 function calcDisposal(){
   const t = els.wasteType.value;
-  const qty = parseFloat(els.wasteMeasure.value)||0;
-  if(t==="mattress") return {fee: qty*RATES.disposal.mattress.each, detail:`Mattress x ${qty}`};
-  if(t==="tyre") return {fee: qty*RATES.disposal.tyre.each, detail:`Tyres x ${qty}`};
-  const rate = RATES.disposal[t].ratePerTonne;
-  const min = RATES.disposal[t].minFee;
-  let fee = qty*rate; if(qty>0 && fee<min) fee = min;
-  return {fee, detail:`${qty}t @ £${rate}/t (min £${min})`};
+  if (t === "mattress" || t === "tyre"){
+    const each = t==="mattress" ? RATES.disposal.mattress.each : RATES.disposal.tyre.each;
+    const qty = Math.max(1, parseInt(els.itemQty.value)||1);
+    return { fee: qty*each, detail: `${t[0].toUpperCase()+t.slice(1)} x ${qty} @ £${each.toFixed(2)}` };
+  }
+  // weight types: use minimum fee only (per your request)
+  const { minFee, ratePerTonne } = RATES.disposal[t];
+  return { fee: minFee, detail: `Minimum disposal for ${t} (rate £${ratePerTonne}/t)` };
 }
 
 function calculate(){
   const miles = parseFloat(els.mileage.value)||0;
   const trips = parseInt(els.trips.value)||1;
-  const twoManFee = (els.twoMan.value==="yes") ? RATES.twoMan : 0;
-  const stairsCost = ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
-  const mileageCost = miles*RATES.mileagePerMile*trips;
-  const disposal = calcDisposal();
-  const total = RATES.baseFee + RATES.handling + mileageCost + stairsCost + twoManFee + disposal.fee;
 
-  els.breakdown.innerHTML = `• Base: £${RATES.baseFee.toFixed(2)}<br>
-    • Handling: £${RATES.handling.toFixed(2)}<br>
-    • Mileage: £${mileageCost.toFixed(2)} (${miles} mi × £${RATES.mileagePerMile.toFixed(2)} × ${trips} trips)<br>
-    ${stairsCost?`• Stairs: £${stairsCost.toFixed(2)}<br>`:""}
-    ${twoManFee?`• Two-man: £${twoManFee.toFixed(2)}<br>`:""}
-    • Disposal: £${disposal.fee.toFixed(2)} — ${disposal.detail}`;
+  const jt = els.jobType.value;
+  const twoManFee = (jt==="tip" || jt==="other" || jt==="business") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
+  const stairsCost = (jt==="tip" || jt==="other" || jt==="business") ? 0 :
+    ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
+
+  const mileageCost = miles * RATES.mileagePerMile * trips;
+
+  // Disposal: only show for tip runs; for other modes you can toggle as needed
+  const disp = (jt==="tip") ? calcDisposal() : { fee: 0, detail: "N/A" };
+
+  const total = RATES.baseFee + RATES.handling + mileageCost + stairsCost + twoManFee + disp.fee;
+
+  const lines = [
+    `Base: £${RATES.baseFee.toFixed(2)}`,
+    `Handling: £${RATES.handling.toFixed(2)}`,
+    `Mileage: £${mileageCost.toFixed(2)} (${miles.toFixed(1)} mi × £${RATES.mileagePerMile.toFixed(2)} × ${trips} trip[s])`,
+  ];
+  if (stairsCost) lines.push(`Stairs: £${stairsCost.toFixed(2)}`);
+  if (twoManFee) lines.push(`Two-person team: £${twoManFee.toFixed(2)}`);
+  if (jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
+
+  els.breakdown.innerHTML = '• ' + lines.join('<br>• ');
   els.total.textContent = `Total: £${total.toFixed(2)}`;
+
   return { total: total.toFixed(2) };
 }
 
@@ -182,39 +237,93 @@ function getRouteStops(){
   if(jt==="tip"){
     return { origin: HOME_ADDR, waypoints: [pickupAddress, WATERBEACH_ADDR], destination: HOME_ADDR };
   }
+  // pickup/move/business/other = Home → Pickup → Drop → Home
   return { origin: HOME_ADDR, waypoints: [pickupAddress, dropAddress], destination: HOME_ADDR };
 }
 
 function calcMileage(){
+  // Validate addresses as needed by job type
   const jt = els.jobType.value;
-  if(!pickupAddress) { els.routeHint.textContent = "Enter collection address to calculate mileage."; return; }
-  if(jt!=="tip" && !dropAddress) { els.routeHint.textContent = "Enter delivery address to calculate mileage."; return; }
+  if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
+  if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
 
   const { origin, waypoints, destination } = getRouteStops();
-  directions.route({ origin, destination, waypoints: waypoints.map(a=>({location:a, stopover:true})), travelMode: 'DRIVING' }, 
+  directions.route(
+    { origin, destination, waypoints: waypoints.filter(Boolean).map(a=>({location:a, stopover:true})), travelMode:'DRIVING' },
     (res, status)=>{
       if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
       const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
       els.mileage.value = miles.toFixed(1);
       els.routeHint.textContent = "Mileage updated";
       calculate();
-  });
+    }
+  );
 }
 
-function onJobTypeChanged(){
-  const tip = (els.jobType.value === "tip");
-  els.addrDropWrap.classList.toggle('hidden', tip);
-  els.routeHint.textContent = tip
-    ? "Enter collection address, then tap ‘Calculate Mileage’."
-    : "Enter pickup and drop-off, then tap ‘Calculate Mileage’.";
+function onWasteTypeChanged(){
+  const t = els.wasteType.value;
+  const showQty = (t==="mattress" || t==="tyre");
+  els.qtyWrap.classList.toggle('hidden', !showQty);
 }
 
+// Share to WhatsApp — with photos if supported
+async function sendWhatsApp(){
+  const { total } = calculate();
+  const jt = els.jobType.value;
+  const desc = (jt==="other" || jt==="business") ? (els.jobDesc.value.trim() || "No description") : "";
+  const msgLines = [
+    "Hey Ben! I need something Humpin' & Dumpin'",
+    "",
+    `Job Type: ${jt}`,
+    `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
+    (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
+    (desc ? `Details: ${desc}` : ""),
+    "",
+    `Estimated total: £${total}`
+  ].filter(Boolean);
+  const textMsg = msgLines.join("\n");
+
+  const files = Array.from(els.photos.files || []);
+  const canShareFiles = 'canShare' in navigator && navigator.canShare && files.length>0 && navigator.canShare({ files });
+
+  try {
+    if (canShareFiles && navigator.share){
+      await navigator.share({ text: textMsg, files });
+      return;
+    }
+  } catch(e){
+    // fall through to wa.me
+  }
+  // Fallback: wa.me with text; user attaches photos manually in chat
+  const url = `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(textMsg)}`;
+  window.open(url, '_blank');
+}
+
+// Copy quote text
+function copyQuote(){
+  const { total } = calculate();
+  const jt = els.jobType.value;
+  const desc = (jt==="other" || jt==="business") ? (els.jobDesc.value.trim() || "No description") : "";
+  const text = [
+    "Quote — Ben’s Humpin’ & Dumpin’",
+    "",
+    `Job Type: ${jt}`,
+    `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
+    (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
+    (desc ? `Details: ${desc}` : ""),
+    "",
+    `Estimated total: £${total}`
+  ].filter(Boolean).join("\n");
+  navigator.clipboard?.writeText(text).then(()=>alert("Quote copied"));
+}
+
+// Google Autocomplete
 function initAutocomplete(){
   const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
   placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
-  placesDrop = new google.maps.places.Autocomplete(els.addrDrop, opt);
+  placesDrop   = new google.maps.places.Autocomplete(els.addrDrop,   opt);
   placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
-  placesDrop.addListener('place_changed', ()=>{ dropAddress = placesDrop.getPlace()?.formatted_address || els.addrDrop.value.trim(); });
+  placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || els.addrDrop.value.trim();   });
 }
 
 function initMapsStuff(){
@@ -222,26 +331,27 @@ function initMapsStuff(){
   initAutocomplete();
 }
 
-// Event listeners after DOM load
-document.addEventListener('DOMContentLoaded', () => {
-  updateMeasureLabel();
+// Events
+document.addEventListener('DOMContentLoaded', ()=>{
+  setJobTypeUI();
   calculate();
-  els.jobType.addEventListener('change', onJobTypeChanged);
-  els.btnCalcMiles.addEventListener('click', calcMileage);
-  els.btnWA.addEventListener('click', ()=>{
-    const { total } = calculate();
-    window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(`${WA_INTRO}\n\nTotal: £${total}`)}`);
+
+  els.jobType.addEventListener('change', setJobTypeUI);
+  els.wasteType.addEventListener('change', onWasteTypeChanged);
+
+  els.btnCalc.addEventListener('click', ()=>{
+    // For non-address jobs we still want a live price, so calc route only if addresses exist
+    calcMileage();
+    calculate();
   });
-  els.btnCopy.addEventListener('click', ()=>{
-    const { total } = calculate();
-    navigator.clipboard?.writeText(`${WA_INTRO}\n\nTotal: £${total}`);
-  });
-  els.wasteType.addEventListener('change', updateMeasureLabel);
+
+  els.btnWA.addEventListener('click', sendWhatsApp);
+  els.btnCopy.addEventListener('click', copyQuote);
 });
 </script>
 
-<!-- Google Maps API with placeholder key -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=2"></script>
+<!-- Google Maps API with placeholder key (injected by GitHub Actions) -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=3"></script>
 
 </body>
 </html>
