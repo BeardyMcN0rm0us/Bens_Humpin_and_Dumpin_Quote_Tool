@@ -44,6 +44,7 @@
   .hr{height:1px;background:var(--line);margin:12px 0}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
+  /* Photos */
   .photo-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
   .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px;cursor:pointer}
   .icon-btn svg{width:22px;height:22px}
@@ -58,6 +59,7 @@
 </style>
 </head>
 <body>
+<!-- Splash (forced 4s, then fade) -->
 <div id="splash"><img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’"></div>
 
 <div class="wrap">
@@ -97,23 +99,24 @@
     <!-- Hidden mileage (auto) -->
     <input id="mileage" type="number" class="hidden" readonly>
 
-    <div id="twoManWrap" class="grid2 hidden">
+    <!-- Two-man toggle -->
+    <div id="twoManWrap" class="hidden">
+      <label for="twoMan">Two-person team?</label>
+      <select id="twoMan">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+
+    <!-- Stairs (separate wrapper FIX) -->
+    <div id="stairsWrap" class="grid2 hidden">
       <div>
-        <label for="twoMan">Two-person team?</label>
-        <select id="twoMan">
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </select>
+        <label for="stairsPickup">Stairs at pickup (floors)</label>
+        <input id="stairsPickup" type="number" min="0" step="1" value="0">
       </div>
-      <div class="grid2" style="grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <label for="stairsPickup">Stairs at pickup (floors)</label>
-          <input id="stairsPickup" type="number" min="0" step="1" value="0">
-        </div>
-        <div>
-          <label for="stairsDrop">Stairs at drop-off (floors)</label>
-          <input id="stairsDrop" type="number" min="0" step="1" value="0">
-        </div>
+      <div>
+        <label for="stairsDrop">Stairs at drop-off (floors)</label>
+        <input id="stairsDrop" type="number" min="0" step="1" value="0">
       </div>
     </div>
 
@@ -201,6 +204,7 @@ const BUSINESS_WHATSAPP = "447717463496";
 /* ===== DOM ===== */
 const els = {
   jobType: document.getElementById('jobType'),
+  pickupField: document.getElementById('pickupField'),
   addrPickup: document.getElementById('addrPickup'),
   addrDrop: document.getElementById('addrDrop'),
   addrDropWrap: document.getElementById('addrDropWrap'),
@@ -237,47 +241,35 @@ function setJobTypeUI(){
   const jt = els.jobType.value;
 
   // Hide all by default
-  const hideAll = () => {
-    els.addrDropWrap.classList.add('hidden');
-    els.wasteWrap.classList.add('hidden');
-    els.twoManWrap.classList.add('hidden');
-    els.stairsWrap.classList.add('hidden');
-    els.descWrap.classList.add('hidden');
-    document.getElementById('pickupField').classList.add('hidden');
-  };
-  hideAll();
+  els.pickupField.classList.add('hidden');
+  els.addrDropWrap.classList.add('hidden');
+  els.wasteWrap.classList.add('hidden');
+  els.twoManWrap.classList.add('hidden');
+  els.stairsWrap.classList.add('hidden');
+  els.descWrap.classList.add('hidden');
 
   if (!jt){
     els.routeHint.textContent = "Choose a job type to start.";
     return;
   }
 
-  // Always need pickup for every type once chosen
-  document.getElementById('pickupField').classList.remove('hidden');
+  // Always show pickup after a type is chosen
+  els.pickupField.classList.remove('hidden');
 
   if (jt === "tip"){
-    // Tip Run: pickup + waste; no delivery, no two-man, no stairs
+    // Tip Run: pickup + waste only
     els.wasteWrap.classList.remove('hidden');
-    els.addrDropWrap.classList.add('hidden');
-    els.twoManWrap.classList.add('hidden');
-    els.stairsWrap.classList.add('hidden');
-    els.descWrap.classList.add('hidden');
     els.routeHint.textContent = "Route: Home → Collection → Waterbeach → Home";
   } else if (jt === "move" || jt === "fb" || jt === "shop" || jt === "student"){
-    // Moves & pickups: pickup + drop, two-man, stairs
+    // Moves & marketplace & shop runs & student: pickup + drop + (optional) manpower + stairs
     els.addrDropWrap.classList.remove('hidden');
     els.twoManWrap.classList.remove('hidden');
     els.stairsWrap.classList.remove('hidden');
-    els.wasteWrap.classList.add('hidden');
-    els.descWrap.classList.add('hidden');
     els.routeHint.textContent = "Route: Home → Pickup → Drop-off → Home";
   } else if (jt === "business" || jt === "other"){
-    // Business/Other: pickup + drop + description; no two-man, no stairs
+    // Business/Other: pickup + drop + description
     els.addrDropWrap.classList.remove('hidden');
     els.descWrap.classList.remove('hidden');
-    els.wasteWrap.classList.add('hidden');
-    els.twoManWrap.classList.add('hidden');
-    els.stairsWrap.classList.add('hidden');
     els.routeHint.textContent = "Enter both addresses and a description, then tap Calculate Quote.";
   }
 }
@@ -400,7 +392,7 @@ window.initMapsStuff = initMapsStuff;
 
 /* ===== Events ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Start with no selection and everything hidden (handled in HTML + setJobTypeUI)
+  // Initial state
   setJobTypeUI();
   onWasteTypeChanged();
   calculate();
