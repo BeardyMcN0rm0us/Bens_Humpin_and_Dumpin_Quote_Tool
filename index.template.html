@@ -40,7 +40,7 @@ button {
   <h1>Ben’s Quick Quote Tool</h1>
 
   <label for="jobType">Job Type</label>
-  <select id="jobType" onchange="onJobTypeChanged()">
+  <select id="jobType">
     <option value="tip">Tip Run</option>
     <option value="pickup">Pickup & Deliver</option>
     <option value="move">House Move / Relocation</option>
@@ -75,7 +75,7 @@ button {
   <input type="number" id="stairsDrop" value="0" min="0">
 
   <label for="wasteType">Waste Type (Tip Runs)</label>
-  <select id="wasteType" onchange="updateMeasureLabel()">
+  <select id="wasteType">
     <option value="mixed">Mixed Waste</option>
     <option value="inert">Inert Waste</option>
     <option value="wood">Wood</option>
@@ -90,7 +90,7 @@ button {
 
   <button id="btnCalcMiles" type="button">Calculate Mileage</button>
 
-  <div id="routeHint" class="sm"></div>
+  <div id="routeHint" class="sm">Enter your addresses above, then tap "Calculate Mileage".</div>
   <div id="breakdown" class="breakdown"></div>
   <div id="total" class="total"></div>
 
@@ -187,8 +187,8 @@ function getRouteStops(){
 
 function calcMileage(){
   const jt = els.jobType.value;
-  if(!pickupAddress) { els.routeHint.textContent = "Enter collection address"; return; }
-  if(jt!=="tip" && !dropAddress) { els.routeHint.textContent = "Enter delivery address"; return; }
+  if(!pickupAddress) { els.routeHint.textContent = "Enter collection address to calculate mileage."; return; }
+  if(jt!=="tip" && !dropAddress) { els.routeHint.textContent = "Enter delivery address to calculate mileage."; return; }
 
   const { origin, waypoints, destination } = getRouteStops();
   directions.route({ origin, destination, waypoints: waypoints.map(a=>({location:a, stopover:true})), travelMode: 'DRIVING' }, 
@@ -202,15 +202,19 @@ function calcMileage(){
 }
 
 function onJobTypeChanged(){
-  els.addrDropWrap.classList.toggle('hidden', els.jobType.value==="tip");
+  const tip = (els.jobType.value === "tip");
+  els.addrDropWrap.classList.toggle('hidden', tip);
+  els.routeHint.textContent = tip
+    ? "Enter collection address, then tap ‘Calculate Mileage’."
+    : "Enter pickup and drop-off, then tap ‘Calculate Mileage’.";
 }
 
 function initAutocomplete(){
   const opt = { fields: ["formatted_address"], componentRestrictions: { country: ["gb"] } };
   placesPickup = new google.maps.places.Autocomplete(els.addrPickup, opt);
   placesDrop = new google.maps.places.Autocomplete(els.addrDrop, opt);
-  placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace().formatted_address; });
-  placesDrop.addListener('place_changed', ()=>{ dropAddress = placesDrop.getPlace().formatted_address; });
+  placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
+  placesDrop.addListener('place_changed', ()=>{ dropAddress = placesDrop.getPlace()?.formatted_address || els.addrDrop.value.trim(); });
 }
 
 function initMapsStuff(){
@@ -218,18 +222,22 @@ function initMapsStuff(){
   initAutocomplete();
 }
 
-document.getElementById('btnCalcMiles').addEventListener('click', calcMileage);
-document.getElementById('btnWhatsApp').addEventListener('click', ()=>{
-  const { total } = calculate();
-  window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(`${WA_INTRO}\n\nTotal: £${total}`)}`);
+// Event listeners after DOM load
+document.addEventListener('DOMContentLoaded', () => {
+  updateMeasureLabel();
+  calculate();
+  els.jobType.addEventListener('change', onJobTypeChanged);
+  els.btnCalcMiles.addEventListener('click', calcMileage);
+  els.btnWA.addEventListener('click', ()=>{
+    const { total } = calculate();
+    window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(`${WA_INTRO}\n\nTotal: £${total}`)}`);
+  });
+  els.btnCopy.addEventListener('click', ()=>{
+    const { total } = calculate();
+    navigator.clipboard?.writeText(`${WA_INTRO}\n\nTotal: £${total}`);
+  });
+  els.wasteType.addEventListener('change', updateMeasureLabel);
 });
-document.getElementById('btnCopy').addEventListener('click', ()=>{
-  const { total } = calculate();
-  navigator.clipboard?.writeText(`${WA_INTRO}\n\nTotal: £${total}`);
-});
-
-updateMeasureLabel();
-calculate();
 </script>
 
 <!-- Google Maps API with placeholder key -->
