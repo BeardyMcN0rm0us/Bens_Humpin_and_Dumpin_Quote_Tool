@@ -1,5 +1,5 @@
-// Ben’s Humpin’ & Dumpin’ — Quick Quote PWA SW v12
-const CACHE = "bhd-quote-v12";
+// Ben’s Humpin’ & Dumpin’ — Quick Quote PWA SW v13
+const CACHE = "bhd-quote-v13";
 const ASSETS = [
   "./",
   "./index.html",

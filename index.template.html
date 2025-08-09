@@ -15,9 +15,8 @@
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
   .wrap{max-width:720px;margin:0 auto;padding:18px}
-  .card{background:linear-gradient(180deg,#141414 0%, #0f0f0f 100%);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:var(--shadow);animation:pop .25s ease}
-  @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
-  h1{margin:8px 0 6px;text-align:center;font-size:1.35rem;color:var(--brand2);letter-spacing:.2px}
+  .card{background:linear-gradient(180deg,#141414 0%, #0f0f0f 100%);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+  h1{margin:8px 0 6px;text-align:center;font-size:1.35rem;color:var(--brand2)}
   .brandbar{display:flex;flex-direction:column;align-items:center;gap:8px}
   .brandbar img{width:84px;height:84px;border-radius:14px;border:1px solid var(--line);object-fit:cover;background:#000}
   .tag{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
@@ -25,7 +24,6 @@
   input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0e0e0e;color:#fff;outline:none}
   textarea{min-height:96px;resize:vertical}
   .btn{width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;cursor:pointer}
-  .btn:active{transform:translateY(1px)}
   .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
   .btn.secondary{background:linear-gradient(135deg,#ff7a00,#ff3b30);color:#190a08}
   .row{display:flex;gap:12px;flex-wrap:wrap}
@@ -36,13 +34,10 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
   .photo-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
-  .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px}
+  .icon-btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#181818;border:1px solid var(--line);color:#fff;padding:12px;border-radius:12px;cursor:pointer}
   .icon-btn svg{width:22px;height:22px}
   #photoPreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   #photoPreview img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
-  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;pointer-events:none}
-  .toast-msg{background:#161616;border:1px solid #2a2a2a;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:all .25s ease;font-size:.95rem}
-  .toast-msg.show{opacity:1;transform:translateY(0)}
   /* Splash */
   #splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9998;opacity:1;transition:opacity .35s ease}
   #splash img{width:160px;height:160px;border-radius:24px;border:1px solid #222;box-shadow:var(--shadow);background:#000}
@@ -82,6 +77,7 @@
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
+    <!-- Hidden mileage -->
     <input id="mileage" type="number" style="display:none" readonly>
 
     <div id="twoManWrap" class="grid2">
@@ -169,7 +165,7 @@
 <div id="toast"></div>
 
 <script>
-/* ===== Config / State ===== */
+/* ===== Config & State ===== */
 const HOME_ADDR = "15 Primrose Hill, Doddington, Cambs, PE15 0SU";
 const WATERBEACH_ADDR = "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG";
 const RATES = {
@@ -185,7 +181,7 @@ const RATES = {
 };
 const BUSINESS_WHATSAPP = "447717463496";
 
-/* DOM cache */
+/* DOM refs */
 const els = {
   jobType: document.getElementById('jobType'),
   addrPickup: document.getElementById('addrPickup'),
@@ -217,21 +213,14 @@ const els = {
   splash: document.getElementById('splash')
 };
 
-/* ONE declaration only (bug fix) */
+/* single declarations only */
 let pickupAddress = "", dropAddress = "";
 let directions = null, placesPickup = null, placesDrop = null;
 
-/* ===== Utils ===== */
-function toast(msg){
-  const host = document.getElementById('toast');
-  const div = document.createElement('div');
-  div.className = 'toast-msg';
-  div.textContent = msg;
-  host.appendChild(div);
-  requestAnimationFrame(()=> div.classList.add('show'));
-  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=> host.removeChild(div), 250); }, 1600);
-}
-function hideSplash(){ els.splash?.classList.add('hide'); }
+/* ===== Helpers ===== */
+const pad = n => String(n).padStart(2, "0");
+function toast(t){ /* optional small toast; safe no-op */ }
+function hideSplash(){ els.splash && els.splash.classList.add('hide'); }
 
 /* ===== UI logic ===== */
 function setJobTypeUI(){
@@ -243,6 +232,8 @@ function setJobTypeUI(){
   els.stairsWrap.style.display   = (isTip || jt==="other" || jt==="business") ? "none" : "";
   els.descWrap.style.display     = (jt==="other" || jt==="business") ? "" : "none";
   els.quoteMode.textContent = "Mode: " + jt;
+  // qty UI depends on waste type
+  onWasteTypeChanged();
 }
 
 function onWasteTypeChanged(){
@@ -262,19 +253,23 @@ function calcDisposal(){
 }
 
 function setQuoteId(){
-  const now = new Date(); const p=n=>String(n).padStart(2,"0");
-  const id = `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
-  els.quoteId.textContent = "Quote ID — " + id; return id;
+  const now = new Date();
+  const id = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  els.quoteId.textContent = "Quote ID — " + id;
+  return id;
 }
 
+/* main calc (trips locked to 1) */
 function calculate(){
   const miles = parseFloat(els.mileage.value)||0;
   const jt = els.jobType.value;
+
   const twoManFee = (jt==="tip" || jt==="other" || jt==="business") ? 0 : (els.twoMan.value==="yes" ? RATES.twoMan : 0);
   const stairsCost = (jt==="tip" || jt==="other" || jt==="business") ? 0 :
     ((parseInt(els.stairsPickup.value)||0) + (parseInt(els.stairsDrop.value)||0)) * RATES.stairsPerFloor;
-  const mileageCost = miles * RATES.mileagePerMile; // trips locked to 1
+  const mileageCost = miles * RATES.mileagePerMile;
   const disp = (jt==="tip") ? calcDisposal() : { fee: 0, detail: "" };
+
   const total = RATES.baseFee + RATES.handling + mileageCost + stairsCost + twoManFee + disp.fee;
 
   const lines = [
@@ -288,7 +283,7 @@ function calculate(){
 
   els.breakdown.innerHTML = '• ' + lines.join('<br>• ');
   els.total.textContent = `Total: £${total.toFixed(2)}`;
-  return { total: total.toFixed(2) };
+  return total;
 }
 
 function getRouteStops(){
@@ -298,10 +293,12 @@ function getRouteStops(){
 }
 
 function calcMileage(){
+  // If Maps isn't ready, we still do a base calc with current mileage (0)
+  if(!directions){ els.routeHint.textContent = "Mileage unavailable (Maps not loaded). Showing base estimate."; calculate(); return; }
+
   const jt = els.jobType.value;
   if(!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
   if(jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
-  if(!directions){ els.routeHint.textContent = "Maps not ready — showing base estimate"; return; }
 
   const { origin, waypoints, destination } = getRouteStops();
   directions.route(
@@ -310,61 +307,74 @@ function calcMileage(){
       if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
       const miles = res.routes[0].legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344;
       els.mileage.value = miles.toFixed(1);
-      els.routeHint.textContent = "Mileage updated.";
+      els.routeHint.textContent = `Mileage updated (${miles.toFixed(1)} mi).`;
       calculate();
     }
   );
 }
 
+/* WhatsApp share */
 function sendWhatsApp(){
   const id = setQuoteId();
-  const { total } = calculate();
+  const total = calculate();
   const jt = els.jobType.value;
-  const msgLines = [
+  const msg = [
     "Hey Ben! I need something Humpin' & Dumpin'",
     `Quote ID: ${id}`,
     `Job Type: ${jt}`,
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
     ((jt==="other"||jt==="business") && els.jobDesc.value.trim() ? `Details: ${els.jobDesc.value.trim()}` : ""),
-    `Estimated total: £${total}`
-  ].filter(Boolean);
-  const textMsg = msgLines.join("\n");
+    `Estimated total: £${total.toFixed(2)}`
+  ].filter(Boolean).join("\n");
 
   const files = Array.from(els.photos.files || []);
   const canShareFiles = navigator.canShare && files.length>0 && navigator.canShare({ files });
-  if (canShareFiles && navigator.share){ navigator.share({ text: textMsg, files }).catch(()=>{}); }
-  else { window.open(`https://wa.me/447717463496?text=${encodeURIComponent(textMsg)}`, '_blank'); }
+  if (canShareFiles && navigator.share){
+    navigator.share({ text: msg, files }).catch(()=>{});
+  } else {
+    const url = `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+  }
 }
 
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Basic UI ready
-  setQuoteId(); setJobTypeUI(); onWasteTypeChanged(); calculate();
-
-  // Events
-  els.jobType.addEventListener('change', ()=>{ setJobTypeUI(); });
+  // Wire up events
+  els.jobType.addEventListener('change', setJobTypeUI);
   els.wasteType.addEventListener('change', onWasteTypeChanged);
   els.btnCamera.addEventListener('click', ()=> els.photos.click());
-  els.btnCalc.addEventListener('click', ()=>{ calcMileage(); setQuoteId(); calculate(); });
-  els.btnWA.addEventListener('click', sendWhatsApp);
   els.photos.addEventListener('change', ()=>{
     els.photoPreview.innerHTML = "";
     const files = Array.from(els.photos.files || []);
     els.photoCount.textContent = files.length ? `${files.length} photo${files.length>1?'s':''} selected` : "No photos selected";
-    files.forEach(f=>{ const r=new FileReader(); r.onload=e=>{ const img=new Image(); img.src=e.target.result; img.width=96; img.height=96; img.style.objectFit="cover"; img.style.borderRadius="10px"; img.style.border="1px solid #242424"; els.photoPreview.appendChild(img); }; r.readAsDataURL(f); });
+    files.forEach(f=>{
+      const r = new FileReader();
+      r.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.alt = "Selected photo";
+        document.getElementById('photoPreview').appendChild(img);
+      };
+      r.readAsDataURL(f);
+    });
   });
+  els.btnCalc.addEventListener('click', ()=>{ setQuoteId(); calcMileage(); calculate(); });
+  els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // Kill splash in 3s no matter what
-  setTimeout(hideSplash, 3000);
+  // First render
+  setQuoteId(); setJobTypeUI(); onWasteTypeChanged(); calculate();
+
+  // Hard kill splash after 4 seconds regardless
+  setTimeout(()=>{ document.getElementById('splash')?.classList.add('hide'); }, 4000);
 });
 
-/* Load Google Maps dynamically (with fallback) */
+/* Load Google Maps dynamically with callback */
 (function loadMaps(){
   const s = document.createElement('script');
   s.src = "https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=__mapsReady&v=9";
   s.async = true;
-  s.onerror = ()=>{ els.routeHint.textContent = "Maps failed to load. You can still get a base estimate; mileage requires Maps."; hideSplash(); };
+  s.onerror = ()=>{ els.routeHint.textContent = "Maps failed to load. Estimate will exclude mileage."; };
   document.head.appendChild(s);
 })();
 window.__mapsReady = function(){
@@ -376,7 +386,6 @@ window.__mapsReady = function(){
     placesPickup.addListener('place_changed', ()=>{ pickupAddress = placesPickup.getPlace()?.formatted_address || els.addrPickup.value.trim(); });
     placesDrop.addListener('place_changed',   ()=>{ dropAddress   = placesDrop.getPlace()?.formatted_address   || els.addrDrop.value.trim();   });
   }catch(e){}
-  hideSplash();
 };
 </script>
 </body>
