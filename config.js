@@ -10,7 +10,7 @@ window.BHD_CONFIG = {
   rates: {
     baseFeeDefault: 25,
     baseFeeMove: 50,
-    mileagePerMile: 0.35,
+    mileagePerMile: 0.25,
     twoMan: 20,
     stairsPerFloor: 5,
     disposal: {
