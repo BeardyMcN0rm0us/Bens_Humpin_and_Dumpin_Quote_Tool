@@ -18,10 +18,13 @@
   header img {
     max-width: 150px;
     margin-top: 20px;
+    animation: fadeIn 1s ease-out;
   }
   h1 {
     margin: 10px 0 20px;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    color: #f4a261;
+    animation: fadeIn 1.2s ease-out;
   }
   .container {
     max-width: 500px;
@@ -30,33 +33,47 @@
   }
   select, input, button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin: 8px 0;
     font-size: 1rem;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
   }
   select, input {
     background: #222;
     color: #fff;
   }
+  select:focus, input:focus {
+    outline: 2px solid #f4a261;
+  }
   button {
-    background: #e63946;
+    background: #e76f51;
     color: #fff;
     cursor: pointer;
     font-weight: bold;
   }
   button:hover {
-    background: #d62828;
+    background: #f4a261;
+    color: #000;
   }
   .hidden {
     display: none;
   }
   #total {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: bold;
     margin-top: 15px;
     color: #f4a261;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  #total.show {
+    opacity: 1;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
@@ -100,8 +117,8 @@
   <button id="whatsappBtn" class="hidden">Send to WhatsApp</button>
 </div>
 
-<!-- Load config.js if it exists -->
-<script src="config.js?v=20"></script>
+<!-- Load config.js if exists -->
+<script src="config.js?v=21"></script>
 <script>
   if (!window.BHD_CONFIG) {
     console.warn("Config not found, using fallback values");
@@ -170,6 +187,7 @@
     let maxPrice = Math.max(base * (1 + range), BHD_CONFIG.minTotal);
 
     totalEl.textContent = `Estimated: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
+    totalEl.classList.add('show');
     whatsappBtn.classList.remove('hidden');
 
     whatsappBtn.onclick = () => {
