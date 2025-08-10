@@ -33,9 +33,9 @@
   }
   select, input, button {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     margin: 8px 0;
-    font-size: 1rem;
+    font-size: 1.1rem;
     border: none;
     border-radius: 6px;
     transition: all 0.3s ease;
@@ -60,6 +60,13 @@
   .hidden {
     display: none;
   }
+  .slide {
+    animation: slideUp 0.4s ease forwards;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   #total {
     font-size: 1.5rem;
     font-weight: bold;
@@ -70,6 +77,9 @@
   }
   #total.show {
     opacity: 1;
+  }
+  #whatsappBtn.slideIn {
+    animation: slideUp 0.4s ease forwards;
   }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -117,8 +127,7 @@
   <button id="whatsappBtn" class="hidden">Send to WhatsApp</button>
 </div>
 
-<!-- Load config.js if exists -->
-<script src="config.js?v=21"></script>
+<script src="config.js?v=24"></script>
 <script>
   if (!window.BHD_CONFIG) {
     console.warn("Config not found, using fallback values");
@@ -157,19 +166,28 @@
   const totalEl = document.getElementById('total');
   const whatsappBtn = document.getElementById('whatsappBtn');
 
+  function showField(field) {
+    field.classList.remove('hidden');
+    field.classList.add('slide');
+  }
+  function hideField(field) {
+    field.classList.add('hidden');
+    field.classList.remove('slide');
+  }
+
   jobType.addEventListener('change', () => {
-    Object.values(fields).forEach(f => f.classList.add('hidden'));
+    Object.values(fields).forEach(f => hideField(f));
     const type = jobType.value;
     if (["tip", "fb", "move", "shop", "student", "business", "other"].includes(type)) {
-      fields.collectionAddressField.classList.remove('hidden');
+      showField(fields.collectionAddressField);
     }
     if (["fb", "move", "shop", "student", "business", "other"].includes(type)) {
-      fields.deliveryAddressField.classList.remove('hidden');
+      showField(fields.deliveryAddressField);
     }
     if (["move", "fb", "student"].includes(type)) {
-      fields.stairsPickupField.classList.remove('hidden');
-      fields.stairsDeliveryField.classList.remove('hidden');
-      fields.twoManField.classList.remove('hidden');
+      showField(fields.stairsPickupField);
+      showField(fields.stairsDeliveryField);
+      showField(fields.twoManField);
     }
   });
 
@@ -188,7 +206,10 @@
 
     totalEl.textContent = `Estimated: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
     totalEl.classList.add('show');
+
+    // Animate WhatsApp button
     whatsappBtn.classList.remove('hidden');
+    whatsappBtn.classList.add('slideIn');
 
     whatsappBtn.onclick = () => {
       const msg = `Hey Ben! I need something Humpin' & Dumpin'\nJob: ${type}\nEstimate: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}\nCollection: ${document.getElementById('collectionAddress').value || 'N/A'}\nDelivery: ${document.getElementById('deliveryAddress').value || 'N/A'}\nStairs at Pickup: ${document.getElementById('stairsPickup').value || 0}\nStairs at Delivery: ${document.getElementById('stairsDelivery').value || 0}\n2 Man Job: ${document.getElementById('twoMan').checked ? 'Yes' : 'No'}`;
