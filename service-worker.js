@@ -1,8 +1,9 @@
-// Ben’s Humpin’ & Dumpin’ — Quick Quote PWA SW v17
-const CACHE = "bhd-quote-v17";
+// Ben’s Humpin’ & Dumpin’ — Quick Quote PWA SW v18
+const CACHE = "bhd-quote-v18";
 const ASSETS = [
   "./",
   "./index.html",
+  "./index.template.html",
   "./manifest.webmanifest",
   "./config.js",
   "./icon-192.png",
