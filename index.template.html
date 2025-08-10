@@ -147,7 +147,7 @@
   <div class="card">
     <div id="quoteId" class="muted">Quote ID — (after send)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
-    <div id="total" class="total">Total: £0.00</div>
+    <div id="total" class="total">Estimated: £0–£0</div>
     <div class="hr"></div>
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
@@ -203,6 +203,17 @@ const RATES = {
 const MIN_TOTAL = 55;
 const BUSINESS_WHATSAPP = "447717463496";
 
+/* Range % by job type (proxy for volume variability) */
+const RANGE_PCT = {
+  tip: 0.15,
+  business: 0.15,
+  other: 0.15,
+  move: 0.12,
+  fb: 0.12,
+  student: 0.12,
+  shop: 0.10
+};
+
 /* ===== DOM ===== */
 const els = {
   jobType: document.getElementById('jobType'),
@@ -251,6 +262,9 @@ function nextQuoteId(){
   }
 }
 
+/* ===== Helpers ===== */
+const round5 = v => Math.round(v/5)*5;
+
 /* ===== UI logic per job type ===== */
 function setJobTypeUI(){
   const jt = els.jobType.value;
@@ -276,7 +290,7 @@ function setJobTypeUI(){
     els.wasteWrap.classList.remove('hidden');
     els.routeHint.textContent = "Route: (mileage rule applies) → Waterbeach → Home";
   } else if (jt === "move" || jt === "fb" || jt === "student"){
-    // Show delivery, two-man & stairs (except 'shop' which hides them)
+    // Show delivery, two-man & stairs (shop hides them)
     els.addrDropWrap.classList.remove('hidden');
     els.twoManWrap.classList.remove('hidden');
     els.stairsWrap.classList.remove('hidden');
@@ -288,7 +302,7 @@ function setJobTypeUI(){
   } else if (jt === "business" || jt === "other"){
     // Business/Other: pickup + drop + description
     els.addrDropWrap.classList.remove('hidden');
-    els.descWrap.classList.remove('hidden');
+    els.descWrap.classList.remove('hidden());
     els.routeHint.textContent = "Enter both addresses and a description, then tap Calculate Quote.";
   }
 }
@@ -317,10 +331,10 @@ function baseFeeFor(jt){
   return RATES.baseFeeDefault;
 }
 
-/* ===== Calc totals (with £55 minimum) ===== */
+/* ===== Calc totals (with £55 minimum) & range ===== */
 function calculate(){
   const jt = els.jobType.value;
-  if (!jt){ els.breakdown.innerHTML = ""; els.total.textContent = "Total: £0.00"; return {total:0, lines:[]}; }
+  if (!jt){ els.breakdown.innerHTML = ""; els.total.textContent = "Estimated: £0–£0"; return {total:0, lines:[], range:[0,0]}; }
 
   const miles = parseFloat(els.mileage.value)||0;
   const base = baseFeeFor(jt);
@@ -345,9 +359,17 @@ function calculate(){
     total = MIN_TOTAL;
   }
 
+  // Range calc
+  const pct = RANGE_PCT[jt] ?? 0.12;
+  let low = Math.max(MIN_TOTAL, total * (1 - pct));
+  let high = total * (1 + pct);
+  low = round5(low);
+  high = round5(high);
+  if (high < low) high = low; // paranoia
+
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
-  els.total.textContent = `Total: £${total.toFixed(2)}`;
-  return { total, lines };
+  els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
+  return { total, lines, range: [low, high] };
 }
 
 /* ===== Route helpers ===== */
@@ -383,7 +405,6 @@ function calcMileage(){
   }
 
   // Tip run special rule
-  // Step 1: Home -> Pickup
   directions.route(
     { origin: HOME_ADDR, destination: pickupAddress, travelMode:'DRIVING' },
     (resHP,statusHP)=>{
@@ -425,7 +446,7 @@ function sendWhatsApp(){
   const id = nextQuoteId();
   els.quoteId.textContent = "Quote ID — " + id;
 
-  const { total, lines } = calculate();
+  const { total, lines, range } = calculate();
   const jt = els.jobType.value;
 
   const msgLines = [
@@ -435,7 +456,7 @@ function sendWhatsApp(){
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
     (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
-    `\nEstimated total: £${total.toFixed(2)}`
+    `\nEstimated range: £${range[0].toFixed(0)}–£${range[1].toFixed(0)}`
   ].filter(Boolean);
   const textMsg = msgLines.join("\n");
 
