@@ -1,151 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ben’s Humpin’ & Dumpin’ Quote Tool</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icon-192.png" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    h1 { margin-top: 20px; }
-    .container { max-width: 500px; margin: auto; padding: 20px; }
-    select, input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      font-size: 1rem;
-    }
-    button {
-      background: #d33;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover { background: #b22; }
-    .hidden { display: none; }
-    #total { font-size: 1.5rem; margin-top: 15px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ben’s Humpin’ & Dumpin’ Quote Tool</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon-192.png" />
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  header img {
+    max-width: 150px;
+    margin-top: 20px;
+  }
+  h1 {
+    margin: 10px 0 20px;
+    font-size: 1.5rem;
+  }
+  .container {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+  }
+  select, input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+  }
+  select, input {
+    background: #222;
+    color: #fff;
+  }
+  button {
+    background: #e63946;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover {
+    background: #d62828;
+  }
+  .hidden {
+    display: none;
+  }
+  #total {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 15px;
+    color: #f4a261;
+  }
+</style>
 </head>
 <body>
-  <h1>Ben’s Humpin’ & Dumpin’</h1>
-  <div class="container">
-    <select id="jobType">
-      <option value="">Select Job Type...</option>
-      <option value="tip">Tip Run</option>
-      <option value="move">House Move</option>
-      <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
-      <option value="shop">Emergency Shop Run</option>
-      <option value="student">Student Relocation (to/from uni)</option>
-      <option value="business">Business Enquiries / Barter Deals</option>
-      <option value="other">Other (Tell me what you need)</option>
-    </select>
 
-    <div id="collectionAddressField" class="hidden">
-      <input type="text" id="collectionAddress" placeholder="Collection Address">
-    </div>
-    <div id="deliveryAddressField" class="hidden">
-      <input type="text" id="deliveryAddress" placeholder="Delivery Address">
-    </div>
-    <div id="stairsPickupField" class="hidden">
-      <input type="number" id="stairsPickup" placeholder="Stairs at Pickup (floors)" min="0">
-    </div>
-    <div id="stairsDeliveryField" class="hidden">
-      <input type="number" id="stairsDelivery" placeholder="Stairs at Delivery (floors)" min="0">
-    </div>
-    <div id="twoManField" class="hidden">
-      <label><input type="checkbox" id="twoMan"> 2 Man Job</label>
-    </div>
+<header>
+  <img src="icon-192.png" alt="Logo" />
+  <h1>Quick Quote Tool</h1>
+</header>
 
-    <button id="calcBtn">Calculate Quote</button>
-    <div id="total"></div>
-    <button id="whatsappBtn" class="hidden">Send to WhatsApp</button>
+<div class="container">
+  <select id="jobType">
+    <option value="">Select Job Type...</option>
+    <option value="tip">Tip Run</option>
+    <option value="move">House Move</option>
+    <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
+    <option value="shop">Emergency Shop Run</option>
+    <option value="student">Student Relocation (to/from uni)</option>
+    <option value="business">Business Enquiries / Barter Deals</option>
+    <option value="other">Other (Tell me what you need)</option>
+  </select>
+
+  <div id="collectionAddressField" class="hidden">
+    <input type="text" id="collectionAddress" placeholder="Collection Address">
+  </div>
+  <div id="deliveryAddressField" class="hidden">
+    <input type="text" id="deliveryAddress" placeholder="Delivery Address">
+  </div>
+  <div id="stairsPickupField" class="hidden">
+    <input type="number" id="stairsPickup" placeholder="Stairs at Pickup (floors)" min="0">
+  </div>
+  <div id="stairsDeliveryField" class="hidden">
+    <input type="number" id="stairsDelivery" placeholder="Stairs at Delivery (floors)" min="0">
+  </div>
+  <div id="twoManField" class="hidden">
+    <label><input type="checkbox" id="twoMan"> 2 Man Job</label>
   </div>
 
-  <!-- Load config.js if exists -->
-  <script src="config.js?v=19"></script>
-  <script>
-    // Fallback config if config.js fails
-    if (!window.BHD_CONFIG) {
-      console.warn("Config not found, using fallback values");
-      window.BHD_CONFIG = {
-        homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
-        waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
-        minTotal: 55,
-        rates: {
-          baseFeeDefault: 25,
-          baseFeeMove: 50,
-          mileagePerMile: 0.35,
-          twoMan: 20,
-          stairsPerFloor: 5
-        },
-        rangePct: {
-          tip: 0.15,
-          move: 0.12,
-          fb: 0.12,
-          shop: 0.10,
-          student: 0.12,
-          business: 0.15,
-          other: 0.15
-        },
-        whatsappNumber: "447717463496"
-      };
-    }
+  <button id="calcBtn">Calculate Quote</button>
+  <div id="total"></div>
+  <button id="whatsappBtn" class="hidden">Send to WhatsApp</button>
+</div>
 
-    const jobType = document.getElementById('jobType');
-    const fields = {
-      collectionAddressField: document.getElementById('collectionAddressField'),
-      deliveryAddressField: document.getElementById('deliveryAddressField'),
-      stairsPickupField: document.getElementById('stairsPickupField'),
-      stairsDeliveryField: document.getElementById('stairsDeliveryField'),
-      twoManField: document.getElementById('twoManField')
+<!-- Load config.js if it exists -->
+<script src="config.js?v=20"></script>
+<script>
+  if (!window.BHD_CONFIG) {
+    console.warn("Config not found, using fallback values");
+    window.BHD_CONFIG = {
+      homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
+      waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
+      minTotal: 55,
+      rates: {
+        baseFeeDefault: 25,
+        baseFeeMove: 50,
+        mileagePerMile: 0.35,
+        twoMan: 20,
+        stairsPerFloor: 5
+      },
+      rangePct: {
+        tip: 0.15,
+        move: 0.12,
+        fb: 0.12,
+        shop: 0.10,
+        student: 0.12,
+        business: 0.15,
+        other: 0.15
+      },
+      whatsappNumber: "447717463496"
     };
-    const totalEl = document.getElementById('total');
-    const whatsappBtn = document.getElementById('whatsappBtn');
+  }
 
-    jobType.addEventListener('change', () => {
-      Object.values(fields).forEach(f => f.classList.add('hidden'));
-      const type = jobType.value;
-      if (["tip", "fb", "move", "shop", "student", "business", "other"].includes(type)) {
-        fields.collectionAddressField.classList.remove('hidden');
-      }
-      if (["fb", "move", "shop", "student", "business", "other"].includes(type)) {
-        fields.deliveryAddressField.classList.remove('hidden');
-      }
-      if (["move", "fb", "student"].includes(type)) {
-        fields.stairsPickupField.classList.remove('hidden');
-        fields.stairsDeliveryField.classList.remove('hidden');
-        fields.twoManField.classList.remove('hidden');
-      }
-    });
+  const jobType = document.getElementById('jobType');
+  const fields = {
+    collectionAddressField: document.getElementById('collectionAddressField'),
+    deliveryAddressField: document.getElementById('deliveryAddressField'),
+    stairsPickupField: document.getElementById('stairsPickupField'),
+    stairsDeliveryField: document.getElementById('stairsDeliveryField'),
+    twoManField: document.getElementById('twoManField')
+  };
+  const totalEl = document.getElementById('total');
+  const whatsappBtn = document.getElementById('whatsappBtn');
 
-    document.getElementById('calcBtn').addEventListener('click', () => {
-      const type = jobType.value;
-      if (!type) {
-        alert("Select job type");
-        return;
-      }
-      let base = BHD_CONFIG.rates.baseFeeDefault;
-      if (type === "move") base = BHD_CONFIG.rates.baseFeeMove;
-      const range = BHD_CONFIG.rangePct[type] || 0.1;
-      let minPrice = Math.max(base * (1 - range), BHD_CONFIG.minTotal);
-      let maxPrice = Math.max(base * (1 + range), BHD_CONFIG.minTotal);
-      totalEl.textContent = `Estimated: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
-      whatsappBtn.classList.remove('hidden');
+  jobType.addEventListener('change', () => {
+    Object.values(fields).forEach(f => f.classList.add('hidden'));
+    const type = jobType.value;
+    if (["tip", "fb", "move", "shop", "student", "business", "other"].includes(type)) {
+      fields.collectionAddressField.classList.remove('hidden');
+    }
+    if (["fb", "move", "shop", "student", "business", "other"].includes(type)) {
+      fields.deliveryAddressField.classList.remove('hidden');
+    }
+    if (["move", "fb", "student"].includes(type)) {
+      fields.stairsPickupField.classList.remove('hidden');
+      fields.stairsDeliveryField.classList.remove('hidden');
+      fields.twoManField.classList.remove('hidden');
+    }
+  });
 
-      whatsappBtn.onclick = () => {
-        const msg = `Hey Ben! I need something Humpin' & Dumpin'\nJob: ${type}\nEstimate: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
-        const url = `https://wa.me/${BHD_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
-      };
-    });
-  </script>
+  document.getElementById('calcBtn').addEventListener('click', () => {
+    const type = jobType.value;
+    if (!type) {
+      alert("Select job type");
+      return;
+    }
+    let base = BHD_CONFIG.rates.baseFeeDefault;
+    if (type === "move") base = BHD_CONFIG.rates.baseFeeMove;
+    const range = BHD_CONFIG.rangePct[type] || 0.1;
+
+    let minPrice = Math.max(base * (1 - range), BHD_CONFIG.minTotal);
+    let maxPrice = Math.max(base * (1 + range), BHD_CONFIG.minTotal);
+
+    totalEl.textContent = `Estimated: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
+    whatsappBtn.classList.remove('hidden');
+
+    whatsappBtn.onclick = () => {
+      const msg = `Hey Ben! I need something Humpin' & Dumpin'\nJob: ${type}\nEstimate: £${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}\nCollection: ${document.getElementById('collectionAddress').value || 'N/A'}\nDelivery: ${document.getElementById('deliveryAddress').value || 'N/A'}\nStairs at Pickup: ${document.getElementById('stairsPickup').value || 0}\nStairs at Delivery: ${document.getElementById('stairsDelivery').value || 0}\n2 Man Job: ${document.getElementById('twoMan').checked ? 'Yes' : 'No'}`;
+      const url = `https://wa.me/${BHD_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    };
+  });
+</script>
+
 </body>
 </html>
