@@ -203,14 +203,10 @@ const RATES = {
 const MIN_TOTAL = 55;
 const BUSINESS_WHATSAPP = "447717463496";
 
-/* Range % by job type (proxy for volume variability) */
+/* Range % by job type */
 const RANGE_PCT = {
-  tip: 0.15,
-  business: 0.15,
-  other: 0.15,
-  move: 0.12,
-  fb: 0.12,
-  student: 0.12,
+  tip: 0.15, business: 0.15, other: 0.15,
+  move: 0.12, fb: 0.12, student: 0.12,
   shop: 0.10
 };
 
@@ -256,7 +252,6 @@ function nextQuoteId(){
     localStorage.setItem(key, String(n));
     return "ID" + String(n).padStart(6,"0");
   }catch(e){
-    // Fallback if localStorage blocked
     const t = 1 + (Date.now() % 999999);
     return "ID" + String(t).padStart(6,"0");
   }
@@ -302,7 +297,7 @@ function setJobTypeUI(){
   } else if (jt === "business" || jt === "other"){
     // Business/Other: pickup + drop + description
     els.addrDropWrap.classList.remove('hidden');
-    els.descWrap.classList.remove('hidden());
+    els.descWrap.classList.remove('hidden'); /* <-- fixed */
     els.routeHint.textContent = "Enter both addresses and a description, then tap Calculate Quote.";
   }
 }
@@ -365,7 +360,7 @@ function calculate(){
   let high = total * (1 + pct);
   low = round5(low);
   high = round5(high);
-  if (high < low) high = low; // paranoia
+  if (high < low) high = low;
 
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
@@ -374,7 +369,6 @@ function calculate(){
 
 /* ===== Route helpers ===== */
 function getRouteStopsNonTip(){
-  // Generic Home → Pickup → Drop → Home
   return { origin: HOME_ADDR, waypoints: [pickupAddress, dropAddress], destination: HOME_ADDR };
 }
 
@@ -442,11 +436,10 @@ function calcMileage(){
 
 /* ===== WhatsApp ===== */
 function sendWhatsApp(){
-  // Assign persistent Quote ID
   const id = nextQuoteId();
   els.quoteId.textContent = "Quote ID — " + id;
 
-  const { total, lines, range } = calculate();
+  const { lines, range } = calculate();
   const jt = els.jobType.value;
 
   const msgLines = [
