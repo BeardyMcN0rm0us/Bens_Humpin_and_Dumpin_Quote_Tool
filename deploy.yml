@@ -1,36 +1,26 @@
-name: Deploy Quote App (Pages)
-
+name: Deploy Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-
 permissions:
+  contents: read
   pages: write
   id-token: write
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare dist
+      - uses: actions/checkout@v4
+      # If you transpile or rename index.template.html to index.html, do it here
+      - name: Ensure index.html exists
         run: |
-          mkdir -p dist
-          sed "s/__MAPS_API_KEY__/${{ secrets.MAPS_API_KEY }}/g" index.template.html > dist/index.html
-          [ -f manifest.webmanifest ] && cp manifest.webmanifest dist/
-          [ -f service-worker.js ] && cp service-worker.js dist/
-          [ -f icon-192.png ] && cp icon-192.png dist/ || true
-          [ -f icon-512.png ] && cp icon-512.png dist/ || true
-
+          if [ -f index.template.html ] && [ ! -f index.html ]; then
+            cp index.template.html index.html
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
-
+          path: .   # <-- publish the entire repo root (includes config.js)
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -38,6 +28,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
