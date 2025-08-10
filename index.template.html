@@ -51,7 +51,6 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
 
-  /* Animations */
   .slide{animation:slideUp .35s ease forwards}
   @keyframes slideUp{from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)}}
   .hidden{display:none}
@@ -65,10 +64,9 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r21</div>
+    <div class="build">Build r24</div>
   </header>
 
-  <!-- Job Details -->
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
       <label for="jobType" style="margin:0;color:#fff">Job Type</label>
@@ -96,10 +94,17 @@
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
-    <!-- Hidden mileage (auto) -->
+    <!-- Shop: time selector (affects base rate) -->
+    <div id="shopTimeWrap" class="hidden">
+      <label for="shopTime">Run time (for shop runs)</label>
+      <select id="shopTime">
+        <option value="before22" selected>Before 10pm</option>
+        <option value="after22">After 10pm</option>
+      </select>
+    </div>
+
     <input id="mileage" type="number" class="hidden" readonly>
 
-    <!-- Two-man toggle -->
     <div id="twoManWrap" class="hidden">
       <label for="twoMan">Two-person team?</label>
       <select id="twoMan">
@@ -108,7 +113,6 @@
       </select>
     </div>
 
-    <!-- Stairs -->
     <div id="stairsWrap" class="grid2 hidden">
       <div>
         <label for="stairsPickup">Stairs at pickup (floors)</label>
@@ -147,28 +151,16 @@
     <div id="routeHint" class="hint">Choose a job type to start.</div>
   </div>
 
-  <!-- Estimate -->
   <div class="card">
     <div id="quoteId" class="muted">Quote ID — (after send)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
     <div id="total" class="total">Estimated: £0–£0</div>
+    <!-- SHOP NOTE (only shows for shop runs) -->
+    <div id="shopNote" class="muted hidden" style="margin-top:6px">No minimum charge — you only pay for the job.</div>
     <div class="hr"></div>
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
 
-  <!-- Photos (HIDDEN NOW; code kept for future) -->
-  <div class="card" id="photosCard" style="display:none;">
-    <label class="muted" for="photos">Add photos</label>
-    <input id="photos" class="hidden" type="file" accept="image/*" multiple>
-    <div class="photo-bar">
-      <button id="btnCamera" type="button" class="btn" style="width:auto;padding:10px 14px">Add Photos</button>
-      <span id="photoCount" class="muted">No photos selected</span>
-    </div>
-    <div id="photoPreview"></div>
-  </div>
-  <!-- End Photos -->
-
-  <!-- CTA -->
   <div class="card">
     <div class="row">
       <button id="btnWhatsApp" class="btn primary hidden" type="button">Send to WhatsApp</button>
@@ -177,10 +169,8 @@
   </div>
 </div>
 
-<!-- Load external config -->
-<script src="config.js?v=r21"></script>
+<script src="config.js?v=r24"></script>
 <script>
-/* ===== Fallback config if config.js missing ===== */
 if (!window.BHD_CONFIG) {
   console.warn("config.js missing — using fallback defaults");
   window.BHD_CONFIG = {
@@ -188,18 +178,13 @@ if (!window.BHD_CONFIG) {
     waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
     minTotal: 55,
     rates: {
-      baseFeeDefault: 25,
-      baseFeeMove: 50,
-      mileagePerMile: 0.25,
-      twoMan: 20,
-      stairsPerFloor: 5,
+      baseFeeDefault: 35, baseFeeMove: 50,
+      baseFeeShopBefore22: 25, baseFeeShopAfter22: 40,
+      mileagePerMile: 0.40, twoMan: 20, stairsPerFloor: 5,
       disposal: {
-        mixed:{ ratePerTonne:150, minFee:40 },
-        inert:{ ratePerTonne:25,  minFee:20 },
-        wood:{  ratePerTonne:75,  minFee:20 },
-        green:{ ratePerTonne:30,  minFee:20 },
-        plaster:{ratePerTonne:130, minFee:40 },
-        mattress:{ each: 20 }, tyre:{ each: 6 }
+        mixed:{ ratePerTonne:150, minFee:40 }, inert:{ ratePerTonne:25, minFee:20 },
+        wood:{ ratePerTonne:75, minFee:20 }, green:{ ratePerTonne:30, minFee:20 },
+        plaster:{ ratePerTonne:130, minFee:40 }, mattress:{ each:20 }, tyre:{ each:6 }
       }
     },
     rangePct: { tip:.15,business:.15,other:.15,move:.12,fb:.12,student:.12,shop:.10 },
@@ -207,7 +192,7 @@ if (!window.BHD_CONFIG) {
   };
 }
 
-/* ===== Pull values from config ===== */
+/* Config pulls */
 const HOME_ADDR = BHD_CONFIG.homeAddress;
 const WATERBEACH_ADDR = BHD_CONFIG.waterbeachAddress;
 const RATES = BHD_CONFIG.rates;
@@ -215,13 +200,15 @@ const MIN_TOTAL = BHD_CONFIG.minTotal;
 const RANGE_PCT = BHD_CONFIG.rangePct;
 const BUSINESS_WHATSAPP = BHD_CONFIG.whatsappNumber;
 
-/* ===== DOM ===== */
+/* DOM */
 const els = {
   jobType: document.getElementById('jobType'),
   pickupField: document.getElementById('pickupField'),
   addrPickup: document.getElementById('addrPickup'),
   addrDrop: document.getElementById('addrDrop'),
   addrDropWrap: document.getElementById('addrDropWrap'),
+  shopTimeWrap: document.getElementById('shopTimeWrap'),
+  shopTime: document.getElementById('shopTime'),
   twoManWrap: document.getElementById('twoManWrap'),
   twoMan: document.getElementById('twoMan'),
   stairsWrap: document.getElementById('stairsWrap'),
@@ -239,68 +226,58 @@ const els = {
   total: document.getElementById('total'),
   quoteId: document.getElementById('quoteId'),
   mileage: document.getElementById('mileage'),
-  btnWA: document.getElementById('btnWhatsApp')
+  btnWA: document.getElementById('btnWhatsApp'),
+  shopNote: document.getElementById('shopNote')
 };
 
-/* ===== State ===== */
+/* State */
 let pickupAddress = "", dropAddress = "";
-let directions = null, placesPickup = null, placesDrop = null;
+let directions = null;
 
-/* ===== Quote ID (persistent counter starting at ID000001) ===== */
+/* Quote ID = datetime */
 function nextQuoteId(){
   const now = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  const datePart = now.getFullYear() +
-                   pad(now.getMonth()+1) +
-                   pad(now.getDate());
-  const timePart = pad(now.getHours()) +
-                   pad(now.getMinutes()) +
-                   pad(now.getSeconds());
-  return `ID${datePart}-${timePart}`;
+  const pad = n => String(n).padStart(2,"0");
+  const date = now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate());
+  const time = pad(now.getHours())+pad(now.getMinutes())+pad(now.getSeconds());
+  return `ID${date}-${time}`;
 }
 
-
-/* ===== Helpers ===== */
+/* Helpers */
 const round5 = v => Math.round(v/5)*5;
-function show(el){ el.classList.remove('hidden'); el.classList.add('slide'); }
-function hide(el){ el.classList.add('hidden'); el.classList.remove('slide'); }
+const show = el => {el.classList.remove('hidden'); el.classList.add('slide');}
+const hide = el => {el.classList.add('hidden'); el.classList.remove('slide');}
 
-/* ===== UI logic per job type ===== */
+/* UI state */
 function setJobTypeUI(){
   const jt = els.jobType.value;
-
-  [els.pickupField, els.addrDropWrap, els.wasteWrap, els.twoManWrap, els.stairsWrap, els.descWrap]
-    .forEach(hide);
-
+  [els.pickupField, els.addrDropWrap, els.wasteWrap, els.twoManWrap, els.stairsWrap, els.descWrap, els.shopTimeWrap].forEach(hide);
   if (!jt){ els.routeHint.textContent = "Choose a job type to start."; return; }
 
   show(els.pickupField);
 
   if (jt === "tip"){
     show(els.wasteWrap);
-    els.routeHint.textContent = "Route: rule applies → Waterbeach → Home";
+    els.routeHint.textContent = "Mileage: Home → Collection → Waterbeach (return added only if Home→Collection > 50mi).";
   } else if (jt === "move" || jt === "fb" || jt === "student"){
-    show(els.addrDropWrap);
-    show(els.twoManWrap);
-    show(els.stairsWrap);
-    els.routeHint.textContent = "Route: Home → Pickup → Delivery → Home";
+    show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
+    els.routeHint.textContent = "Mileage: Home → Pickup → Delivery.";
   } else if (jt === "shop"){
-    show(els.addrDropWrap); // Home → shop → delivery (no return)
-    els.routeHint.textContent = "Route: Home → Shop → Delivery";
+    show(els.addrDropWrap); show(els.shopTimeWrap);
+    els.routeHint.textContent = "Mileage: Home → Shop → Delivery.";
   } else if (jt === "business" || jt === "other"){
-    show(els.addrDropWrap);
-    show(els.descWrap);
-    els.routeHint.textContent = "Enter both addresses and a description, then tap Calculate Quote.";
+    show(els.addrDropWrap); show(els.descWrap);
+    els.routeHint.textContent = "Mileage: Home → Pickup → Delivery.";
   }
 }
 
-/* ===== Waste UI ===== */
+/* Waste UI */
 function onWasteTypeChanged(){
   const t = els.wasteType.value;
   els.qtyWrap.classList.toggle('hidden', !(t==="mattress" || t==="tyre"));
 }
 
-/* ===== Disposal calc ===== */
+/* Disposal calc */
 function calcDisposal(){
   const t = els.wasteType.value;
   if (t === "mattress" || t === "tyre"){
@@ -312,21 +289,17 @@ function calcDisposal(){
   return { fee: d.minFee, detail: `Minimum disposal for ${t} (rate £${d.ratePerTonne}/t)` };
 }
 
-/* ===== Base fee per job type ===== */
+/* Base fee */
 function baseFeeFor(jt){
   if (jt === "move") return RATES.baseFeeMove;
+  if (jt === "shop") return (els.shopTime.value === "after22") ? RATES.baseFeeShopAfter22 : RATES.baseFeeShopBefore22;
   return RATES.baseFeeDefault;
 }
 
-/* ===== Totals (with £55 min) + Range ===== */
+/* Totals + range (min applies to all EXCEPT shop runs) */
 function calculate(){
   const jt = els.jobType.value;
-  if (!jt){
-    els.breakdown.innerHTML = "";
-    els.total.textContent = "Estimated: £0–£0";
-    els.total.classList.remove('show');
-    return {total:0, lines:[], range:[0,0]};
-  }
+  if (!jt){ els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); els.shopNote.classList.add('hidden'); return {total:0,lines:[],range:[0,0]}; }
 
   const miles = parseFloat(els.mileage.value)||0;
   const base = baseFeeFor(jt);
@@ -345,121 +318,124 @@ function calculate(){
   if (stairsCost) lines.push(`Stairs: £${stairsCost.toFixed(2)}`);
   if (twoManFee) lines.push(`Two-person: £${twoManFee.toFixed(2)}`);
   if (jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
+  if (jt==="shop") lines.push(`Run time: ${els.shopTime.value === "after22" ? "After 10pm" : "Before 10pm"}`);
 
-  if (total < MIN_TOTAL){
-    lines.push(`Minimum charge applied`);
-    total = MIN_TOTAL;
-  }
+  // Apply £55 minimum to all EXCEPT shop runs
+  if (jt !== "shop" && total < MIN_TOTAL){ lines.push(`Minimum charge applied`); total = MIN_TOTAL; }
 
   const pct = RANGE_PCT[jt] ?? 0.12;
-  let low = Math.max(MIN_TOTAL, total * (1 - pct));
+  let low = total * (1 - pct);
   let high = total * (1 + pct);
+  if (jt !== "shop") { low = Math.max(MIN_TOTAL, low); high = Math.max(MIN_TOTAL, high); }
   low = round5(low); high = round5(high); if (high < low) high = low;
 
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
   els.total.classList.add('show');
 
-  // Reveal WhatsApp button with slide
-  els.btnWA.classList.remove('hidden');
-  els.btnWA.classList.add('slide');
+  // Show/Hide the shop note
+  if (jt === "shop") { els.shopNote.classList.remove('hidden'); }
+  else { els.shopNote.classList.add('hidden'); }
+
+  els.btnWA.classList.remove('hidden'); els.btnWA.classList.add('slide');
 
   return { total, lines, range: [low, high] };
 }
 
-/* ===== Route builder helpers ===== */
-function directionsDistance(legs){
-  return legs.reduce((sum,l)=> sum+(l.distance?.value||0), 0) / 1609.344; // meters -> miles
-}
+/* Directions helpers */
+const metersToMiles = m => m / 1609.344;
+const legsMiles = legs => legs.reduce((s,l)=> s + (l.distance?.value||0), 0);
 
-function routeCalc(request, cb){
-  directions.route(request, (res,status)=>{
-    if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
-    const miles = directionsDistance(res.routes[0].legs);
-    els.mileage.value = miles.toFixed(1);
-    els.routeHint.textContent = `Mileage: ${miles.toFixed(1)} mi.`;
-    cb?.(miles);
-  });
-}
-
-/* ===== Mileage calc per your exact rules =====
-   Tip Run:
-     - If Home→Collection ≤ 50 mi: Collection → Waterbeach → Home
-     - If > 50 mi: Home → Collection → Waterbeach → Home
-   House Move / FB / Student / Business / Other:
-     - Home → Pickup → Delivery → Home
-   Emergency Shop Run:
-     - Home → Shop(pickup) → Delivery   (no return)
-*/
+/* One-way mileage per rules (+ >50mi tip rule adds full loop) */
 function calcMileage(){
   const jt = els.jobType.value;
   if (!directions){ calculate(); return; }
   if (!pickupAddress){ els.routeHint.textContent = "Enter collection address."; return; }
   if (jt!=="tip" && !dropAddress){ els.routeHint.textContent = "Enter delivery address."; return; }
 
+  // TIP RUN
   if (jt === "tip"){
-    // First measure Home -> Collection
-    directions.route(
-      { origin: HOME_ADDR, destination: pickupAddress, travelMode:'DRIVING' },
+    // Check Home → Collection distance
+    directions.route({ origin: HOME_ADDR, destination: pickupAddress, travelMode:'DRIVING' },
       (res,status)=>{
-        if(status!=="OK"){ els.routeHint.textContent = "Couldn’t measure home distance."; return; }
-        const milesHP = directionsDistance(res.routes[0].legs);
-        if (milesHP <= 50){
-          // Collection → Waterbeach → Home
-          routeCalc({
-            origin: pickupAddress,
-            destination: HOME_ADDR,
-            waypoints:[{location:WATERBEACH_ADDR, stopover:true}],
-            travelMode:'DRIVING'
-          }, ()=> calculate());
+        if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+        const milesHomeToPickup = metersToMiles(legsMiles(res.routes[0].legs));
+        if (milesHomeToPickup <= 50){
+          // One-way: Collection → Waterbeach
+          directions.route({
+            origin: pickupAddress, destination: WATERBEACH_ADDR, travelMode:'DRIVING'
+          }, (r2,s2)=>{
+            if(s2!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+            const miles = metersToMiles(legsMiles(r2.routes[0].legs));
+            els.mileage.value = miles.toFixed(1);
+            els.routeHint.textContent = `Mileage (one-way): ${miles.toFixed(1)} mi.`;
+            calculate();
+          });
         } else {
-          // Home → Collection → Waterbeach → Home
-          routeCalc({
+          // >50mi rule: Home → Collection → Waterbeach → Home
+          directions.route({
             origin: HOME_ADDR,
             destination: HOME_ADDR,
             waypoints:[{location:pickupAddress, stopover:true},{location:WATERBEACH_ADDR, stopover:true}],
             travelMode:'DRIVING'
-          }, ()=> calculate());
+          }, (r2,s2)=>{
+            if(s2!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+            const miles = metersToMiles(legsMiles(r2.routes[0].legs));
+            els.mileage.value = miles.toFixed(1);
+            els.routeHint.textContent = `>50mi rule: ${miles.toFixed(1)} mi.`;
+            calculate();
+          });
         }
       }
     );
     return;
   }
 
+  // SHOP: Home → Shop → Delivery (one-way)
   if (jt === "shop"){
-    // Home → Shop (pickup) → Delivery
-    routeCalc({
-      origin: HOME_ADDR,
-      destination: dropAddress,
+    directions.route({
+      origin: HOME_ADDR, destination: dropAddress,
       waypoints:[{location: pickupAddress, stopover:true}],
       travelMode:'DRIVING'
-    }, ()=> calculate());
+    }, (res,status)=>{
+      if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+      const miles = metersToMiles(legsMiles(res.routes[0].legs));
+      els.mileage.value = miles.toFixed(1);
+      els.routeHint.textContent = `Mileage (one-way): ${miles.toFixed(1)} mi.`;
+      calculate();
+    });
     return;
   }
 
-  // House Move / FB / Student / Business / Other: Home → Pickup → Delivery → Home
-  routeCalc({
-    origin: HOME_ADDR,
-    destination: HOME_ADDR,
-    waypoints:[{location: pickupAddress, stopover:true},{location: dropAddress, stopover:true}],
+  // Others: Home → Pickup → Delivery (one-way)
+  directions.route({
+    origin: HOME_ADDR, destination: dropAddress,
+    waypoints:[{location: pickupAddress, stopover:true}],
     travelMode:'DRIVING'
-  }, ()=> calculate());
+  }, (res,status)=>{
+    if(status!=="OK"){ els.routeHint.textContent = "Route error"; return; }
+    const miles = metersToMiles(legsMiles(res.routes[0].legs));
+    els.mileage.value = miles.toFixed(1);
+    els.routeHint.textContent = `Mileage (one-way): ${miles.toFixed(1)} mi.`;
+    calculate();
+  });
 }
 
-/* ===== WhatsApp ===== */
+/* WhatsApp */
 function sendWhatsApp(){
-  const id = nextQuoteId();
-  els.quoteId.textContent = "Quote ID — " + id;
+  const nowId = nextQuoteId();
+  els.quoteId.textContent = "Quote ID — " + nowId;
 
   const { lines, range } = calculate();
   const jt = els.jobType.value;
 
   const msgLines = [
     "Hey Ben! I need something Humpin' & Dumpin'",
-    `Quote ID: ${id}`,
+    `Quote ID: ${nowId}`,
     `Job Type: ${jt || "N/A"}`,
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach Waste Management Park` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
+    (jt==="shop" ? `Run time: ${els.shopTime.value==="after22" ? "After 10pm" : "Before 10pm"}` : ""),
     (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
     `\nEstimated range: £${range[0].toFixed(0)}–£${range[1].toFixed(0)}`
   ].filter(Boolean);
@@ -469,7 +445,7 @@ function sendWhatsApp(){
   window.open(url, '_blank');
 }
 
-/* ===== Google Places / Directions ===== */
+/* Google Places / Directions */
 function initMapsStuff(){
   try{
     directions = new google.maps.DirectionsService();
@@ -477,30 +453,21 @@ function initMapsStuff(){
     const ap = document.getElementById('addrPickup');
     const ad = document.getElementById('addrDrop');
     if (ap){
-      placesPickup = new google.maps.places.Autocomplete(ap, opt);
-      placesPickup.addListener('place_changed', ()=>{
-        const p = placesPickup.getPlace();
-        pickupAddress = p?.formatted_address || ap.value.trim();
-      });
+      const ac1 = new google.maps.places.Autocomplete(ap, opt);
+      ac1.addListener('place_changed', ()=>{ const p=ac1.getPlace(); pickupAddress = p?.formatted_address || ap.value.trim(); });
     }
     if (ad){
-      placesDrop = new google.maps.places.Autocomplete(ad, opt);
-      placesDrop.addListener('place_changed', ()=>{
-        const p = placesDrop.getPlace();
-        dropAddress = p?.formatted_address || ad.value.trim();
-      });
+      const ac2 = new google.maps.places.Autocomplete(ad, opt);
+      ac2.addListener('place_changed', ()=>{ const p=ac2.getPlace(); dropAddress = p?.formatted_address || ad.value.trim(); });
     }
-  }catch(e){
-    console.warn("Maps init failed (ok for basic UI):", e);
-  }
+  }catch(e){ console.warn("Maps init failed:", e); }
 }
 window.initMapsStuff = initMapsStuff;
 
-/* ===== Events ===== */
+/* Events */
 document.addEventListener('DOMContentLoaded', ()=>{
   setJobTypeUI();
   onWasteTypeChanged();
-  calculate();
 
   els.jobType.addEventListener('change', setJobTypeUI);
   els.wasteType.addEventListener('change', onWasteTypeChanged);
@@ -509,9 +476,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-<!-- Google Maps (key is injected by your GH Action) -->
+<!-- Google Maps (key injected by your GH Action) -->
 <script async
-  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r21"
+  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r24"
   onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'">
 </script>
 </body>
