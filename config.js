@@ -17,11 +17,11 @@ window.BHD_CONFIG = {
     stairsPerFloor: 5,
 
     disposal: {
-      mixed:    { ratePerTonne: 150, minFee: 40 },
-      inert:    { ratePerTonne: 25,  minFee: 20 },
-      wood:     { ratePerTonne: 75,  minFee: 20 },
-      green:    { ratePerTonne: 30,  minFee: 20 },
-      plaster:  { ratePerTonne: 130, minFee: 40 },
+      mixed:    { ratePerTonne: 195, minFee: 50 },
+      inert:    { ratePerTonne: 70,  minFee: 25 },
+      wood:     { ratePerTonne: 175,  minFee: 45 },
+      green:    { ratePerTonne: 90,  minFee: 25 },
+      plaster:  { ratePerTonne: 110, minFee: 40 },
       mattress: { each: 20 },
       tyre:     { each: 6 }
     }
