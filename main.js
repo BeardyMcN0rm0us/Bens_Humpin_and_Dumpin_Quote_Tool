@@ -13,13 +13,13 @@ window.BHD = Object.assign({
   stairsPerFloor: 5,
 
   baseFees:{
-    default:35,
-    move:50,
-    shopBefore22:25,
-    shopAfter22:40,
-    ikeaCollect:45,
-    ikeaCollectBuild:55,
-    flatpack:35
+    default:5,
+    move:5,
+    shopBefore22:5,
+    shopAfter22:15,
+    ikeaCollect:5,
+    ikeaCollectBuild:5,
+    flatpack:5
   },
 
   // House Move labour by bedrooms
@@ -56,7 +56,7 @@ window.BHD = Object.assign({
 
   // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 36,
+  ikeaLaborPerHour: 15,
   ikeaLaborPerMinute: null,
   ikeaAssemblyPerItem: 15
 }, window.BHD||{});
