@@ -1,5 +1,5 @@
-// Ben’s Humpin’ & Dumpin’ — SW r38b
-const CACHE = 'bhd-cache-r38b';
+// Ben’s Humpin’ & Dumpin’ — SW r39
+const CACHE = 'bhd-cache-r39';
 const ASSETS = [
   './',
   './index.html',
@@ -24,6 +24,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // Let Google APIs go straight to the network
   if (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com')) return;
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(resp => {
