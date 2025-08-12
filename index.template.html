@@ -7,64 +7,38 @@
 
 <!-- Inline styles (app look) -->
 <style>
-  :root{
-    --bg:#000; --panel:#0e0e0e; --ink:#fff; --muted:#b7b7b7;
-    --brand:#f4a261; --brand2:#e76f51; --ok:#25D366; --line:#1e1e1e;
-    --chip:#141414; --shadow:0 10px 30px rgba(0,0,0,.45)
-  }
+  :root{--bg:#000;--panel:#0e0e0e;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e;--chip:#141414;--shadow:0 10px 30px rgba(0,0,0,.45)}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
   .wrap{max-width:720px;margin:0 auto;padding:18px}
-  .card{
-    background:linear-gradient(180deg,#121212 0%, #0b0b0b 100%);
-    border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;
-    box-shadow:var(--shadow)
-  }
+  .card{background:linear-gradient(180deg,#121212 0%,#0b0b0b 100%);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
   header{display:flex;flex-direction:column;align-items:center;gap:10px}
   header img{width:110px;height:110px;border-radius:20px;border:1px solid var(--line);object-fit:cover;background:#000}
   h1{margin:4px 0 2px;text-align:center;font-size:1.45rem;color:var(--brand)}
-  .sub{color:var(--muted);text-align:center}
-  .build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
+  .sub{color:var(--muted);text-align:center}.build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
   label{display:block;margin:12px 0 6px;color:var(--muted)}
-  input,select,textarea{
-    width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);
-    background:#111;color:#fff;outline:none;font-size:1.05rem;transition:all .25s ease
-  }
+  input,select,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:#111;color:#fff;outline:none;font-size:1.05rem;transition:all .25s ease}
   textarea{min-height:96px;resize:vertical}
   input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--brand);border-color:transparent}
   .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem;transition:transform .08s ease}
-  .btn:active{transform:scale(.98)}
-  .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
-  .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .muted{color:var(--muted);font-size:.92rem}
-  .hint{font-size:.88rem;color:var(--muted);margin-top:6px;min-height:20px}
+  .btn:active{transform:scale(.98)}.btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}.btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.muted{color:var(--muted);font-size:.92rem}.hint{font-size:.88rem;color:var(--muted);margin-top:6px;min-height:20px}
   .total{font-weight:900;font-size:1.7rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .6s ease}
-  .total.show{opacity:1}
-  .hr{height:1px;background:var(--line);margin:12px 0}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .total.show{opacity:1}.hr{height:1px;background:var(--line);margin:12px 0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}}
-  .slide{animation:slideUp .35s ease forwards}
-  @keyframes slideUp{from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)}}
+  .slide{animation:slideUp .35s ease forwards}@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   .hidden,[hidden]{display:none!important}
   .tag{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
-  .warn{background:#231; border:1px solid #542; color:#ffddb3; padding:10px; border-radius:10px; margin:8px 0}
-  /* Splash */
-  #splash{
-    position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;
-    z-index:9999;opacity:1;transition:opacity .4s ease
-  }
+  .warn{background:#231;border:1px solid #542;color:#ffddb3;padding:10px;border-radius:10px;margin:8px 0}
+  #splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:1;transition:opacity .4s ease}
   #splash img{width:160px;height:160px;border-radius:24px;border:1px solid #222;background:#000;object-fit:cover}
   #splash.hide{opacity:0;pointer-events:none}
-  /* Footer */
   footer{text-align:center;margin-top:24px;color:var(--muted);font-size:.85rem;line-height:1.4}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <meta name="theme-color" content="#000000" />
-
-<script defer src="config.js?v=r37"></script>
 </head>
 <body>
 
@@ -76,11 +50,11 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r37</div>
+    <div class="build">Build r38b</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
-    <div class="warn">Pricing config not loaded — refresh the page. If it persists, check <code>config.js</code> is present.</div>
+    <div class="warn">Pricing config not loaded — refresh. Ensure <code>config.js</code> exists alongside <code>index.html</code>.</div>
   </div>
 
   <div class="card">
@@ -194,24 +168,22 @@
   </footer>
 </div>
 
+<!-- LOAD CONFIG FIRST (sync) -->
+<script src="config.js?v=r38b"></script>
+
 <script>
-// ======= Helpers / config =======
+// --- Utilities ---
 const $=id=>document.getElementById(id);
 function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
 function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
 
-const CFG = window.BHD_CONFIG || {};
+// --- Config & constants ---
+const CFG = window.BHD_CONFIG;
 if(!CFG){ document.getElementById('cfgWarn').style.display='block'; }
-
 const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
-const BASE = CFG.baseFees || {};
-const RANGES = CFG.rangePct || {};
-const MIN_BY = CFG.minByType || {};
-const DISP = CFG.disposal || {};
-const DISP_MIN = Number(CFG.disposalMinPct ?? 0.25);
-const UI = (CFG.ui||{});
-const IKEA_STORES = CFG.ikeaStores || [];
-const IKEA_ITEMS  = CFG.ikeaItems  || [];
+const BASE = CFG.baseFees, RANGES = CFG.rangePct, MIN_BY = CFG.minByType;
+const DISP = CFG.disposal, DISP_MIN = Number(CFG.disposalMinPct || 0.25);
+const UI = CFG.ui || {}, IKEA_STORES = CFG.ikeaStores || [], IKEA_ITEMS = CFG.ikeaItems || [];
 const PRICE = {
   mileagePerMile: Number(CFG.mileagePerMile||0),
   twoMan: Number(CFG.twoManSurcharge||0),
@@ -219,7 +191,7 @@ const PRICE = {
   ikeaAssemblyPerItem: Number(CFG.ikeaAssemblyPerItem||0)
 };
 
-// ======= DOM refs =======
+// --- DOM refs ---
 const els={
   jobType:$('#jobType'),
   ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -238,10 +210,10 @@ const els={
   versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated')
 };
 
-// ======= State =======
+// --- State ---
 let pickupAddress="", dropAddress="", directions=null;
 
-// ======= Small utils =======
+// --- Small utils ---
 function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
 const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
 const pctFor = jt => Number(RANGES[jt] ?? 0.12);
@@ -253,7 +225,7 @@ function baseFeeFor(jt){
   return Number(BASE.default ?? 0);
 }
 
-// ======= UI logic =======
+// --- UI logic ---
 function setJobTypeUI(){
   const jt=els.jobType.value;
   [
@@ -265,7 +237,6 @@ function setJobTypeUI(){
   show(els.pickupField);
 
   if(jt==="tip"){
-    // disposal dropdown from config
     const wc = els.wasteType; wc.innerHTML="";
     Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=DISP[key].label || key; wc.appendChild(o); });
     show(els.wasteWrap);
@@ -287,7 +258,7 @@ function setJobTypeUI(){
   }
 }
 
-// ======= Disposal calc =======
+// --- Disposal calc ---
 function calcDisposal(){
   const key=els.wasteType.value;
   const item = DISP[key] || {};
@@ -296,7 +267,7 @@ function calcDisposal(){
   return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
 }
 
-// ======= Quote calc =======
+// --- Quote calc ---
 function calculate(miles){
   const jt=els.jobType.value;
   if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return {total:0,lines:[],range:[0,0]}; }
@@ -336,59 +307,49 @@ function calculate(miles){
   return {total,lines,range:[low,high]};
 }
 
-// ======= Mileage rules =======
+// --- Mileage rules ---
 function calcMileage(){
   if(!directions){ calculate(0); return; }
   const jt=els.jobType.value;
   if(!pickupAddress){ els.routeHint.textContent="Enter collection address."; return; }
   if(jt!=="tip" && !dropAddress){ els.routeHint.textContent="Enter delivery address."; return; }
 
-  // TIP RUN special rule
   if(jt==="tip"){
     directions.route({origin:ADDR.home,destination:pickupAddress,travelMode:'DRIVING'},(r1,s1)=>{
       if(s1!=="OK"){els.routeHint.textContent="Route error"; return;}
       const milesHomeToPickup=metersToMiles(legsMiles(r1.routes[0].legs));
       if(milesHomeToPickup<=50){
-        // one-way: collection -> Waterbeach
         directions.route({origin:pickupAddress,destination:ADDR.tipSite,travelMode:'DRIVING'},(r2,s2)=>{
           if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
           const miles=metersToMiles(legsMiles(r2.routes[0].legs));
-          els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`;
-          calculate(miles);
+          els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
         });
       }else{
-        // >50mi: home -> collection -> Waterbeach -> home
         directions.route({origin:ADDR.home,destination:ADDR.home,waypoints:[{location:pickupAddress,stopover:true},{location:ADDR.tipSite,stopover:true}],travelMode:'DRIVING'},(r2,s2)=>{
           if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
           const miles=metersToMiles(legsMiles(r2.routes[0].legs));
-          els.routeHint.textContent=`>50mi rule: ${miles.toFixed(1)} mi.`;
-          calculate(miles);
+          els.routeHint.textContent=`>50mi rule: ${miles.toFixed(1)} mi.`; calculate(miles);
         });
       }
     });
     return;
   }
 
-  // Others: home -> pickup -> delivery (one-way)
   directions.route({origin:ADDR.home,destination:dropAddress,waypoints:[{location:pickupAddress,stopover:true}],travelMode:'DRIVING'},(r,s)=>{
     if(s!=="OK"){els.routeHint.textContent="Route error"; return;}
     const miles=metersToMiles(legsMiles(r.routes[0].legs));
-    els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`;
-    calculate(miles);
+    els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
   });
 }
 
-// ======= WhatsApp =======
+// --- WhatsApp ---
 function sendWhatsApp(){
   const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
   const {lines,range}=calculate(0);
   const jt=els.jobType.value;
-
   const ikeaBits = (jt==="ikea")
-    ? [`IKEA Mode: ${els.ikeaMode.value==="collectBuild"?"Collect & Build":"Collect Only"}`,
-       `IKEA Store: ${els.ikeaStore.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
+    ? [`IKEA Mode: ${els.ikeaMode.value==="collectBuild"?"Collect & Build":"Collect Only"}`, `IKEA Store: ${els.ikeaStore.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
     : [];
-
   const msgLines=[
     "Hey Ben! I need something Humpin' & Dumpin'",
     `Quote ID: ${id}`,
@@ -400,12 +361,11 @@ function sendWhatsApp(){
     (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
     `\nEstimated range: £${range[0].toFixed(0)}–£${range[1].toFixed(0)}`
   ].filter(Boolean);
-
   const url=`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`;
   window.open(url,'_blank');
 }
 
-// ======= Maps init & IKEA helpers =======
+// --- Maps init & IKEA helpers ---
 function initMapsStuff(){
   try{
     directions=new google.maps.DirectionsService();
@@ -420,8 +380,7 @@ window.initMapsStuff=initMapsStuff;
 (function initIkeaStores(){
   const el = document.getElementById('ikeaStore'); if(!el) return;
   el.innerHTML = "";
-  const ph = document.createElement('option'); ph.value=""; ph.textContent="Select IKEA store…"; ph.disabled=true; ph.selected=true;
-  el.appendChild(ph);
+  const ph = document.createElement('option'); ph.value=""; ph.textContent="Select IKEA store…"; ph.disabled=true; ph.selected=true; el.appendChild(ph);
   (IKEA_STORES||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s.address; o.textContent=s.name; el.appendChild(o); });
 })();
 (function initIkeaQuickPick(){
@@ -431,39 +390,32 @@ window.initMapsStuff=initMapsStuff;
     const b=document.createElement('button'); b.type="button"; b.textContent=item.name; b.className="btn secondary";
     b.style.padding="6px 10px"; b.style.fontSize="0.85rem"; b.style.flex="0 0 auto";
     b.addEventListener('click',()=>{
-      const ta=document.getElementById('jobDesc');
-      ta.value = ta.value ? (ta.value + "; " + item.name) : item.name;
-      const q=document.getElementById('ikeaQty');
-      q.value = (parseInt(q.value||"0",10) + (item.qty||1));
+      const ta=document.getElementById('jobDesc'); ta.value = ta.value ? (ta.value + "; " + item.name) : item.name;
+      const q=document.getElementById('ikeaQty'); q.value = (parseInt(q.value||"0",10) + (item.qty||1));
     });
     wrap.appendChild(b);
   });
 })();
 
-// ======= Boot =======
+// --- Boot ---
 document.addEventListener('DOMContentLoaded',()=>{
-  // Splash + footer + SW
   const splash = document.getElementById('splash');
   if (els.versionBadge && CFG.version) els.versionBadge.textContent = `Version: ${CFG.version}`;
   els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
-  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(CFG.ui?.splashMs || 4000));
+  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js?v=r37').catch(()=>{});
-  }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r38b').catch(()=>{}); }
 
   setJobTypeUI();
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
-  ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
+  if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
   els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
 });
 </script>
 
-<!-- Google Maps (your GH action injects the key) -->
-<script async
-  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r37"
-  onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'">
-</script>
+<!-- Maps last -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r38b"
+  onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'"></script>
 </body>
 </html>
