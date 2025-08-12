@@ -3,44 +3,118 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BHD — JS Load Probe</title>
+<title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
 <meta name="theme-color" content="#000000" />
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
+<link rel="icon" sizes="512x512" href="icon-512.png">
 <style>
-  body{margin:0;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
-  .wrap{max-width:680px;margin:0 auto;padding:18px}
-  .card{background:#0f0f0f;border:1px solid #222;border-radius:14px;padding:16px;margin:16px 0}
-  label{display:block;margin:12px 0 6px;color:#b7b7b7}
-  select{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;font-size:1.05rem}
-  .hidden{display:none!important}
-  #dbg{position:fixed;left:10px;right:10px;bottom:10px;background:#0f0f0f;border:1px solid #222;border-radius:12px;padding:8px 10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#cfcfcf;z-index:9999}
+  :root{--bg:#000;--panel:#0f0f0f;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e}
+  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  .wrap{max-width:720px;margin:0 auto;padding:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+  header{display:flex;flex-direction:column;align-items:center;gap:10px}
+  header img{width:110px;height:110px;border-radius:20px;border:1px solid var(--line);object-fit:cover;background:#000}
+  h1{margin:4px 0 2px;text-align:center;font-size:1.45rem;color:var(--brand)}
+  .sub{color:var(--muted);text-align:center}.build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
+  label{display:block;margin:12px 0 6px;color:var(--muted)}
+  input,select,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:#111;color:#fff;outline:none;font-size:1.05rem}
+  textarea{min-height:96px}
+  .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem}
+  .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
+  .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media (max-width:560px){.grid2{grid-template-columns:1fr}}
+  .hidden,[hidden]{display:none!important}
+  .hint{font-size:.9rem;color:var(--muted)}
+  .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
+  .total.show{opacity:1}
 </style>
 </head>
 <body>
-<div id="dbg">loading (no JS yet)…</div>
-
 <div class="wrap">
+  <header class="card">
+    <img src="icon-192.png" alt="Logo">
+    <h1>Instant Quote</h1>
+    <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
+    <div class="build" id="buildTag">Build clean1</div>
+  </header>
+
   <div class="card">
-    <label>Job Type</label>
-    <select id="jobType">
-      <option value="" selected disabled hidden>Choose…</option>
+    <label for="jobType" style="margin:0;color:#fff">Job Type</label>
+    <select id="jobType" onchange="window.BHD_forceUI && window.BHD_forceUI()">
+      <option value="" selected disabled hidden>Choose a job type…</option>
       <option value="tip">Tip Run</option>
       <option value="move">House Move</option>
+      <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
+      <option value="shop">Emergency Shop Run</option>
+      <option value="student">Student Relocation (to/from uni)</option>
+      <option value="ikea">IKEA Collect / Collect & Build</option>
+      <option value="business">Business Enquiries / Barter Deals</option>
+      <option value="other">Other (Tell me what you need)</option>
     </select>
+
+    <!-- IKEA -->
+    <div id="ikeaModeWrap" class="hidden" hidden>
+      <label for="ikeaMode">IKEA service</label>
+      <select id="ikeaMode"><option value="collect" selected>Collect Only</option><option value="collectBuild">Collect & Build</option></select>
+    </div>
+    <div id="ikeaStoreWrap" class="hidden" hidden>
+      <label for="ikeaStore">IKEA store</label>
+      <select id="ikeaStore"></select>
+    </div>
+    <div id="ikeaQtyWrap" class="hidden" hidden>
+      <label for="ikeaQty">How many items to build?</label>
+      <input id="ikeaQty" type="number" min="1" step="1" value="1">
+    </div>
+
+    <!-- Addresses -->
+    <div id="pickupField" class="hidden" hidden>
+      <label for="addrPickup">Collection address</label>
+      <input id="addrPickup" type="text" placeholder="Start typing…" autocomplete="street-address">
+    </div>
+    <div id="addrDropWrap" class="hidden" hidden>
+      <label for="addrDrop">Delivery address / destination</label>
+      <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
+    </div>
+
+    <!-- Shop timing -->
+    <div id="shopTimeWrap" class="hidden" hidden>
+      <label for="shopTime">Run time (for shop runs)</label>
+      <select id="shopTime"><option value="before22" selected>Before 10pm</option><option value="after22">After 10pm</option></select>
+    </div>
+
+    <!-- Waste (safe if you delete it; JS is guarded) -->
+    <div id="wasteWrap" class="hidden" hidden>
+      <label for="wasteType">Waste type (Tip runs)</label>
+      <select id="wasteType"></select>
+      <div class="hint">We use the minimum disposal fee (25% of the published £/tonne).</div>
+    </div>
+
+    <!-- Description -->
+    <div id="descWrap" class="hidden" hidden>
+      <label for="jobDesc">What is it? (Describe the job)</label>
+      <textarea id="jobDesc" placeholder="e.g., sofa + access notes…"></textarea>
+    </div>
+
+    <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
+    <div id="routeHint" class="hint">Choose a job type to start.</div>
   </div>
 
-  <div id="pickup" class="card hidden">
-    <label>Collection address</label>
-    <input placeholder="type anything">
+  <div class="card">
+    <div id="quoteId" class="hint">Quote ID — (after send)</div>
+    <div id="breakdown" class="hint" style="margin-top:6px"></div>
+    <div id="total" class="total">Estimated: £0–£0</div>
   </div>
 
-  <div id="drop" class="card hidden">
-    <label>Delivery address</label>
-    <input placeholder="type anything">
+  <div class="card">
+    <button id="btnWhatsApp" class="btn primary hidden" hidden type="button">Send to WhatsApp</button>
+    <div class="hint" style="margin-top:8px">WhatsApp opens with your details and Ben’s number prefilled.</div>
   </div>
 </div>
 
-<!-- EXTERNAL JS ONLY -->
-<script src="main.js?v=probe1" defer></script>
+<!-- External JS -->
+<script src="main.js?v=clean1" defer></script>
+<!-- Maps (paste your real key temporarily to test; replace __MAPS_API_KEY__) -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=weekly&cbust=clean1"></script>
 </body>
 </html>
