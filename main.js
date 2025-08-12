@@ -2,17 +2,17 @@
 // Keeps: UI toggle, Maps, ranges, WhatsApp, per-item flag fallback
 
 window.BHD = Object.assign({
-  version: "r316",
+  version: "r320",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
-  mileagePerMile: 0.40,
+  mileagePerMile: 0.35,
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  baseFees:{ default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
+  baseFees:{ default:0, move:0, shopBefore22:0, shopAfter22:15, ikeaCollect:0, ikeaCollectBuild:0 },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
 
@@ -34,7 +34,7 @@ window.BHD = Object.assign({
 
   // IKEA assembly pricing controls
   useTimePricing: true,      // true = time-based (shown as £/hour), false = per-item fallback
-  ikeaLaborPerHour: 36,      // £/hour (UI displays this)
+  ikeaLaborPerHour: 15,      // £/hour (UI displays this)
   ikeaLaborPerMinute: null,  // null => derive from per-hour; internal only
   ikeaAssemblyPerItem: 15    // per-item fallback if not using time or no minutes
 }, window.BHD||{});
