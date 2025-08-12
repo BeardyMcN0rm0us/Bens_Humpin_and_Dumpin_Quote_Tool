@@ -1,7 +1,8 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r33)
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r34)
+// EDIT THIS FILE ONLY for prices, mins, ranges, stores, items, version, etc.
 
 window.BHD_CONFIG = {
-  version: "r33",
+  version: "r34",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -10,7 +11,7 @@ window.BHD_CONFIG = {
   // WhatsApp number (no +, no leading 0)
   whatsappNumber: "447717463496",
 
-  // Per-job-type minimums (blank = no minimum)
+  // Per-job-type minimums (number or "" to disable)
   minByType: {
     tip: "", move: "", fb: "", shop: "",
     student: "", business: "", other: "", ikea: ""
@@ -38,15 +39,21 @@ window.BHD_CONFIG = {
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  // Disposal (tip runs)
+  // Disposal (Waterbeach) — min drop fee is % of rate below
+  disposalMinPct: 0.25, // 25%
   disposal: {
-    mixed:    { ratePerTonne: 150, minFee: 40 },
-    inert:    { ratePerTonne: 25,  minFee: 20 },
-    wood:     { ratePerTonne: 75,  minFee: 20 },
-    green:    { ratePerTonne: 30,  minFee: 20 },
-    plaster:  { ratePerTonne: 130, minFee: 40 },
-    mattress: { each: 20 },
-    tyre:     { each: 6 }
+    general:      { label: "General Waste",                    ratePerTonne: 192.50 },
+    soil_inert:   { label: "Soil / Inert Waste",               ratePerTonne: 69.75  },
+    hardcore:     { label: "Hardcore",                         ratePerTonne: 25.75  },
+    plasterboard: { label: "Plasterboard",                     ratePerTonne: 105.00 },
+    mixed_wood:   { label: "Mixed Wood",                       ratePerTonne: 91.00  },
+    mdf:          { label: "Medium Density Fibreboard (MDF)",  ratePerTonne: 175.00 },
+    metals:       { label: "Metals",                           ratePerTonne: 27.00  },
+    plastics:     { label: "Rigid/Agricultural Plastics",      ratePerTonne: 186.23 },
+    green:        { label: "Green Material",                   ratePerTonne: 90.00  },
+    cardboard:    { label: "Cardboard (Clean)",                ratePerTonne: 25.00  },
+    dmr:          { label: "Dry Mixed Recycling",              ratePerTonne: 145.00 },
+    wuds_pops:    { label: "WUDs & POPs",                      ratePerTonne: 345.00 }
   },
 
   // IKEA build pricing
