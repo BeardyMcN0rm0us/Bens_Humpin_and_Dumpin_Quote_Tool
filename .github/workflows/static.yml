@@ -1,4 +1,4 @@
-name: Deploy Quote App (Pages)
+name: Deploy BHD Quote Tool to Pages
 
 on:
   push:
@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
 
 permissions:
+  contents: read
   pages: write
   id-token: write
-  contents: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -17,14 +21,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare dist
+      - name: Prepare dist with cache-busting
+        env:
+          VERSION: ${{ github.run_number }}
+          MAPS_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
+          set -e
           mkdir -p dist
-          sed "s/__MAPS_API_KEY__/${{ secrets.MAPS_API_KEY }}/g" index.template.html > dist/index.html
-          [ -f manifest.webmanifest ] && cp manifest.webmanifest dist/
-          [ -f service-worker.js ] && cp service-worker.js dist/
-          [ -f icon-192.png ] && cp icon-192.png dist/ || true
-          [ -f icon-512.png ] && cp icon-512.png dist/ || true
+          # Copy static assets
+          cp -v index.html config.js service-worker.js manifest.webmanifest icon-192.png icon-512.png dist/
+          # Inject Google Maps API key
+          sed -i "s/__MAPS_API_KEY__/${MAPS_KEY}/g" dist/index.html
+          # Bump version query params in index.html
+          sed -i -E "s/\\?v=[a-zA-Z0-9_-]+/?v=${VERSION}/g" dist/index.html
+          sed -i -E "s/cbust=[a-zA-Z0-9_-]+/cbust=${VERSION}/g" dist/index.html
+          # Bump SW cache name
+          sed -i -E "s/(const CACHE = 'bhd-cache-)[^']*(';)/\\1${VERSION}\\2/g" dist/service-worker.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -38,6 +50,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
