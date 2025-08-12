@@ -1,6 +1,6 @@
-// ========= SETTINGS =========
+// ================== SETTINGS ==================
 window.BHD = Object.assign({
-  version: "r305",
+  version: "r306",
   whatsappNumber: "447717463496",
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
@@ -29,12 +29,12 @@ window.BHD = Object.assign({
     {name:"IKEA Peterborough Click & Collect",address:"Boongate, Peterborough"}
   ]
 }, window.BHD||{});
-// ===========================
+// ==============================================
 
 (function(){
   const CFG = window.BHD;
   const dbg = document.getElementById('dbg');
-  const say = t => { if(dbg) dbg.textContent = t; console.log('[r305]', t); };
+  const say = t => { if(dbg) dbg.textContent = t; console.log('[r306]', t); };
 
   const $ = id => document.getElementById(id);
   const show = el => { if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.style.display=''; };
@@ -44,7 +44,7 @@ window.BHD = Object.assign({
   const legsMeters = legs => legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const nextQuoteId = () => { const n=new Date(),p=v=>String(v).padStart(2,"0"); return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`; };
 
-  let els={}, directions=null;
+  let els={}, directions=null, lastVal="";
 
   function cacheEls(){
     els = {
@@ -87,8 +87,10 @@ window.BHD = Object.assign({
 
   function setJobTypeUI(){
     const jt = (els.jobType && els.jobType.value) || "";
+    lastVal = jt;
+    say(jt ? `jobType → ${jt}` : 'ready — choose');
     [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap].forEach(hide);
-    if(!jt){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; say('ready — choose'); return; }
+    if(!jt){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return; }
 
     show(els.pickupField);
     if(jt==="tip"){
@@ -108,10 +110,10 @@ window.BHD = Object.assign({
       show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
     }
-    say('jobType → '+jt);
   }
   window.BHD_forceUI = setJobTypeUI;
 
+  // Pricing helpers
   const pctFor = jt => (CFG.rangePct && CFG.rangePct[jt] != null) ? Number(CFG.rangePct[jt]) : 0.12;
   const minFor = jt => { const v=(CFG.minByType||{})[jt]; return (v===""||v==null)?0:Math.max(0,Number(v)); };
   function baseFeeFor(jt){
@@ -137,7 +139,7 @@ window.BHD = Object.assign({
         if (els.addrDrop)   new google.maps.places.Autocomplete(els.addrDrop,opt);
         say('maps ok');
       }
-    }catch(e){/*ignore*/}
+    }catch(e){/* ignore */}
   }
   function route(req, note, cb){
     if(!directions){ cb(0); return; }
@@ -211,27 +213,32 @@ window.BHD = Object.assign({
     window.open("https://wa.me/"+CFG.whatsappNumber+"?text="+encodeURIComponent(msg),'_blank');
   }
 
-  function bind(){
-    if (!els.jobType || !els.btnCalc) return false;
-    ['change','input','click'].forEach(ev=>els.jobType.addEventListener(ev,setJobTypeUI));
+  function bindAlways(){
+    // direct binding (if present)
+    if (els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setJobTypeUI));
     if (els.ikeaMode) ['change','input','click'].forEach(ev=>els.ikeaMode.addEventListener(ev,setJobTypeUI));
-    els.btnCalc.addEventListener('click', ()=>{ initMaps(); getMiles(calculate); });
-    if (els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
+    if (els.btnCalc) els.btnCalc.addEventListener('click', ()=>{ initMaps(); getMiles(calculate); });
+    if (els.btnWA)   els.btnWA.addEventListener('click', sendWhatsApp);
+
+    // document-level delegate (works even if select is replaced)
+    document.addEventListener('change', (e)=>{ if(e.target && e.target.id==='jobType') setJobTypeUI(); }, true);
+
+    // value watcher fallback
+    lastVal = els.jobType ? els.jobType.value : "";
+    setInterval(()=>{
+      if (!els.jobType) { cacheEls(); return; }
+      if (els.jobType.value !== lastVal){ lastVal = els.jobType.value; setJobTypeUI(); }
+    }, 150);
+
+    // initial paint
     setJobTypeUI();
-    return true;
   }
 
   function start(){
     cacheEls();
     seedSelects();
-    let tries=0;
-    if (!bind()){
-      const iv=setInterval(()=>{
-        tries++; cacheEls();
-        if (bind() || tries>40){ clearInterval(iv); }
-      }, 100);
-    }
-    // poll maps just in case callback isn't used
+    bindAlways();
+    // poll Maps if callback not used
     const mv=setInterval(()=>{ initMaps(); if (window.google && directions) clearInterval(mv); }, 300);
     say('ready');
   }
