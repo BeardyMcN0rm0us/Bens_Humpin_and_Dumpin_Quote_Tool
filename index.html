@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ben’s Humpin’ & Dumpin’ — Instant Quote (debug)</title>
+<title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
 
 <style>
   :root{--bg:#000;--panel:#0e0e0e;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e;--chip:#141414;--shadow:0 10px 30px rgba(0,0,0,.45)}
@@ -33,11 +33,6 @@
   #splash img{width:160px;height:160px;border-radius:24px;border:1px solid #222;background:#000;object-fit:cover}
   #splash.hide{opacity:0;pointer-events:none}
   footer{text-align:center;margin-top:24px;color:var(--muted);font-size:.85rem;line-height:1.4}
-
-  /* Debug panel */
-  #debug{position:fixed;left:8px;right:8px;bottom:8px;background:#111;border:1px solid #333;color:#eee;
-    border-radius:10px;padding:10px;font-size:12px;line-height:1.4;z-index:99999;box-shadow:0 8px 20px rgba(0,0,0,.5)}
-  #debug b{color:#9be7ff}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -46,6 +41,7 @@
 </head>
 <body>
 
+<!-- Splash -->
 <div id="splash"><img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo"></div>
 
 <div class="wrap">
@@ -53,7 +49,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r39c‑debug</div>
+    <div class="build">Build r39d</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -78,6 +74,7 @@
       <option value="other">Other (Tell me what you need)</option>
     </select>
 
+    <!-- IKEA mode/store -->
     <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
       <select id="ikeaMode">
@@ -91,6 +88,7 @@
       <div class="hint">Choosing a store fills the collection address (you can edit it).</div>
     </div>
 
+    <!-- Addresses -->
     <div id="pickupField" class="hidden" hidden>
       <label for="addrPickup">Collection address</label>
       <input id="addrPickup" type="text" placeholder="Start typing…" autocomplete="street-address">
@@ -100,6 +98,7 @@
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
+    <!-- Shop timing -->
     <div id="shopTimeWrap" class="hidden" hidden>
       <label for="shopTime">Run time (for shop runs)</label>
       <select id="shopTime">
@@ -108,6 +107,7 @@
       </select>
     </div>
 
+    <!-- IKEA build qty + quick picks -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
@@ -115,8 +115,10 @@
       <div class="hint">Tap an item to auto-fill description and bump the quantity.</div>
     </div>
 
+    <!-- Hidden mileage holder -->
     <input id="mileage" type="number" class="hidden" hidden readonly>
 
+    <!-- Team & stairs -->
     <div id="twoManWrap" class="hidden" hidden>
       <label for="twoMan">Two-person team?</label>
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
@@ -126,19 +128,21 @@
       <div><label for="stairsDrop">Stairs at drop-off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
     </div>
 
+    <!-- Waste for tip runs -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
       <div class="hint">We’ll use the minimum disposal fee (25% of the published £/tonne). If it’s more, Ben confirms from photos.</div>
     </div>
 
+    <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
       <textarea id="jobDesc" placeholder="e.g., Billy bookcase + Malm drawers; room & access notes…"></textarea>
     </div>
 
     <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
-    <div id="routeHint" class="hint">Choose a job type to start. (Debug build: mileage fixed at 0)</div>
+    <div id="routeHint" class="hint">Choose a job type to start.</div>
   </div>
 
   <div class="card">
@@ -162,181 +166,246 @@
   </footer>
 </div>
 
-<!-- Load config FIRST -->
-<script src="config.js?v=r39c-debug"></script>
+<!-- Load config FIRST, but defer execution until DOM is parsed -->
+<script src="config.js?v=r39d" defer></script>
 
-<script>
-// ==== DEBUG PANEL ====
-(function(){
-  const box=document.createElement('div'); box.id='debug';
-  box.innerHTML='🔎 <b>Debug</b> — waiting...'; document.body.appendChild(box);
-  function log(msg){ box.innerHTML += '<br>'+msg; console.log('[BHD]',msg); }
-  window.BHD_DEBUG = { log, box };
-  window.addEventListener('error', e => log('❌ JS error: '+ (e.message||e)));
-})();
+<!-- Main script (deferred) -->
+<script defer>
+// ===== Everything runs AFTER DOM is parsed =====
 
-// ==== Safe config fallback ====
+// Safe fallback if config failed to load
 const DEFAULT_CFG = {
-  version: "r39c-debug",
-  homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
-  waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
-  whatsappNumber: "447717463496",
-  minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
-  rangePct: { tip:0.15, business:0.15, other:0.15, move:0.12, fb:0.12, student:0.12, shop:0.10, ikea:0.12 },
-  baseFees: { default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
-  mileagePerMile: 0.40, twoManSurcharge: 20, stairsPerFloor: 5,
-  disposalMinPct: 0.25,
-  disposal: { general:{label:"General Waste",ratePerTonne:192.50} },
-  ikeaAssemblyPerItem: 15, ikeaStores: [], ikeaItems: [], ui:{ splashMs:1200, showShopNoMinNote:true }
+  version:"r39d-fallback",
+  homeAddress:"15 Primrose Hill, Doddington, Cambs, PE15 0SU",
+  waterbeachAddress:"Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
+  whatsappNumber:"447717463496",
+  minByType:{tip:"",move:"",fb:"",shop:"",student:"",business:"",other:"",ikea:""},
+  rangePct:{tip:0.15,business:0.15,other:0.15,move:0.12,fb:0.12,student:0.12,shop:0.10,ikea:0.12},
+  baseFees:{default:35,move:50,shopBefore22:25,shopAfter22:40,ikeaCollect:45,ikeaCollectBuild:55},
+  mileagePerMile:0.40,twoManSurcharge:20,stairsPerFloor:5,
+  disposalMinPct:0.25,disposal:{general:{label:"General Waste",ratePerTonne:192.50}},
+  ikeaAssemblyPerItem:15,ikeaStores:[],ikeaItems:[],ui:{splashMs:4000,showShopNoMinNote:true}
 };
-const CFG = window.BHD_CONFIG || DEFAULT_CFG;
-if (!window.BHD_CONFIG) { document.getElementById('cfgWarn').style.display='block'; }
-BHD_DEBUG.log('CFG loaded: ' + (!!window.BHD_CONFIG ? '✅ external' : '⚠️ fallback') + ' ('+(CFG.version||'n/a')+')');
 
-// ==== Utilities ====
-const $=id=>document.getElementById(id);
-function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
-function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
+document.addEventListener('DOMContentLoaded', () => {
+  const CFG = window.BHD_CONFIG || DEFAULT_CFG;
+  if (!window.BHD_CONFIG) document.getElementById('cfgWarn').style.display='block';
 
-// ==== Constants from config ====
-const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
-const BASE = CFG.baseFees || {}, RANGES = CFG.rangePct || {}, MIN_BY = CFG.minByType || {};
-const DISP = CFG.disposal || {}, DISP_MIN = Number(CFG.disposalMinPct ?? 0.25);
-const PRICE = { mileagePerMile:Number(CFG.mileagePerMile||0), twoMan:Number(CFG.twoManSurcharge||0), stairsPerFloor:Number(CFG.stairsPerFloor||0), ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0) };
+  // Helpers
+  const $=id=>document.getElementById(id);
+  const show=el=>{ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); };
+  const hide=el=>{ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); };
+  const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
+  const nextQuoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
 
-// ==== DOM refs ====
-const els={ jobType:$('#jobType'), ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
-  ikeaStoreWrap:$('#ikeaStoreWrap'), ikeaStore:$('#ikeaStore'), pickupField:$('#pickupField'), addrPickup:$('#addrPickup'),
-  addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'), shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
-  ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'), ikeaQuickPick:$('#ikeaQuickPick'), twoManWrap:$('#twoManWrap'),
-  twoMan:$('#twoMan'), stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
-  wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'), descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
-  btnCalc:$('#btnCalc'), routeHint:$('#routeHint'), breakdown:$('#breakdown'), total:$('#total'), quoteId:$('#quoteId'),
-  btnWA:$('#btnWhatsApp'), versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated') };
+  // Config bits
+  const ADDR={home:CFG.homeAddress,tipSite:CFG.waterbeachAddress};
+  const BASE=CFG.baseFees||{}, RANGES=CFG.rangePct||{}, MIN_BY=CFG.minByType||{};
+  const DISP=CFG.disposal||{}, DISP_MIN=Number(CFG.disposalMinPct??0.25);
+  const UI=CFG.ui||{}, IKEA_STORES=CFG.ikeaStores||[], IKEA_ITEMS=CFG.ikeaItems||[];
+  const PRICE={mileagePerMile:Number(CFG.mileagePerMile||0),twoMan:Number(CFG.twoManSurcharge||0),stairsPerFloor:Number(CFG.stairsPerFloor||0),ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0)};
 
-// ==== State ====
-let pickupAddress="", dropAddress="";
+  // Grab elements NOW (DOM exists)
+  const els={
+    jobType:$('#jobType'),
+    ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
+    ikeaStoreWrap:$('#ikeaStoreWrap'), ikeaStore:$('#ikeaStore'),
+    pickupField:$('#pickupField'), addrPickup:$('#addrPickup'),
+    addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'),
+    shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
+    ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'), ikeaQuickPick:$('#ikeaQuickPick'),
+    twoManWrap:$('#twoManWrap'), twoMan:$('#twoMan'),
+    stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
+    wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'),
+    descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
+    btnCalc:$('#btnCalc'), routeHint:$('#routeHint'),
+    breakdown:$('#breakdown'), total:$('#total'),
+    quoteId:$('#quoteId'), btnWA:$('#btnWhatsApp'),
+    versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated')
+  };
 
-// ==== Helpers ====
-function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
-const round5=v=>Math.round(v/5)*5;
-const pctFor = jt => Number(RANGES[jt] ?? 0.12);
-const minFor = jt => { const v = MIN_BY[jt]; return (v === "" || v == null) ? 0 : Math.max(0, Number(v)); };
-function baseFeeFor(jt){
-  if(jt==="move") return Number(BASE.move ?? BASE.default ?? 0);
-  if(jt==="shop") return (els.shopTime.value==="after22") ? Number(BASE.shopAfter22 ?? BASE.default ?? 0) : Number(BASE.shopBefore22 ?? BASE.default ?? 0);
-  if(jt==="ikea") return (els.ikeaMode.value === "collectBuild") ? Number(BASE.ikeaCollectBuild ?? BASE.default ?? 0) : Number(BASE.ikeaCollect ?? BASE.default ?? 0);
-  return Number(BASE.default ?? 0);
-}
+  let pickupAddress="", dropAddress="", directions=null;
 
-// ==== UI logic ====
-function setJobTypeUI(){
-  const jt=els.jobType.value || "";
-  [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap]
-    .forEach(el=>{ hide(el); if(el) el.hidden=true; });
-
-  if(!jt){els.routeHint.textContent="Choose a job type to start. (Debug build: mileage fixed at 0)"; return;}
-  show(els.pickupField);
-
-  if(jt==="tip"){
-    const wc = els.wasteType; if (wc){ wc.innerHTML=""; Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=(DISP[key]?.label)||key; wc.appendChild(o); }); }
-    show(els.wasteWrap);
-  } else if (jt==="move"||jt==="fb"||jt==="student"){
-    show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
-  } else if (jt==="shop"){
-    show(els.addrDropWrap); show(els.shopTimeWrap);
-  } else if (jt==="ikea"){
-    show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
-    if (els.ikeaMode && els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
-    if (els.ikeaStore && els.ikeaStore.value){ els.addrPickup.value = els.ikeaStore.value; pickupAddress = els.ikeaStore.value; }
-  } else if (jt==="business"||jt==="other"){
-    show(els.addrDropWrap); show(els.descWrap);
-  }
-  BHD_DEBUG.log('UI updated for jobType=' + jt);
-}
-
-// ==== Disposal calc ====
-function calcDisposal(){
-  const key=els.wasteType.value;
-  const item = DISP[key] || {};
-  const rate = Number(item.ratePerTonne || 0);
-  const minFee = rate * (Number(CFG.disposalMinPct||0.25));
-  return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
-}
-
-// ==== Quote calc (mileage = 0 in debug) ====
-function calculate(){
-  const jt=els.jobType.value || "";
-  if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return; }
-
-  const miles = 0; // debug
-  const base=baseFeeFor(jt);
-  const twoManFee=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?PRICE.twoMan:0);
-  const stairsCost=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:((parseInt(els.stairsPickup.value)||0)+(parseInt(els.stairsDrop.value)||0))*PRICE.stairsPerFloor;
-  const mileageCost=miles*PRICE.mileagePerMile;
-  const disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
-  let ikeaAssemblyFee=0;
-  if(jt==="ikea" && els.ikeaMode && els.ikeaMode.value==="collectBuild"){
-    const qty=Math.max(1,parseInt(els.ikeaQty.value)||1);
-    ikeaAssemblyFee = qty * PRICE.ikeaAssemblyPerItem;
+  const pctFor = jt => Number(RANGES[jt] ?? 0.12);
+  const minFor = jt => { const v = MIN_BY[jt]; return (v === "" || v == null) ? 0 : Math.max(0, Number(v)); };
+  function baseFeeFor(jt){
+    if(jt==="move") return Number(BASE.move ?? BASE.default ?? 0);
+    if(jt==="shop") return (els.shopTime.value==="after22") ? Number(BASE.shopAfter22 ?? BASE.default ?? 0) : Number(BASE.shopBefore22 ?? BASE.default ?? 0);
+    if(jt==="ikea") return (els.ikeaMode.value === "collectBuild") ? Number(BASE.ikeaCollectBuild ?? BASE.default ?? 0) : Number(BASE.ikeaCollect ?? BASE.default ?? 0);
+    return Number(BASE.default ?? 0);
   }
 
-  let total = base + mileageCost + stairsCost + twoManFee + disp.fee + ikeaAssemblyFee;
+  function setJobTypeUI(){
+    const jt=els.jobType.value || "";
+    [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap]
+      .forEach(el=>{ hide(el); if(el) el.hidden=true; });
+    if(!jt){els.routeHint.textContent="Choose a job type to start."; return;}
+    show(els.pickupField);
 
-  const lines=[`Base: £${base.toFixed(2)}`, `Mileage: £${mileageCost.toFixed(2)}`];
-  if(stairsCost) lines.push(`Stairs: £${stairsCost.toFixed(2)}`);
-  if(twoManFee) lines.push(`Two-person: £${twoManFee.toFixed(2)}`);
-  if(jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
-  if(jt==="shop") lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
-  if(jt==="ikea" && ikeaAssemblyFee) lines.push(`Assembly: £${ikeaAssemblyFee.toFixed(2)} (${els.ikeaQty.value} item${(parseInt(els.ikeaQty.value)||1)>1?"s":""})`);
+    if(jt==="tip"){
+      const wc = els.wasteType; if (wc){ wc.innerHTML=""; Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=(DISP[key]?.label)||key; wc.appendChild(o); }); }
+      show(els.wasteWrap);
+      els.routeHint.textContent="Mileage: Home → Collection → Waterbeach (return added only if Home→Collection > 50mi).";
+    } else if (jt==="move"||jt==="fb"||jt==="student"){
+      show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
+      els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
+    } else if (jt==="shop"){
+      show(els.addrDropWrap); show(els.shopTimeWrap);
+      els.routeHint.textContent="Mileage: Home → Shop → Delivery.";
+    } else if (jt==="ikea"){
+      show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
+      if (els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
+      if (els.ikeaStore.value){ els.addrPickup.value = els.ikeaStore.value; pickupAddress = els.ikeaStore.value; }
+      els.routeHint.textContent="Mileage: Home → IKEA store → Delivery.";
+    } else if (jt==="business"||jt==="other"){
+      show(els.addrDropWrap); show(els.descWrap);
+      els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
+    }
+  }
 
-  const pct=Number(RANGES[jt] ?? 0.12);
-  let low = round5(total*(1-pct));
-  let high = round5(total*(1+pct));
-  if(high<low) high=low;
+  function calcDisposal(){
+    const key=els.wasteType.value;
+    const item = DISP[key] || {};
+    const rate = Number(item.ratePerTonne || 0);
+    const minFee = rate * DISP_MIN;
+    return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
+  }
 
-  els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
-  els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
-  els.total.classList.add('show');
-  BHD_DEBUG.log('Calculated. Total ~ £'+total.toFixed(2));
-  show(els.btnWA);
-}
+  function calculate(miles){
+    const jt=els.jobType.value || "";
+    if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return; }
+    const base=baseFeeFor(jt);
+    const twoManFee=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?PRICE.twoMan:0);
+    const stairsCost=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:((parseInt(els.stairsPickup.value)||0)+(parseInt(els.stairsDrop.value)||0))*PRICE.stairsPerFloor;
+    const mileageCost=(miles||0)*PRICE.mileagePerMile;
+    const disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
+    let ikeaAssemblyFee=0;
+    if(jt==="ikea" && els.ikeaMode.value==="collectBuild"){
+      const qty=Math.max(1,parseInt(els.ikeaQty.value)||1);
+      ikeaAssemblyFee = qty * PRICE.ikeaAssemblyPerItem;
+    }
+    let total = base + mileageCost + stairsCost + twoManFee + disp.fee + ikeaAssemblyFee;
 
-// ==== WhatsApp ====
-function sendWhatsApp(){
-  const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
-  const lines = (els.breakdown.innerText||'').split('• ').filter(Boolean);
-  const jt=els.jobType.value;
-  const msgLines=[
-    "Hey Ben! I need something Humpin' & Dumpin'",
-    `Quote ID: ${id}`,
-    `Job Type: ${jt || "N/A"}`,
-    `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
-    (jt==="tip" ? `Destination: Waterbeach Waste Management Park` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
-    (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
-    `${els.total.textContent || ""}`
-  ].filter(Boolean);
-  const url=`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`;
-  window.open(url,'_blank');
-}
+    const lines=[`Base: £${base.toFixed(2)}`, `Mileage: £${mileageCost.toFixed(2)}`];
+    if(stairsCost) lines.push(`Stairs: £${stairsCost.toFixed(2)}`);
+    if(twoManFee) lines.push(`Two-person: £${twoManFee.toFixed(2)}`);
+    if(jt==="tip") lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
+    if(jt==="shop") lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
+    if(jt==="ikea" && ikeaAssemblyFee) lines.push(`Assembly: £${ikeaAssemblyFee.toFixed(2)} (${els.ikeaQty.value} item${(parseInt(els.ikeaQty.value)||1)>1?"s":""})`);
 
-// ==== Boot (no SW, no Maps) ====
-document.addEventListener('DOMContentLoaded',()=>{
+    const MIN = minFor(jt); if (MIN > 0 && total < MIN){ lines.push(`Minimum charge applied`); total = MIN; }
+    const pct=pctFor(jt); let low = round5(total*(1-pct)); let high = round5(total*(1+pct)); if(high<low) high=low;
+
+    els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
+    els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
+    els.total.classList.add('show'); show(els.btnWA);
+  }
+
+  function calcMileage(){
+    if(!directions){ calculate(0); return; }
+    const jt=els.jobType.value;
+    if(!pickupAddress){ els.routeHint.textContent="Enter collection address."; return; }
+    if(jt!=="tip" && !dropAddress){ els.routeHint.textContent="Enter delivery address."; return; }
+
+    if(jt==="tip"){
+      directions.route({origin:ADDR.home,destination:pickupAddress,travelMode:'DRIVING'},(r1,s1)=>{
+        if(s1!=="OK"){els.routeHint.textContent="Route error"; return;}
+        const milesHomeToPickup=metersToMiles(legsMiles(r1.routes[0].legs));
+        if(milesHomeToPickup<=50){
+          directions.route({origin:pickupAddress,destination:ADDR.tipSite,travelMode:'DRIVING'},(r2,s2)=>{
+            if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
+            const miles=metersToMiles(legsMiles(r2.routes[0].legs));
+            els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
+          });
+        }else{
+          directions.route({origin:ADDR.home,destination:ADDR.home,waypoints:[{location:pickupAddress,stopover:true},{location:ADDR.tipSite,stopover:true}],travelMode:'DRIVING'},(r2,s2)=>{
+            if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
+            const miles=metersToMiles(legsMiles(r2.routes[0].legs));
+            els.routeHint.textContent=`>50mi rule: ${miles.toFixed(1)} mi.`; calculate(miles);
+          });
+        }
+      });
+      return;
+    }
+
+    directions.route({origin:ADDR.home,destination:dropAddress,waypoints:[{location:pickupAddress,stopover:true}],travelMode:'DRIVING'},(r,s)=>{
+      if(s!=="OK"){els.routeHint.textContent="Route error"; return;}
+      const miles=metersToMiles(legsMiles(r.routes[0].legs));
+      els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
+    });
+  }
+
+  function sendWhatsApp(){
+    const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
+    const lines = (els.breakdown.innerText||'').split('• ').filter(Boolean);
+    const jt=els.jobType.value;
+    const ikeaBits = (jt==="ikea")
+      ? [`IKEA Mode: ${els.ikeaMode.value==="collectBuild"?"Collect & Build":"Collect Only"}`, `IKEA Store: ${els.ikeaStore.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
+      : [];
+    const msgLines=[
+      "Hey Ben! I need something Humpin' & Dumpin'",
+      `Quote ID: ${id}`,
+      `Job Type: ${jt || "N/A"}`,
+      ...ikeaBits,
+      `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
+      (jt==="tip" ? `Destination: Waterbeach Waste Management Park` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
+      (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
+      `${els.total.textContent || ""}`
+    ].filter(Boolean);
+    const url=`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`;
+    window.open(url,'_blank');
+  }
+
+  // Splash + meta
   const splash = document.getElementById('splash');
-  (document.getElementById('versionBadge')||{}).textContent = `Version: ${CFG.version||'n/a'} (debug)`;
-  (document.getElementById('lastUpdated')||{}).textContent = `Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
-  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, (CFG.ui?.splashMs)||1200);
+  if (els.versionBadge && CFG.version) els.versionBadge.textContent = `Version: ${CFG.version}`;
+  els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
 
-  // Wire events
+  // Service worker
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39d').catch(()=>{}); }
+
+  // Events
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
   if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
-  els.btnCalc.addEventListener('click', calculate);
+  if (els.addrPickup) els.addrPickup.addEventListener('input', ()=> pickupAddress = els.addrPickup.value.trim());
+  if (els.addrDrop) els.addrDrop.addEventListener('input', ()=> dropAddress = els.addrDrop.value.trim());
+  els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
 
+  // Maps autocomplete & directions
+  try{
+    directions=new google.maps.DirectionsService();
+    const opt={fields:["formatted_address"],componentRestrictions:{country:["gb"]}};
+    if(els.addrPickup){const ac1=new google.maps.places.Autocomplete(els.addrPickup,opt); ac1.addListener('place_changed',()=>{const p=ac1.getPlace(); pickupAddress=p?.formatted_address||els.addrPickup.value.trim();});}
+    if(els.addrDrop){const ac2=new google.maps.places.Autocomplete(els.addrDrop,opt); ac2.addListener('place_changed',()=>{const p=ac2.getPlace(); dropAddress=p?.formatted_address||els.addrDrop.value.trim();});}
+  }catch(e){ /* ignore if Maps not loaded yet */ }
+
+  // IKEA data
+  const storeSel = els.ikeaStore;
+  if (storeSel) {
+    storeSel.innerHTML = "";
+    const ph = document.createElement('option'); ph.value=""; ph.textContent="Select IKEA store…"; ph.disabled=true; ph.selected=true; storeSel.appendChild(ph);
+    (IKEA_STORES||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s.address; o.textContent=s.name; storeSel.appendChild(o); });
+    storeSel.addEventListener('change', ()=>{ els.addrPickup.value = storeSel.value; pickupAddress = storeSel.value; });
+  }
+  const qp = els.ikeaQuickPick;
+  if (qp) {
+    qp.innerHTML="";
+    (IKEA_ITEMS||[]).forEach(item=>{
+      const b=document.createElement('button'); b.type="button"; b.textContent=item.name; b.className="btn secondary";
+      b.style.padding="6px 10px"; b.style.fontSize="0.85rem"; b.style.flex="0 0 auto";
+      b.addEventListener('click',()=>{ els.jobDesc.value = els.jobDesc.value ? (els.jobDesc.value + "; " + item.name) : item.name; els.ikeaQty.value = (parseInt(els.ikeaQty.value||"0",10) + (item.qty||1)); });
+      qp.appendChild(b);
+    });
+  }
+
+  // Initial UI state
   setJobTypeUI();
-  BHD_DEBUG.log('Events wired ✅');
 });
 </script>
 
+<!-- Maps JS (Actions injects the API key) -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=9&cbust=r39d"></script>
 </body>
 </html>
