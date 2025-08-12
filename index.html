@@ -30,7 +30,7 @@
   .grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
   @media (max-width:560px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
   .hidden,[hidden]{display:none!important}
-  .hint{font-size:.9rem;color:var(--muted)}
+  .hint{font-size:.9rem;color:var(--muted);white-space:pre-wrap}
   .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
   .total.show{opacity:1}
   .list{margin-top:8px;border-top:1px solid var(--line)}
@@ -46,7 +46,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r315</div>
+    <div class="build" id="buildTag">Build r316</div>
   </header>
 
   <div class="card">
@@ -72,7 +72,7 @@
       </select>
     </div>
 
-    <!-- IKEA store (7 options total) -->
+    <!-- IKEA store -->
     <div id="ikeaStoreWrap" class="hidden" hidden>
       <label for="ikeaStore">IKEA store</label>
       <select id="ikeaStore">
@@ -154,7 +154,7 @@
       <div class="hint" id="ikeaTimeHint"></div>
     </div>
 
-    <!-- IKEA quantity (kept so legacy calc still shows if no basket used) -->
+    <!-- Legacy qty (kept for fallback if basket unused) -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build? (legacy)</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
@@ -224,7 +224,7 @@
   </div>
 </div>
 
-<script src="main.js?v=r315" defer></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r315"></script>
+<script src="main.js?v=r316" defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r316"></script>
 </body>
 </html>
