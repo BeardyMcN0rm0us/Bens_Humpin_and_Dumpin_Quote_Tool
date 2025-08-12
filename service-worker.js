@@ -1,5 +1,5 @@
 // Ben’s Humpin’ & Dumpin’ — SW r39
-const CACHE = 'bhd-cache-r39';
+const CACHE = 'bhd-cache-r39b';
 const ASSETS = [
   './',
   './index.html',
