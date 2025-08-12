@@ -28,20 +28,23 @@
   .hint{font-size:.9rem;color:var(--muted)}
   .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
   .total.show{opacity:1}
+  #dbg{position:fixed;left:10px;right:10px;bottom:10px;background:#0f0f0f;border:1px solid #222;border-radius:12px;padding:8px 10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#cfcfcf;z-index:9999}
 </style>
 </head>
 <body>
+<div id="dbg">loading…</div>
+
 <div class="wrap">
   <header class="card">
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build clean1</div>
+    <div class="build" id="buildTag">Build clean2</div>
   </header>
 
   <div class="card">
     <label for="jobType" style="margin:0;color:#fff">Job Type</label>
-    <select id="jobType" onchange="window.BHD_forceUI && window.BHD_forceUI()">
+    <select id="jobType">
       <option value="" selected disabled hidden>Choose a job type…</option>
       <option value="tip">Tip Run</option>
       <option value="move">House Move</option>
@@ -112,9 +115,10 @@
   </div>
 </div>
 
-<!-- External JS -->
-<script src="main.js?v=clean1" defer></script>
-<!-- Maps (paste your real key temporarily to test; replace __MAPS_API_KEY__) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=weekly&cbust=clean1"></script>
+<!-- App script -->
+<script src="main.js?v=clean2" defer></script>
+
+<!-- Google Maps WITHOUT callback (we wait for it in main.js) -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=clean2"></script>
 </body>
 </html>
