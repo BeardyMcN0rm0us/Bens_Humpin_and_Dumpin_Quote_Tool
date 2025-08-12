@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
 
-<!-- Inline styles (back to app look) -->
+<!-- Inline styles (app look) -->
 <style>
   :root{
     --bg:#000; --panel:#0e0e0e; --ink:#fff; --muted:#b7b7b7;
@@ -64,11 +64,11 @@
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <meta name="theme-color" content="#000000" />
 
-<script defer src="config.js?v=r36"></script>
+<script defer src="config.js?v=r37"></script>
 </head>
 <body>
 
-<!-- Splash -->
+<!-- Splash (center logo) -->
 <div id="splash"><img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo"></div>
 
 <div class="wrap">
@@ -76,7 +76,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildInfo">Build r36</div>
+    <div class="build">Build r37</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -256,7 +256,10 @@ function baseFeeFor(jt){
 // ======= UI logic =======
 function setJobTypeUI(){
   const jt=els.jobType.value;
-  [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap].forEach(hide);
+  [
+    els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,
+    els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap
+  ].forEach(el=>{ hide(el); if(el) el.hidden=true; });
 
   if(!jt){els.routeHint.textContent="Choose a job type to start."; return;}
   show(els.pickupField);
@@ -446,11 +449,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(CFG.ui?.splashMs || 4000));
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js?v=r36').catch(()=>{});
+    navigator.serviceWorker.register('./service-worker.js?v=r37').catch(()=>{});
   }
 
   setJobTypeUI();
-  els.jobType.addEventListener('change', setJobTypeUI);
+  ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
+  ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
   els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
 });
@@ -458,7 +462,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <!-- Google Maps (your GH action injects the key) -->
 <script async
-  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r36"
+  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r37"
   onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'">
 </script>
 </body>
