@@ -7,7 +7,6 @@
 <meta name="theme-color" content="#000000" />
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
-
 <style>
   :root{--bg:#000;--panel:#0e0e0e;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e;--chip:#141414;--shadow:0 10px 30px rgba(0,0,0,.45)}
   *{box-sizing:border-box}
@@ -31,7 +30,6 @@
   .slide{animation:slideUp .35s ease forwards}@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   .hidden,[hidden]{display:none!important}
   .tag{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
-  .warn{background:#231;border:1px solid #542;color:#ffddb3;padding:10px;border-radius:10px;margin:8px 0}
   footer{text-align:center;margin-top:24px;color:var(--muted);font-size:.85rem;line-height:1.4}
 </style>
 </head>
@@ -41,12 +39,8 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r100 (fresh)</div>
+    <div class="build">Build r101‑hardcode</div>
   </header>
-
-  <div class="card" id="cfgWarn" style="display:none">
-    <div class="warn">Pricing config not loaded — ensure <code>config.js</code> is in the repo root (next to this file) and refresh.</div>
-  </div>
 
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
@@ -54,6 +48,7 @@
       <span class="tag">WhatsApp checkout</span>
     </div>
 
+    <!-- inline onchange fallback to guarantee UI toggles -->
     <select id="jobType" onchange="window.BHD_forceUI && window.BHD_forceUI()">
       <option value="" selected disabled hidden>Choose a job type…</option>
       <option value="tip">Tip Run</option>
@@ -76,7 +71,11 @@
     </div>
     <div id="ikeaStoreWrap" class="hidden" hidden>
       <label for="ikeaStore">IKEA store</label>
-      <select id="ikeaStore"></select>
+      <select id="ikeaStore">
+        <option value="" disabled selected>Select IKEA store…</option>
+        <option value="Geldered Close, Bletchley, Milton Keynes">IKEA Milton Keynes</option>
+        <option value="Boongate, Peterborough">IKEA Peterborough Click & Collect</option>
+      </select>
       <div class="hint">Choosing a store fills the collection address (you can edit it).</div>
     </div>
 
@@ -106,12 +105,10 @@
       </select>
     </div>
 
-    <!-- IKEA build qty + quick picks -->
+    <!-- IKEA build qty -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
-      <div id="ikeaQuickPick" class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px"></div>
-      <div class="hint">Tap an item to auto-fill description and bump the quantity.</div>
     </div>
 
     <!-- Team & stairs -->
@@ -127,7 +124,13 @@
     <!-- Waste for tip runs -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
-      <select id="wasteType"></select>
+      <select id="wasteType">
+        <option value="general" selected>General Waste (£192.50/t)</option>
+        <option value="wood">Wood (£124.00/t)</option>
+        <option value="green">Green Waste (£69.00/t)</option>
+        <option value="soil">Soil/Hardcore (£31.00/t)</option>
+        <option value="metal">Metal (£0.00/t)</option>
+      </select>
       <div class="hint">We use minimum disposal (25% of published £/tonne). If it’s more, Ben confirms from photos.</div>
     </div>
 
@@ -157,36 +160,40 @@
   </div>
 
   <footer>
-    <span id="versionBadge"></span><br>
+    <span id="versionBadge">Version: r101‑hardcode</span><br>
     <span id="lastUpdated"></span>
   </footer>
 </div>
 
-<!-- External config ONLY -->
-<script src="config.js?v=r100" defer></script>
+<script>
+/* Hard-coded settings (so this works even if config.js is missing) */
+var CFG = {
+  version: "r101-hardcode",
+  whatsappNumber: "447717463496",
+  mileagePerMile: 0.40,
+  twoManSurcharge: 20,
+  stairsPerFloor: 5,
+  rangePct: { tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
+  minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
+  baseFees: { default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
+  disposalMinPct: 0.25,
+  disposal: {
+    general:{label:"General Waste",ratePerTonne:192.50},
+    wood:{label:"Wood",ratePerTonne:124.00},
+    green:{label:"Green Waste",ratePerTonne:69.00},
+    soil:{label:"Soil/Hardcore",ratePerTonne:31.00},
+    metal:{label:"Metal",ratePerTonne:0.00}
+  },
+  ikeaAssemblyPerItem: 15
+};
 
-<script defer>
-document.addEventListener('DOMContentLoaded', function () {
-  if (!window.BHD_CONFIG) {
-    document.getElementById('cfgWarn').style.display='block';
-    return;
-  }
-  var CFG = window.BHD_CONFIG;
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
+  function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
+  function round5(v){ return Math.round(v/5)*5; }
+  function nextQuoteId(){ var n=new Date(),p=v=>String(v).padStart(2,"0"); return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`; }
 
-  // helpers
-  var $ = function(id){ return document.getElementById(id); };
-  var show = function(el){ if(!el) return; el.hidden = false; el.classList.remove('hidden'); el.classList.add('slide'); };
-  var hide = function(el){ if(!el) return; el.hidden = true; el.classList.add('hidden'); el.classList.remove('slide'); };
-  var round5 = function(v){ return Math.round(v/5)*5; };
-  var nextQuoteId = function(){ var n=new Date(); var p=function(v){return String(v).padStart(2,"0")}; return "ID"+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+"-"+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds()); };
-
-  // config refs
-  var BASE=CFG.baseFees||{}, RANGES=CFG.rangePct||{}, MIN_BY=CFG.minByType||{};
-  var DISP=CFG.disposal||{}, DISP_MIN=Number(CFG.disposalMinPct||0.25);
-  var IKEA_STORES=CFG.ikeaStores||[], IKEA_ITEMS=CFG.ikeaItems||[];
-  var PRICE={mileagePerMile:Number(CFG.mileagePerMile||0), twoMan:Number(CFG.twoManSurcharge||0), stairsPerFloor:Number(CFG.stairsPerFloor||0), ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0)};
-
-  // elements
   var els={
     jobType:$('#jobType'),
     ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -195,37 +202,34 @@ document.addEventListener('DOMContentLoaded', function () {
     addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'),
     milesWrap:$('#milesWrap'), manualMiles:$('#manualMiles'),
     shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
-    ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'), ikeaQuickPick:$('#ikeaQuickPick'),
+    ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'),
     twoManWrap:$('#twoManWrap'), twoMan:$('#twoMan'),
     stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
     wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'),
     descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
     btnCalc:$('#btnCalc'), routeHint:$('#routeHint'),
     breakdown:$('#breakdown'), total:$('#total'),
-    quoteId:$('#quoteId'), btnWA:$('#btnWhatsApp'),
-    versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated')
+    quoteId:$('#quoteId'), btnWA:$('#btnWhatsApp')
   };
 
-  function pctFor(jt){ var v=RANGES[jt]; return (v==null)?0.12:Number(v); }
-  function minFor(jt){ var v=MIN_BY[jt]; return (v===""||v==null)?0:Math.max(0,Number(v)); }
+  function pctFor(jt){ var v=CFG.rangePct[jt]; return (v==null)?0.12:Number(v); }
+  function minFor(jt){ var v=CFG.minByType[jt]; return (v===""||v==null)?0:Math.max(0,Number(v)); }
   function baseFeeFor(jt){
-    if(jt==="move") return Number(BASE.move || BASE.default || 0);
-    if(jt==="shop") return (els.shopTime.value==="after22") ? Number(BASE.shopAfter22 || BASE.default || 0) : Number(BASE.shopBefore22 || BASE.default || 0);
-    if(jt==="ikea") return (els.ikeaMode.value==="collectBuild") ? Number(BASE.ikeaCollectBuild || BASE.default || 0) : Number(BASE.ikeaCollect || BASE.default || 0);
-    return Number(BASE.default || 0);
+    if(jt==="move") return Number(CFG.baseFees.move || CFG.baseFees.default || 0);
+    if(jt==="shop") return (els.shopTime.value==="after22") ? Number(CFG.baseFees.shopAfter22 || CFG.baseFees.default || 0) : Number(CFG.baseFees.shopBefore22 || CFG.baseFees.default || 0);
+    if(jt==="ikea") return (els.ikeaMode.value==="collectBuild") ? Number(CFG.baseFees.ikeaCollectBuild || CFG.baseFees.default || 0) : Number(CFG.baseFees.ikeaCollect || CFG.baseFees.default || 0);
+    return Number(CFG.baseFees.default || 0);
   }
 
   function setJobTypeUI(){
     var jt = els.jobType.value || "";
-    var blocks = [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap, els.milesWrap];
-    for(var i=0;i<blocks.length;i++){ hide(blocks[i]); if(blocks[i]) blocks[i].hidden=true; }
+    var blocks=[els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap,els.milesWrap];
+    for (var i=0;i<blocks.length;i++){ hide(blocks[i]); if(blocks[i]) blocks[i].hidden=true; }
     if(!jt){ els.routeHint.textContent="Choose a job type to start."; return; }
     show(els.pickupField);
-    show(els.milesWrap); // manual miles visible for now
+    show(els.milesWrap); // manual miles for now
 
     if(jt==="tip"){
-      var wc = els.wasteType;
-      if (wc){ wc.innerHTML=""; for(var key in DISP){ if(!DISP.hasOwnProperty(key)) continue; var o=document.createElement('option'); o.value=key; o.textContent=(DISP[key]&&DISP[key].label)?DISP[key].label:key; wc.appendChild(o); } }
       show(els.wasteWrap);
       els.routeHint.textContent="Enter one‑way miles. Auto‑mileage returns soon.";
     } else if (jt==="move"||jt==="fb"||jt==="student"){
@@ -237,23 +241,19 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (jt==="ikea"){
       show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
       if (els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
-      // seed stores
-      var storeSel = els.ikeaStore; storeSel.innerHTML="";
-      var ph = document.createElement('option'); ph.value=""; ph.textContent="Select IKEA store…"; ph.disabled=true; ph.selected=true; storeSel.appendChild(ph);
-      for (var i=0;i<IKEA_STORES.length;i++){ var s=IKEA_STORES[i]; var o=document.createElement('option'); o.value=s.address; o.textContent=s.name; storeSel.appendChild(o); }
       els.routeHint.textContent="Enter one‑way miles. Auto‑mileage returns soon.";
     } else if (jt==="business"||jt==="other"){
       show(els.addrDropWrap); show(els.descWrap);
       els.routeHint.textContent="Enter one‑way miles. Auto‑mileage returns soon.";
     }
   }
-  window.BHD_forceUI = setJobTypeUI; // for inline onchange fallback
+  window.BHD_forceUI = setJobTypeUI; // inline fallback
 
   function calcDisposal(){
     var key=els.wasteType.value;
-    var item = DISP[key] || {};
+    var item = CFG.disposal[key] || {};
     var rate = Number(item.ratePerTonne || 0);
-    var minFee = rate * DISP_MIN;
+    var minFee = rate * Number(CFG.disposalMinPct||0.25);
     return {fee:minFee, detail:"Minimum disposal for "+(item.label || key)+" — 25% of £"+rate.toFixed(2)+"/t"};
   }
 
@@ -262,30 +262,29 @@ document.addEventListener('DOMContentLoaded', function () {
     if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return; }
     var base=baseFeeFor(jt);
     var miles = Math.max(0, Number(els.manualMiles.value||0));
-    var mileageCost=miles*PRICE.mileagePerMile;
+    var mileageCost=miles*Number(CFG.mileagePerMile||0);
 
-    var twoManFee=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?PRICE.twoMan:0);
-    var stairsCost=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:((parseInt(els.stairsPickup.value)||0)+(parseInt(els.stairsDrop.value)||0))*PRICE.stairsPerFloor;
+    var twoManFee=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?Number(CFG.twoManSurcharge||0):0);
+    var stairsCost=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:((parseInt(els.stairsPickup.value)||0)+(parseInt(els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0);
     var disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
 
     var ikeaAssemblyFee=0;
     if(jt==="ikea" && els.ikeaMode.value==="collectBuild"){
       var qty=Math.max(1,parseInt(els.ikeaQty.value)||1);
-      ikeaAssemblyFee = qty * PRICE.ikeaAssemblyPerItem;
+      ikeaAssemblyFee = qty * Number(CFG.ikeaAssemblyPerItem||0);
     }
 
     var total = base + mileageCost + stairsCost + twoManFee + disp.fee + ikeaAssemblyFee;
 
-    var lines=["Base: £"+base.toFixed(2), "Mileage: £"+mileageCost.toFixed(2)+" ("+miles.toFixed(1)+" mi @ £"+PRICE.mileagePerMile.toFixed(2)+"/mi)"];
+    var lines=["Base: £"+base.toFixed(2), "Mileage: £"+mileageCost.toFixed(2)+" ("+miles.toFixed(1)+" mi @ £"+Number(CFG.mileagePerMile||0).toFixed(2)+"/mi)"];
     if(stairsCost) lines.push("Stairs: £"+stairsCost.toFixed(2));
     if(twoManFee) lines.push("Two-person: £"+twoManFee.toFixed(2));
     if(jt==="tip") lines.push("Disposal: £"+disp.fee.toFixed(2)+" — "+disp.detail);
     if(jt==="shop") lines.push("Run time: "+(els.shopTime.value==="after22"?"After 10pm":"Before 10pm"));
     if(jt==="ikea" && ikeaAssemblyFee) lines.push("Assembly: £"+ikeaAssemblyFee.toFixed(2)+" ("+els.ikeaQty.value+" item"+((parseInt(els.ikeaQty.value)||1)>1?"s":"")+")");
 
-    var MIN = minFor(jt); if (MIN > 0 && total < MIN){ lines.push("Minimum charge applied"); total = MIN; }
-    var pct = (RANGES && RANGES[jt]!=null) ? Number(RANGES[jt]) : 0.12;
-    var low = round5(total*(1-pct)); var high = round5(total*(1+pct)); if(high<low) high=low;
+    var min = minFor(jt); if (min>0 && total<min){ lines.push("Minimum charge applied"); total=min; }
+    var pct = pctFor(jt); var low = round5(total*(1-pct)); var high = round5(total*(1+pct)); if(high<low) high=low;
 
     els.breakdown.innerHTML = '• ' + lines.join('<br>• ');
     els.total.textContent = "Estimated: £"+low.toFixed(0)+"–£"+high.toFixed(0);
@@ -310,19 +309,16 @@ document.addEventListener('DOMContentLoaded', function () {
     window.open("https://wa.me/"+CFG.whatsappNumber+"?text="+encodeURIComponent(msg),'_blank');
   }
 
-  // meta
-  var vb=document.getElementById('versionBadge'); if (vb && CFG.version) vb.textContent="Version: "+CFG.version;
+  // Bind
   document.getElementById('lastUpdated').textContent="Last updated: "+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-
-  // bind
   ['change','input'].forEach(function(ev){ $('#jobType').addEventListener(ev, setJobTypeUI); });
   if ($('#ikeaMode')) ['change','input'].forEach(function(ev){ $('#ikeaMode').addEventListener(ev, setJobTypeUI); });
   $('#btnCalc').addEventListener('click', calculate);
   $('#btnWhatsApp').addEventListener('click', sendWhatsApp);
 
-  // initial state
+  // Initial UI
   setJobTypeUI();
-});
+})();
 </script>
 </body>
 </html>
