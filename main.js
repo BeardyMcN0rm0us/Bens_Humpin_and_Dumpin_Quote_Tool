@@ -8,7 +8,7 @@ window.BHD = Object.assign({
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
-  mileagePerMile: 0.35,
+  mileagePerMile: 0.90,
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
