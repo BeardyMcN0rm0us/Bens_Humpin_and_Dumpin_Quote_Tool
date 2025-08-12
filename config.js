@@ -1,7 +1,7 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r37)
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r38)
 
 window.BHD_CONFIG = {
-  version: "r37",
+  version: "r38",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -11,17 +11,10 @@ window.BHD_CONFIG = {
   whatsappNumber: "447717463496",
 
   // Per-job-type minimums (blank "" = no minimum)
-  minByType: {
-    tip: "", move: "", fb: "", shop: "",
-    student: "", business: "", other: "", ikea: ""
-  },
+  minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
 
   // Price ranges (±%)
-  rangePct: {
-    tip: 0.15, business: 0.15, other: 0.15,
-    move: 0.12, fb: 0.12, student: 0.12,
-    shop: 0.10, ikea: 0.12
-  },
+  rangePct: { tip:0.15, business:0.15, other:0.15, move:0.12, fb:0.12, student:0.12, shop:0.10, ikea:0.12 },
 
   // Base fees
   baseFees: {
@@ -79,8 +72,5 @@ window.BHD_CONFIG = {
   ],
 
   // UI
-  ui: {
-    showShopNoMinNote: true,
-    splashMs: 4000
-  }
+  ui: { showShopNoMinNote: true, splashMs: 4000 }
 };
