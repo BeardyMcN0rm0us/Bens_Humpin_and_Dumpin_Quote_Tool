@@ -1,7 +1,7 @@
 // r361 — Fixes: robust Google Maps init + fail-safe calc. Bedrooms/Luton + flatpack 15mi rule intact.
 
 window.BHD = Object.assign({
-  version: "r361",
+  version: "r365",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
