@@ -1,9 +1,8 @@
-// r313 — UI toggle + Maps + ranges + WhatsApp
-//  + IKEA assembly: time-based (default) OR per-item via flag
-//  + Easy knobs at top
+// r314 — clears addresses on IKEA switch, forces pickup = selected store
+// + all existing features from r313 (time/per-item assembly, Maps, WA, ranges)
 
 window.BHD = Object.assign({
-  version: "r313",
+  version: "r314",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -35,9 +34,9 @@ window.BHD = Object.assign({
 
   // IKEA assembly pricing controls
   useTimePricing: true,      // true = time-based, false = per-item
-  ikeaLaborPerHour: 36,      // £/hour — easy knob
-  ikeaLaborPerMinute: null,  // leave null to derive from per-hour; set a number to force a value
-  ikeaAssemblyPerItem: 15    // fallback per item if useTimePricing=false OR no item minutes selected
+  ikeaLaborPerHour: 36,      // £/hour — tweakable
+  ikeaLaborPerMinute: null,  // null => derive from per-hour
+  ikeaAssemblyPerItem: 15    // per-item fallback
 }, window.BHD||{});
 
 (function(){
@@ -50,7 +49,7 @@ window.BHD = Object.assign({
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
 
   const CFG=window.BHD;
-  const dbg=$('dbg'); const say=t=>{ if(dbg){ dbg.textContent=t; dbg.hidden=false; dbg.classList.remove('hidden'); } console.log('[r313]',t); };
+  const dbg=$('dbg'); const say=t=>{ if(dbg){ dbg.textContent=t; dbg.hidden=false; dbg.classList.remove('hidden'); } console.log('[r314]',t); };
 
   const els = {
     jobType:$('jobType'),
@@ -81,11 +80,20 @@ window.BHD = Object.assign({
   }
 
   // ---- UI toggle
+  let lastJobType = '';
   function hideAll(){
     [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemWrap,els.ikeaQtyWrap,els.descWrap].forEach(hide);
   }
+  function clearAddresses(){
+    if (els.addrPickup){ els.addrPickup.value=''; els.addrPickup.blur(); }
+    if (els.addrDrop){ els.addrDrop.value=''; els.addrDrop.blur(); }
+  }
   function setUI(){
     const v = els.jobType ? els.jobType.value : '';
+    // when switching INTO IKEA from any other job type, clear addresses
+    if (lastJobType !== 'ikea' && v === 'ikea'){ clearAddresses(); }
+    lastJobType = v;
+
     hideAll();
     if(!v){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; say('ready'); return; }
     show(els.pickupField);
@@ -99,11 +107,10 @@ window.BHD = Object.assign({
       show(els.addrDropWrap); show(els.shopTimeWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Shop → Delivery.";
     } else if (v==='ikea'){
-      show(els.addrDropWrap); show(els.ikeaModeWrap); show(els.ikeaStoreWrap);
+      show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap);
       if (els.ikeaMode && els.ikeaMode.value === 'collectBuild'){
         show(els.ikeaItemWrap); show(els.ikeaQtyWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
       } else {
-        // collect only
         show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
       }
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → IKEA → Delivery.";
@@ -111,6 +118,14 @@ window.BHD = Object.assign({
       show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
     }
+  }
+
+  // ---- IKEA: set pickup to selected store, always overwrite
+  if (els.ikeaStore){
+    els.ikeaStore.addEventListener('change', ()=>{
+      const v = els.ikeaStore.value || '';
+      if (els.addrPickup){ els.addrPickup.value = v; }
+    });
   }
 
   // ---- IKEA time hint
@@ -124,9 +139,8 @@ window.BHD = Object.assign({
     const per = parseInt(els.ikeaItem.value||"0")||0;
     const qty = Math.max(1, parseInt(els.ikeaQty && els.ikeaQty.value || "1")||1);
     const total = per * qty;
-    els.ikeaTimeHint.textContent = (els.ikeaMode && els.ikeaMode.value==='collectBuild' && per)
-      ? `Est. build: ~${total} min (${qty} × ${per})`
-      : "";
+    const visible = (els.jobType && els.jobType.value==='ikea' && els.ikeaMode && els.ikeaMode.value==='collectBuild');
+    els.ikeaTimeHint.textContent = (visible && per) ? `Est. build: ~${total} min (${qty} × ${per})` : "";
   }
 
   // ---- Pricing helpers
@@ -189,6 +203,11 @@ window.BHD = Object.assign({
   }
 
   // ---- Calculate
+  function laborPerMinuteEffective(){
+    if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
+    const perHour = Number(CFG.ikeaLaborPerHour||0);
+    return perHour>0 ? (perHour/60) : 0.6;
+  }
   function calculate(miles){
     const jt = (els.jobType && els.jobType.value) || "";
     if(!jt) return;
@@ -207,9 +226,10 @@ window.BHD = Object.assign({
         const qty = Math.max(1, parseInt(els.ikeaQty && els.ikeaQty.value || "1")||1);
         const perItem = Number(CFG.ikeaAssemblyPerItem||15);
         const minutesPer = parseInt(els.ikeaItem && els.ikeaItem.value || "0") || 0;
+
         if (CFG.useTimePricing && minutesPer>0){
           const totalMin = minutesPer * qty;
-          const perMin = laborPerMinute();
+          const perMin = laborPerMinuteEffective();
           ikeaAsm = totalMin * perMin;
           ikeaTxt = ` (~${totalMin} min @ £${perMin.toFixed(2)}/min)`;
         } else {
@@ -228,8 +248,9 @@ window.BHD = Object.assign({
     if(jt==="shop" && els.shopTime) lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
     if(jt==="ikea" && ikeaAsm) lines.push(`Assembly: £${ikeaAsm.toFixed(2)}${ikeaTxt}`);
 
+    const pct = (CFG.rangePct && CFG.rangePct[jt]!=null) ? Number(CFG.rangePct[jt]) : 0.12;
     const MIN = minFor(jt); if (MIN>0 && total<MIN){ lines.push("Minimum charge applied"); total=MIN; }
-    const pct = pctFor(jt), low=round5(total*(1-pct)), high=round5(total*(1+pct));
+    const low=round5(total*(1-pct)), high=round5(total*(1+pct));
 
     if(els.breakdown) els.breakdown.innerHTML = '• ' + lines.join('<br>• ');
     if(els.total){ els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`; els.total.classList.add('show'); }
