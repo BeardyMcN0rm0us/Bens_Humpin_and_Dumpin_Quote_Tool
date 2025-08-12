@@ -1,7 +1,7 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r35)
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r36)
 
 window.BHD_CONFIG = {
-  version: "r35",
+  version: "r36",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
