@@ -24,9 +24,7 @@ jobs:
       - name: Debug repo layout
         run: |
           echo "== Repo root =="
-          ls -la
-          echo "== .github/workflows =="
-          ls -la .github/workflows || true
+          ls -la || true
 
       - name: Prepare dist (copy + inject + cache-bust)
         shell: bash
@@ -37,46 +35,40 @@ jobs:
           set -euo pipefail
           mkdir -p dist
 
-          # Files we expect at repo root
-          files=(index.html config.js service-worker.js manifest.webmanifest icon-192.png icon-512.png)
+          # Required files
+          req=(index.html config.js)
+          miss=0
+          for f in "${req[@]}"; do
+            if [[ -f "$f" ]]; then cp -v "$f" dist/; else echo "::error ::Missing required file: $f"; miss=1; fi
+          done
+          [[ $miss -eq 0 ]] || exit 2
 
-          missing=0
-          for f in "${files[@]}"; do
-            if [[ -f "$f" ]]; then
-              echo "Copying $f -> dist/"
-              cp -v "$f" dist/
-            else
-              echo "WARNING: $f not found in repo root"
-              # Only config.js is hard-required
-              if [[ "$f" == "config.js" ]]; then
-                missing=1
-              fi
-            fi
+          # Optional files
+          for f in service-worker.js manifest.webmanifest icon-192.png icon-512.png; do
+            [[ -f "$f" ]] && cp -v "$f" dist/ || echo "Note: $f not found (ok)"
           done
 
-          if [[ $missing -eq 1 ]]; then
-            echo "::error ::config.js is missing at repo root. Add it next to index.html."
-            exit 1
-          fi
+          echo "== Dist before injection =="; ls -la dist
 
-          # Inject Google Maps API key only if provided
+          # Inject Google Maps API key (safely escaped for sed)
           if [[ -n "${MAPS_KEY:-}" ]]; then
-            sed -i "s/__MAPS_API_KEY__/${MAPS_KEY}/g" dist/index.html
+            KEY_ESCAPED=$(printf '%s' "$MAPS_KEY" | sed -e 's/[\/&]/\\&/g')
+            sed -i "s/__MAPS_API_KEY__/${KEY_ESCAPED}/g" dist/index.html || { echo "::error ::sed injection failed"; exit 2; }
           else
-            echo "WARNING: MAPS_API_KEY secret not set; leaving placeholder in index.html"
+            echo "::warning ::MAPS_API_KEY not set; leaving placeholder"
           fi
 
-          # Cache-bust query params in index.html if they exist
+          # Cache-bust in index.html if tokens exist
           sed -i -E "s/\?v=[a-zA-Z0-9._-]+/?v=${VERSION}/g" dist/index.html || true
           sed -i -E "s/cbust=[a-zA-Z0-9._-]+/cbust=${VERSION}/g" dist/index.html || true
 
-          # Bump SW cache name if present
+          # Bump SW cache name if SW present
           if [[ -f dist/service-worker.js ]]; then
             sed -i -E "s/(const CACHE = 'bhd-cache-)[^']*(';)/\1${VERSION}\2/g" dist/service-worker.js || true
           fi
 
-          echo "== Dist contents =="
-          ls -la dist
+          echo "== Dist after injection =="; ls -la dist
+          echo "== Grep for placeholder (should be empty) =="; ! grep -R "__MAPS_API_KEY__" dist || { echo "::error ::Placeholder still present"; exit 2; }
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
