@@ -35,3 +35,31 @@ textarea{min-height:96px}
 .row .meta{flex:1}
 .row .qty{display:flex;align-items:center;gap:6px}
 .row input[type="number"]{width:84px}
+
+/* ---- Help overlay & FAB ---- */
+#helpToggle{position:absolute;opacity:0;pointer-events:none}
+.helpFab{
+  position:fixed; right:14px; bottom:14px; z-index:9000;
+  background:linear-gradient(135deg,#29d980,#25D366); color:#0b1b12;
+  border-radius:999px; padding:12px 16px; font-weight:900; border:1px solid #0c4024;
+  box-shadow:0 8px 24px rgba(0,0,0,.35); cursor:pointer; user-select:none
+}
+.helpOverlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9500;
+  display:none; align-items:center; justify-content:center; padding:20px
+}
+#helpToggle:checked ~ .helpOverlay{display:flex}
+.helpPanel{
+  width:min(900px,96vw); max-height:86vh; overflow:auto;
+  background:#0e0e0e; border:1px solid #1f1f1f; border-radius:20px; padding:18px 16px 24px;
+  color:#f5f5f5; font-size:1.12rem; line-height:1.55
+}
+.helpPanel h2{margin:6px 0 6px; font-size:1.4rem; color:#ffd49e}
+.helpPanel h3{margin:14px 0 8px; font-size:1.2rem; color:#f4a261}
+.helpPanel ol{margin:0 0 12px 18px}
+.helpClose{
+  position:absolute; top:14px; right:16px; z-index:9600;
+  background:#1b1b1b; color:#fff; border:1px solid #333;
+  border-radius:12px; padding:8px 12px; font-weight:900; cursor:pointer
+}
+.muted{color:#b7b7b7;font-size:1rem}
