@@ -36,7 +36,7 @@ textarea{min-height:96px}
 .row .qty{display:flex;align-items:center;gap:6px}
 .row input[type="number"]{width:84px}
 
-/* ---- Help overlay & FAB ---- */
+/* Help overlay & FAB */
 #helpToggle{position:absolute;opacity:0;pointer-events:none}
 .helpFab{
   position:fixed; right:14px; bottom:14px; z-index:9000;
