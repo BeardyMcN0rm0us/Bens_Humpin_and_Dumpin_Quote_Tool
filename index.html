@@ -38,35 +38,6 @@
   .row .meta{flex:1}
   .row .qty{display:flex;align-items:center;gap:6px}
   .row input[type="number"]{width:84px}
-
-  /* ---- Help overlay (CSS-only, no JS) ---- */
-  #helpToggle{position:absolute;opacity:0;pointer-events:none}
-  .helpFab{
-    position:fixed; right:14px; bottom:14px; z-index:9000;
-    background:linear-gradient(135deg,#29d980,#25D366); color:#0b1b12;
-    border-radius:999px; padding:12px 16px; font-weight:900; border:1px solid #0c4024;
-    box-shadow:0 8px 24px rgba(0,0,0,.35); cursor:pointer; user-select:none;
-  }
-  .helpOverlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9500;
-    display:none; align-items:center; justify-content:center; padding:20px;
-  }
-  #helpToggle:checked ~ .helpOverlay{display:flex}
-  .helpPanel{
-    width:min(900px,96vw); max-height:86vh; overflow:auto;
-    background:#0e0e0e; border:1px solid #1f1f1f; border-radius:20px; padding:18px 16px 24px;
-    color:#f5f5f5; font-size:1.12rem; line-height:1.55;
-  }
-  .helpPanel h2{margin:6px 0 6px; font-size:1.4rem; color:#ffd49e}
-  .helpPanel h3{margin:14px 0 8px; font-size:1.2rem; color:#f4a261}
-  .helpPanel ol{margin:0 0 12px 18px}
-  .helpClose{
-    position:absolute; top:14px; right:16px; z-index:9600;
-    background:#1b1b1b; color:#fff; border:1px solid #333;
-    border-radius:12px; padding:8px 12px; font-weight:900; cursor:pointer;
-  }
-  .pill{display:inline-block;background:#181818;border:1px solid #2c2c2c;border-radius:999px;padding:3px 10px;margin:0 6px 0 0;color:#bdbdbd;font-size:.95rem}
-  .muted{color:#b7b7b7;font-size:1rem}
 </style>
 </head>
 <body>
@@ -75,7 +46,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r321</div>
+    <div class="build" id="buildTag">Build r350</div>
   </header>
 
   <div class="card">
@@ -88,6 +59,7 @@
       <option value="shop">Emergency Shop Run</option>
       <option value="student">Student Relocation (to/from uni)</option>
       <option value="ikea">IKEA Collect / Collect & Build</option>
+      <option value="flatpack">Flat Pack Build Only</option>
       <option value="business">Business Enquiries / Barter Deals</option>
       <option value="other">Other (Tell me what you need)</option>
     </select>
@@ -117,7 +89,7 @@
       <div class="hint">Selecting a store sets the collection address.</div>
     </div>
 
-    <!-- IKEA Items "basket" (only for Collect & Build) -->
+    <!-- Assembly items basket (IKEA/Flatpack) -->
     <div id="ikeaItemsWrap" class="hidden" hidden>
       <label>Assembly items</label>
       <div class="grid3">
@@ -128,7 +100,7 @@
           <option value="70|MALM Chest (4‑drawer)">MALM Chest (4‑drawer) — ~70 min</option>
           <option value="60|MALM Chest (3‑drawer)">MALM Chest (3‑drawer) — ~60 min</option>
           <option value="90|MALM Bed Frame (double)">MALM Bed Frame (double) — ~90 min</option>
-          <option value="110|MALM Bed (double) w/ storage)">MALM Bed (double) w/ storage — ~110 min</option>
+          <option value="110|MALM Bed (double) w/ storage">MALM Bed (double) w/ storage — ~110 min</option>
           <option value="30|MALM Bedside Table">MALM Bedside Table — ~30 min</option>
           <option value="120|PAX Wardrobe (2‑door basic)">PAX Wardrobe (2‑door basic) — ~120 min</option>
           <option value="150|PAX Wardrobe (3‑door basic)">PAX Wardrobe (3‑door basic) — ~150 min</option>
@@ -183,12 +155,6 @@
       <div class="hint" id="ikeaTimeHint"></div>
     </div>
 
-    <!-- Legacy qty (kept for fallback if basket unused) -->
-    <div id="ikeaQtyWrap" class="hidden" hidden>
-      <label for="ikeaQty">How many items to build? (legacy)</label>
-      <input id="ikeaQty" type="number" min="1" step="1" value="1">
-    </div>
-
     <!-- Addresses -->
     <div id="pickupField" class="hidden" hidden>
       <label for="addrPickup">Collection address</label>
@@ -234,7 +200,7 @@
     <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
-      <textarea id="jobDesc" placeholder="e.g., sofa + access notes… "></textarea>
+      <textarea id="jobDesc" placeholder="e.g., wardrobe, desk, bunk bed…"></textarea>
     </div>
 
     <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
@@ -253,55 +219,7 @@
   </div>
 </div>
 
-<!-- ---- HELP OVERLAY (no JS) ---- -->
-<input type="checkbox" id="helpToggle" />
-<label class="helpFab" for="helpToggle">Help</label>
-<div class="helpOverlay">
-  <label class="helpClose" for="helpToggle">Close ✕</label>
-  <div class="helpPanel">
-    <h2>How to get an instant estimate</h2>
-    <ol>
-      <li><strong>Pick a job type</strong> from the dropdown.</li>
-      <li><strong>Enter addresses.</strong> Start typing and choose from the list.</li>
-      <li><strong>Fill any extras</strong> (stairs, two‑person team, waste type, IKEA items).</li>
-      <li>Tap <strong>Calculate Quote</strong>.</li>
-      <li>Review the breakdown. It shows <span class="pill">Total journey</span> and <span class="pill">Charged mileage</span>.</li>
-      <li>Tap <strong>Send to WhatsApp</strong> to message Ben with everything filled in.</li>
-    </ol>
-
-    <h3>Job types explained</h3>
-    <p><strong>Tip Run</strong> — Collection address → Waterbeach. If the collection is more than 50 miles from Ben’s home, mileage is charged from home. You’ll also see a <em>minimum disposal fee</em> based on waste type.</p>
-    <p><strong>House Move / Facebook Pickup / Student Relocation</strong> — Home → Pickup → Delivery (charged one‑way). Add stairs and two‑person team if needed.</p>
-    <p><strong>Emergency Shop Run</strong> — Home → Shop → Delivery. Choose <em>Before 10pm</em> or <em>After 10pm</em> for base fee.</p>
-    <p><strong>IKEA Collect & Build</strong> — Pick an IKEA store (sets the collection address), then add items to your list with quantities. We’ll estimate build time and price. For <em>Collect Only</em>, skip the item list.</p>
-    <p><strong>Business / Barter / Other</strong> — Give a short description so Ben knows what’s needed.</p>
-
-    <h3>What the numbers mean</h3>
-    <ul>
-      <li><strong>Total journey</strong> — Ben’s full round trip (home → job → home), useful for context.</li>
-      <li><strong>Charged mileage</strong> — The miles you’re billed for, using Ben’s rules, e.g. one‑way for most jobs.</li>
-      <li><strong>Base</strong> — Standard fee for that job type.</li>
-      <li><strong>Mileage</strong> — Charged miles × per‑mile rate.</li>
-      <li><strong>Stairs / Two‑person</strong> — Only when relevant.</li>
-      <li><strong>Disposal</strong> — For Tip Runs: minimum fee based on waste type.</li>
-      <li><strong>IKEA Assembly</strong> — Time‑based at £/hour (shown) or per‑item, depending on Ben’s settings.</li>
-      <li><strong>Estimated total</strong> — You’ll see a range (e.g., £80–£100). Final price confirmed after photos/access check.</li>
-    </ul>
-
-    <h3>Tips</h3>
-    <ul>
-      <li>If the address list doesn’t pop up, type the <em>postcode</em> (e.g., “PE15 0TF”).</li>
-      <li>For IKEA: choosing a store will automatically fill the collection address.</li>
-      <li>If you switch job type and something looks odd, just press <em>Calculate Quote</em> again.</li>
-      <li>Ready to book? Use <strong>Send to WhatsApp</strong> — Ben replies fast.</li>
-    </ul>
-
-    <p class="muted">This is an estimate. Final price depends on photos, access, and actual load on the day.</p>
-  </div>
-</div>
-
-<!-- App logic (unchanged) -->
-<script src="main.js?v=r317" defer></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r318"></script>
+<script src="main.js?v=r350" defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r350"></script>
 </body>
 </html>
