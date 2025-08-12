@@ -10,20 +10,23 @@
 <link rel="icon" sizes="512x512" href="icon-512.png">
 <style>
   :root{--bg:#000;--panel:#0f0f0f;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e}
-  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
   .wrap{max-width:720px;margin:0 auto;padding:18px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
   header{display:flex;flex-direction:column;align-items:center;gap:10px}
   header img{width:110px;height:110px;border-radius:20px;border:1px solid var(--line);object-fit:cover;background:#000}
   h1{margin:4px 0 2px;text-align:center;font-size:1.45rem;color:var(--brand)}
-  .sub{color:var(--muted);text-align:center}.build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
+  .sub{color:var(--muted);text-align:center}
+  .build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
   label{display:block;margin:12px 0 6px;color:var(--muted)}
   input,select,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:#111;color:#fff;outline:none;font-size:1.05rem}
   textarea{min-height:96px}
   .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem}
   .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
   .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media (max-width:560px){.grid2{grid-template-columns:1fr}}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:560px){.grid2{grid-template-columns:1fr}}
   .hidden,[hidden]{display:none!important}
   .hint{font-size:.9rem;color:var(--muted)}
   .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
@@ -32,14 +35,14 @@
 </style>
 </head>
 <body>
-<div id="dbg">loading…</div>
+<div id="dbg" class="hidden" hidden>loading…</div>
 
 <div class="wrap">
   <header class="card">
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r305</div>
+    <div class="build" id="buildTag">Build r313</div>
   </header>
 
   <div class="card">
@@ -56,15 +59,90 @@
       <option value="other">Other (Tell me what you need)</option>
     </select>
 
-    <!-- IKEA -->
+    <!-- IKEA service mode -->
     <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
-      <select id="ikeaMode"><option value="collect" selected>Collect Only</option><option value="collectBuild">Collect & Build</option></select>
+      <select id="ikeaMode">
+        <option value="collect" selected>Collect Only</option>
+        <option value="collectBuild">Collect & Build</option>
+      </select>
     </div>
+
+    <!-- IKEA store (7 options total) -->
     <div id="ikeaStoreWrap" class="hidden" hidden>
       <label for="ikeaStore">IKEA store</label>
-      <select id="ikeaStore"></select>
+      <select id="ikeaStore">
+        <option value="" selected disabled>Select IKEA store…</option>
+        <option value="Geldered Close, Bletchley, Milton Keynes">IKEA Milton Keynes</option>
+        <option value="Boongate, Peterborough">IKEA Peterborough Click & Collect</option>
+        <option value="Glover Dr, London N18 3HF">IKEA Tottenham</option>
+        <option value="Lakeside Retail Park, Thurrock RM20 3WJ">IKEA Lakeside</option>
+        <option value="2 Drury Way, London NW10 0TH">IKEA Wembley</option>
+        <option value="Sweet Briar Retail Park, Norwich">IKEA Norwich Order & Collection Point</option>
+        <option value="55-57 Bugsby’s Way, London SE10 0QJ">IKEA Greenwich</option>
+      </select>
     </div>
+
+    <!-- Common IKEA items (top ~50) — only visible for Collect & Build -->
+    <div id="ikeaItemWrap" class="hidden" hidden>
+      <label for="ikeaItem">Common IKEA item (optional)</label>
+      <select id="ikeaItem">
+        <option value="" selected>(optional) pick a common item…</option>
+        <option value="90">MALM Chest (6‑drawer) — ~90 min</option>
+        <option value="70">MALM Chest (4‑drawer) — ~70 min</option>
+        <option value="60">MALM Chest (3‑drawer) — ~60 min</option>
+        <option value="90">MALM Bed Frame (double) — ~90 min</option>
+        <option value="110">MALM Bed Frame w/ storage (double) — ~110 min</option>
+        <option value="30">MALM Bedside Table — ~30 min</option>
+        <option value="120">PAX Wardrobe (2‑door basic) — ~120 min</option>
+        <option value="150">PAX Wardrobe (3‑door basic) — ~150 min</option>
+        <option value="140">PAX Wardrobe (2‑door sliding) — ~140 min</option>
+        <option value="160">PAX 2‑door + KOMPLEMENT drawers — ~160 min</option>
+        <option value="45">BILLY Bookcase 80×202 — ~45 min</option>
+        <option value="35">BILLY Bookcase 40×202 — ~35 min</option>
+        <option value="60">BILLY w/ OXBERG doors — ~60 min</option>
+        <option value="70">BILLY Corner Bookcase — ~70 min</option>
+        <option value="30">KALLAX 2×2 — ~30 min</option>
+        <option value="50">KALLAX 2×4 — ~50 min</option>
+        <option value="35">KALLAX 1×4 — ~35 min</option>
+        <option value="75">KALLAX 5×5 — ~75 min</option>
+        <option value="110">HEMNES Chest (8‑drawer) — ~110 min</option>
+        <option value="95">HEMNES Chest (6‑drawer) — ~95 min</option>
+        <option value="60">HEMNES TV bench — ~60 min</option>
+        <option value="120">HEMNES Day‑bed w/ 3 drawers — ~120 min</option>
+        <option value="95">BRIMNES Wardrobe (3‑door) — ~95 min</option>
+        <option value="80">BRIMNES Wardrobe (2‑door) — ~80 min</option>
+        <option value="100">BRIMNES Bed w/ storage (double) — ~100 min</option>
+        <option value="70">BRIMNES Chest (4‑drawer) — ~70 min</option>
+        <option value="80">SONGESAND Bed (double) — ~80 min</option>
+        <option value="90">SONGESAND Wardrobe (2‑door) — ~90 min</option>
+        <option value="100">LIATORP TV Unit — ~100 min</option>
+        <option value="90">LIATORP Bookcase — ~90 min</option>
+        <option value="25">LACK Coffee Table — ~25 min</option>
+        <option value="35">LACK TV Bench — ~35 min</option>
+        <option value="20">LACK Side Table — ~20 min</option>
+        <option value="85">PLATSA Wardrobe (simple) — ~85 min</option>
+        <option value="90">PLATSA Frame + 2 doors — ~90 min</option>
+        <option value="45">IVAR Shelving Unit (basic) — ~45 min</option>
+        <option value="60">BESTÅ TV bench (120 cm) — ~60 min</option>
+        <option value="75">BESTÅ TV bench (180 cm) — ~75 min</option>
+        <option value="90">BESTÅ frame + doors (combo) — ~90 min</option>
+        <option value="35">POÄNG Armchair — ~35 min</option>
+        <option value="20">POÄNG Footstool — ~20 min</option>
+        <option value="90">NORDLI Chest (6‑drawer) — ~90 min</option>
+        <option value="110">NORDLI Chest (8‑drawer) — ~110 min</option>
+        <option value="60">TARVA Bed Frame (double) — ~60 min</option>
+        <option value="50">FJÄLLBO TV bench — ~50 min</option>
+        <option value="55">HEMNES Shoe cabinet — ~55 min</option>
+        <option value="50">MICKE Desk — ~50 min</option>
+        <option value="40">ALEX Drawer unit — ~40 min</option>
+        <option value="50">PAX Sliding door pair (add‑on) — ~50 min</option>
+        <option value="45">KOMPLEMENT Drawer set (×4) — ~45 min</option>
+      </select>
+      <div class="hint" id="ikeaTimeHint"></div>
+    </div>
+
+    <!-- IKEA quantity -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
@@ -83,7 +161,10 @@
     <!-- Shop timing -->
     <div id="shopTimeWrap" class="hidden" hidden>
       <label for="shopTime">Run time (for shop runs)</label>
-      <select id="shopTime"><option value="before22" selected>Before 10pm</option><option value="after22">After 10pm</option></select>
+      <select id="shopTime">
+        <option value="before22" selected>Before 10pm</option>
+        <option value="after22">After 10pm</option>
+      </select>
     </div>
 
     <!-- Team & stairs -->
@@ -92,11 +173,17 @@
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
     </div>
     <div id="stairsWrap" class="grid2 hidden" hidden>
-      <div><label for="stairsPickup">Stairs at pickup (floors)</label><input id="stairsPickup" type="number" min="0" step="1" value="0"></div>
-      <div><label for="stairsDrop">Stairs at drop‑off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
+      <div>
+        <label for="stairsPickup">Stairs at pickup (floors)</label>
+        <input id="stairsPickup" type="number" min="0" step="1" value="0">
+      </div>
+      <div>
+        <label for="stairsDrop">Stairs at drop‑off (floors)</label>
+        <input id="stairsDrop" type="number" min="0" step="1" value="0">
+      </div>
     </div>
 
-    <!-- Waste -->
+    <!-- Waste (Tip run) -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
@@ -106,7 +193,7 @@
     <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
-      <textarea id="jobDesc" placeholder="e.g., sofa + access notes…"></textarea>
+      <textarea id="jobDesc" placeholder="e.g., sofa + access notes… "></textarea>
     </div>
 
     <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
@@ -125,9 +212,10 @@
   </div>
 </div>
 
-<!-- External JS -->
-<script src="main.js?v=r305" defer></script>
+<!-- App script -->
+<script src="main.js?v=r313" defer></script>
+
 <!-- Google Maps WITHOUT callback (JS polls) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r305"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r313"></script>
 </body>
 </html>
