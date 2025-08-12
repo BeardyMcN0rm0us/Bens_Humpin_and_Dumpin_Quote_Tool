@@ -41,7 +41,6 @@
 </head>
 <body>
 
-<!-- Splash (center logo) -->
 <div id="splash"><img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo"></div>
 
 <div class="wrap">
@@ -49,7 +48,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r39</div>
+    <div class="build">Build r39a</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -74,7 +73,6 @@
       <option value="other">Other (Tell me what you need)</option>
     </select>
 
-    <!-- IKEA mode/store -->
     <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
       <select id="ikeaMode">
@@ -88,7 +86,6 @@
       <div class="hint">Choosing a store fills the collection address (you can edit it).</div>
     </div>
 
-    <!-- Addresses -->
     <div id="pickupField" class="hidden" hidden>
       <label for="addrPickup">Collection address</label>
       <input id="addrPickup" type="text" placeholder="Start typing…" autocomplete="street-address">
@@ -98,7 +95,6 @@
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
-    <!-- Shop timing -->
     <div id="shopTimeWrap" class="hidden" hidden>
       <label for="shopTime">Run time (for shop runs)</label>
       <select id="shopTime">
@@ -107,7 +103,6 @@
       </select>
     </div>
 
-    <!-- IKEA build qty + quick picks -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
@@ -115,10 +110,8 @@
       <div class="hint">Tap an item to auto-fill description and bump the quantity.</div>
     </div>
 
-    <!-- Hidden mileage holder -->
     <input id="mileage" type="number" class="hidden" hidden readonly>
 
-    <!-- Team & stairs -->
     <div id="twoManWrap" class="hidden" hidden>
       <label for="twoMan">Two-person team?</label>
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
@@ -128,14 +121,12 @@
       <div><label for="stairsDrop">Stairs at drop-off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
     </div>
 
-    <!-- Waste for tip runs -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
       <div class="hint">We’ll use the minimum disposal fee (25% of the published £/tonne). If it’s more, Ben confirms from photos.</div>
     </div>
 
-    <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
       <textarea id="jobDesc" placeholder="e.g., Billy bookcase + Malm drawers; room & access notes…"></textarea>
@@ -168,20 +159,35 @@
 </div>
 
 <!-- Load config FIRST -->
-<script src="config.js?v=r39"></script>
+<script src="config.js?v=r39a"></script>
 
 <script>
+// ===== Safe config fallback (prevents total JS crash) =====
+const DEFAULT_CFG = {
+  version: "r39a-fallback",
+  homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
+  waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
+  whatsappNumber: "447717463496",
+  minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
+  rangePct: { tip:0.15, business:0.15, other:0.15, move:0.12, fb:0.12, student:0.12, shop:0.10, ikea:0.12 },
+  baseFees: { default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
+  mileagePerMile: 0.40, twoManSurcharge: 20, stairsPerFloor: 5,
+  disposalMinPct: 0.25,
+  disposal: { general:{label:"General Waste",ratePerTonne:192.50} },
+  ikeaAssemblyPerItem: 15, ikeaStores: [], ikeaItems: [], ui:{ splashMs:4000, showShopNoMinNote:true }
+};
+const CFG = window.BHD_CONFIG || DEFAULT_CFG;
+if (!window.BHD_CONFIG) { document.getElementById('cfgWarn').style.display='block'; }
+
 // ===== Utilities =====
 const $=id=>document.getElementById(id);
 function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
 function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
 
-// ===== Config & constants =====
-const CFG = window.BHD_CONFIG;
-if(!CFG){ document.getElementById('cfgWarn').style.display='block'; }
+// ===== Constants from config =====
 const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
-const BASE = CFG.baseFees, RANGES = CFG.rangePct, MIN_BY = CFG.minByType;
-const DISP = CFG.disposal, DISP_MIN = Number(CFG.disposalMinPct || 0.25);
+const BASE = CFG.baseFees || {}, RANGES = CFG.rangePct || {}, MIN_BY = CFG.minByType || {};
+const DISP = CFG.disposal || {}, DISP_MIN = Number(CFG.disposalMinPct ?? 0.25);
 const UI = CFG.ui || {}, IKEA_STORES = CFG.ikeaStores || [], IKEA_ITEMS = CFG.ikeaItems || [];
 const PRICE = {
   mileagePerMile: Number(CFG.mileagePerMile||0),
@@ -212,7 +218,7 @@ const els={
 // ===== State =====
 let pickupAddress="", dropAddress="", directions=null;
 
-// ===== Small utils =====
+// ===== Helpers =====
 function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
 const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
 const pctFor = jt => Number(RANGES[jt] ?? 0.12);
@@ -226,7 +232,7 @@ function baseFeeFor(jt){
 
 // ===== UI logic =====
 function setJobTypeUI(){
-  const jt=els.jobType.value;
+  const jt=els.jobType.value || "";
   [
     els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,
     els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap
@@ -236,8 +242,7 @@ function setJobTypeUI(){
   show(els.pickupField);
 
   if(jt==="tip"){
-    const wc = els.wasteType; wc.innerHTML="";
-    Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=DISP[key].label || key; wc.appendChild(o); });
+    const wc = els.wasteType; if (wc){ wc.innerHTML=""; Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=(DISP[key]?.label)||key; wc.appendChild(o); }); }
     show(els.wasteWrap);
     els.routeHint.textContent="Mileage: Home → Collection → Waterbeach (return added only if Home→Collection > 50mi).";
   } else if (jt==="move"||jt==="fb"||jt==="student"){
@@ -248,8 +253,8 @@ function setJobTypeUI(){
     els.routeHint.textContent="Mileage: Home → Shop → Delivery.";
   } else if (jt==="ikea"){
     show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
-    if (els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
-    if (els.ikeaStore.value){ els.addrPickup.value = els.ikeaStore.value; pickupAddress = els.ikeaStore.value; }
+    if (els.ikeaMode && els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
+    if (els.ikeaStore && els.ikeaStore.value){ els.addrPickup.value = els.ikeaStore.value; pickupAddress = els.ikeaStore.value; }
     els.routeHint.textContent="Mileage: Home → IKEA store → Delivery.";
   } else if (jt==="business"||jt==="other"){
     show(els.addrDropWrap); show(els.descWrap);
@@ -261,14 +266,14 @@ function setJobTypeUI(){
 function calcDisposal(){
   const key=els.wasteType.value;
   const item = DISP[key] || {};
-  theRate = Number(item.ratePerTonne || 0);
-  const minFee = theRate * DISP_MIN;
-  return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${theRate.toFixed(2)}/t`};
+  const rate = Number(item.ratePerTonne || 0);
+  const minFee = rate * DISP_MIN;
+  return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
 }
 
 // ===== Quote calc =====
 function calculate(miles){
-  const jt=els.jobType.value;
+  const jt=els.jobType.value || "";
   if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return {total:0,lines:[],range:[0,0]}; }
 
   const base=baseFeeFor(jt);
@@ -277,7 +282,7 @@ function calculate(miles){
   const mileageCost=(miles||0)*PRICE.mileagePerMile;
   const disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
   let ikeaAssemblyFee=0;
-  if(jt==="ikea" && els.ikeaMode.value==="collectBuild"){
+  if(jt==="ikea" && els.ikeaMode && els.ikeaMode.value==="collectBuild"){
     const qty=Math.max(1,parseInt(els.ikeaQty.value)||1);
     ikeaAssemblyFee = qty * PRICE.ikeaAssemblyPerItem;
   }
@@ -347,7 +352,7 @@ function sendWhatsApp(){
   const {lines,range}=calculate(0);
   const jt=els.jobType.value;
   const ikeaBits = (jt==="ikea")
-    ? [`IKEA Mode: ${els.ikeaMode.value==="collectBuild"?"Collect & Build":"Collect Only"}`, `IKEA Store: ${els.ikeaStore.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
+    ? [`IKEA Mode: ${els.ikeaMode?.value==="collectBuild"?"Collect & Build":"Collect Only"}`, `IKEA Store: ${els.ikeaStore?.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
     : [];
   const msgLines=[
     "Hey Ben! I need something Humpin' & Dumpin'",
@@ -403,18 +408,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
   setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
 
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39').catch(()=>{}); }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39a').catch(()=>{}); }
 
-  setJobTypeUI();
+  // Wire events robustly
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
   if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
   els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
+
+  // Start with all hidden, then apply selection state (if any)
+  setJobTypeUI();
 });
 </script>
 
-<!-- Maps last (key injected by Actions: __MAPS_API_KEY__) -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r39"
+<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r39a"
   onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'"></script>
 </body>
 </html>
