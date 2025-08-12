@@ -25,24 +25,28 @@
   .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem}
   .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
   .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
+  .btn.small{padding:8px 10px;font-size:.9rem}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:560px){.grid2{grid-template-columns:1fr}}
+  .grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+  @media (max-width:560px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
   .hidden,[hidden]{display:none!important}
   .hint{font-size:.9rem;color:var(--muted)}
   .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
   .total.show{opacity:1}
-  #dbg{position:fixed;left:10px;right:10px;bottom:10px;background:#0f0f0f;border:1px solid #222;border-radius:12px;padding:8px 10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#cfcfcf;z-index:9999}
+  .list{margin-top:8px;border-top:1px solid var(--line)}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);gap:10px}
+  .row .meta{flex:1}
+  .row .qty{display:flex;align-items:center;gap:6px}
+  .row input[type="number"]{width:84px}
 </style>
 </head>
 <body>
-<div id="dbg" class="hidden" hidden>loading…</div>
-
 <div class="wrap">
   <header class="card">
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r313</div>
+    <div class="build" id="buildTag">Build r315</div>
   </header>
 
   <div class="card">
@@ -81,70 +85,78 @@
         <option value="Sweet Briar Retail Park, Norwich">IKEA Norwich Order & Collection Point</option>
         <option value="55-57 Bugsby’s Way, London SE10 0QJ">IKEA Greenwich</option>
       </select>
+      <div class="hint">Selecting a store sets the collection address.</div>
     </div>
 
-    <!-- Common IKEA items (top ~50) — only visible for Collect & Build -->
-    <div id="ikeaItemWrap" class="hidden" hidden>
-      <label for="ikeaItem">Common IKEA item (optional)</label>
-      <select id="ikeaItem">
-        <option value="" selected>(optional) pick a common item…</option>
-        <option value="90">MALM Chest (6‑drawer) — ~90 min</option>
-        <option value="70">MALM Chest (4‑drawer) — ~70 min</option>
-        <option value="60">MALM Chest (3‑drawer) — ~60 min</option>
-        <option value="90">MALM Bed Frame (double) — ~90 min</option>
-        <option value="110">MALM Bed Frame w/ storage (double) — ~110 min</option>
-        <option value="30">MALM Bedside Table — ~30 min</option>
-        <option value="120">PAX Wardrobe (2‑door basic) — ~120 min</option>
-        <option value="150">PAX Wardrobe (3‑door basic) — ~150 min</option>
-        <option value="140">PAX Wardrobe (2‑door sliding) — ~140 min</option>
-        <option value="160">PAX 2‑door + KOMPLEMENT drawers — ~160 min</option>
-        <option value="45">BILLY Bookcase 80×202 — ~45 min</option>
-        <option value="35">BILLY Bookcase 40×202 — ~35 min</option>
-        <option value="60">BILLY w/ OXBERG doors — ~60 min</option>
-        <option value="70">BILLY Corner Bookcase — ~70 min</option>
-        <option value="30">KALLAX 2×2 — ~30 min</option>
-        <option value="50">KALLAX 2×4 — ~50 min</option>
-        <option value="35">KALLAX 1×4 — ~35 min</option>
-        <option value="75">KALLAX 5×5 — ~75 min</option>
-        <option value="110">HEMNES Chest (8‑drawer) — ~110 min</option>
-        <option value="95">HEMNES Chest (6‑drawer) — ~95 min</option>
-        <option value="60">HEMNES TV bench — ~60 min</option>
-        <option value="120">HEMNES Day‑bed w/ 3 drawers — ~120 min</option>
-        <option value="95">BRIMNES Wardrobe (3‑door) — ~95 min</option>
-        <option value="80">BRIMNES Wardrobe (2‑door) — ~80 min</option>
-        <option value="100">BRIMNES Bed w/ storage (double) — ~100 min</option>
-        <option value="70">BRIMNES Chest (4‑drawer) — ~70 min</option>
-        <option value="80">SONGESAND Bed (double) — ~80 min</option>
-        <option value="90">SONGESAND Wardrobe (2‑door) — ~90 min</option>
-        <option value="100">LIATORP TV Unit — ~100 min</option>
-        <option value="90">LIATORP Bookcase — ~90 min</option>
-        <option value="25">LACK Coffee Table — ~25 min</option>
-        <option value="35">LACK TV Bench — ~35 min</option>
-        <option value="20">LACK Side Table — ~20 min</option>
-        <option value="85">PLATSA Wardrobe (simple) — ~85 min</option>
-        <option value="90">PLATSA Frame + 2 doors — ~90 min</option>
-        <option value="45">IVAR Shelving Unit (basic) — ~45 min</option>
-        <option value="60">BESTÅ TV bench (120 cm) — ~60 min</option>
-        <option value="75">BESTÅ TV bench (180 cm) — ~75 min</option>
-        <option value="90">BESTÅ frame + doors (combo) — ~90 min</option>
-        <option value="35">POÄNG Armchair — ~35 min</option>
-        <option value="20">POÄNG Footstool — ~20 min</option>
-        <option value="90">NORDLI Chest (6‑drawer) — ~90 min</option>
-        <option value="110">NORDLI Chest (8‑drawer) — ~110 min</option>
-        <option value="60">TARVA Bed Frame (double) — ~60 min</option>
-        <option value="50">FJÄLLBO TV bench — ~50 min</option>
-        <option value="55">HEMNES Shoe cabinet — ~55 min</option>
-        <option value="50">MICKE Desk — ~50 min</option>
-        <option value="40">ALEX Drawer unit — ~40 min</option>
-        <option value="50">PAX Sliding door pair (add‑on) — ~50 min</option>
-        <option value="45">KOMPLEMENT Drawer set (×4) — ~45 min</option>
-      </select>
+    <!-- IKEA Items "basket" (only for Collect & Build) -->
+    <div id="ikeaItemsWrap" class="hidden" hidden>
+      <label>Assembly items</label>
+      <div class="grid3">
+        <select id="ikeaItemSel">
+          <option value="" selected>(pick an item…)</option>
+          <!-- value format: minutes|Display Name -->
+          <option value="90|MALM Chest (6‑drawer)">MALM Chest (6‑drawer) — ~90 min</option>
+          <option value="70|MALM Chest (4‑drawer)">MALM Chest (4‑drawer) — ~70 min</option>
+          <option value="60|MALM Chest (3‑drawer)">MALM Chest (3‑drawer) — ~60 min</option>
+          <option value="90|MALM Bed Frame (double)">MALM Bed Frame (double) — ~90 min</option>
+          <option value="110|MALM Bed (double) w/ storage">MALM Bed (double) w/ storage — ~110 min</option>
+          <option value="30|MALM Bedside Table">MALM Bedside Table — ~30 min</option>
+          <option value="120|PAX Wardrobe (2‑door basic)">PAX Wardrobe (2‑door basic) — ~120 min</option>
+          <option value="150|PAX Wardrobe (3‑door basic)">PAX Wardrobe (3‑door basic) — ~150 min</option>
+          <option value="140|PAX Wardrobe (2‑door sliding)">PAX Wardrobe (2‑door sliding) — ~140 min</option>
+          <option value="160|PAX 2‑door + KOMPLEMENT drawers">PAX 2‑door + KOMPLEMENT drawers — ~160 min</option>
+          <option value="45|BILLY Bookcase 80×202">BILLY Bookcase 80×202 — ~45 min</option>
+          <option value="35|BILLY Bookcase 40×202">BILLY Bookcase 40×202 — ~35 min</option>
+          <option value="60|BILLY + OXBERG doors">BILLY + OXBERG doors — ~60 min</option>
+          <option value="70|BILLY Corner Bookcase">BILLY Corner Bookcase — ~70 min</option>
+          <option value="30|KALLAX 2×2">KALLAX 2×2 — ~30 min</option>
+          <option value="50|KALLAX 2×4">KALLAX 2×4 — ~50 min</option>
+          <option value="35|KALLAX 1×4">KALLAX 1×4 — ~35 min</option>
+          <option value="75|KALLAX 5×5">KALLAX 5×5 — ~75 min</option>
+          <option value="110|HEMNES Chest (8‑drawer)">HEMNES Chest (8‑drawer) — ~110 min</option>
+          <option value="95|HEMNES Chest (6‑drawer)">HEMNES Chest (6‑drawer) — ~95 min</option>
+          <option value="60|HEMNES TV bench">HEMNES TV bench — ~60 min</option>
+          <option value="120|HEMNES Day‑bed + drawers">HEMNES Day‑bed + drawers — ~120 min</option>
+          <option value="95|BRIMNES Wardrobe (3‑door)">BRIMNES Wardrobe (3‑door) — ~95 min</option>
+          <option value="80|BRIMNES Wardrobe (2‑door)">BRIMNES Wardrobe (2‑door) — ~80 min</option>
+          <option value="100|BRIMNES Bed w/ storage (double)">BRIMNES Bed w/ storage (double) — ~100 min</option>
+          <option value="70|BRIMNES Chest (4‑drawer)">BRIMNES Chest (4‑drawer) — ~70 min</option>
+          <option value="80|SONGESAND Bed (double)">SONGESAND Bed (double) — ~80 min</option>
+          <option value="90|SONGESAND Wardrobe (2‑door)">SONGESAND Wardrobe (2‑door) — ~90 min</option>
+          <option value="100|LIATORP TV Unit">LIATORP TV Unit — ~100 min</option>
+          <option value="90|LIATORP Bookcase">LIATORP Bookcase — ~90 min</option>
+          <option value="25|LACK Coffee Table">LACK Coffee Table — ~25 min</option>
+          <option value="35|LACK TV Bench">LACK TV Bench — ~35 min</option>
+          <option value="20|LACK Side Table">LACK Side Table — ~20 min</option>
+          <option value="85|PLATSA Wardrobe (simple)">PLATSA Wardrobe (simple) — ~85 min</option>
+          <option value="90|PLATSA Frame + 2 doors">PLATSA Frame + 2 doors — ~90 min</option>
+          <option value="45|IVAR Shelving Unit (basic)">IVAR Shelving Unit (basic) — ~45 min</option>
+          <option value="60|BESTÅ TV bench (120 cm)">BESTÅ TV bench (120 cm) — ~60 min</option>
+          <option value="75|BESTÅ TV bench (180 cm)">BESTÅ TV bench (180 cm) — ~75 min</option>
+          <option value="90|BESTÅ frame + doors (combo)">BESTÅ frame + doors (combo) — ~90 min</option>
+          <option value="35|POÄNG Armchair">POÄNG Armchair — ~35 min</option>
+          <option value="20|POÄNG Footstool">POÄNG Footstool — ~20 min</option>
+          <option value="90|NORDLI Chest (6‑drawer)">NORDLI Chest (6‑drawer) — ~90 min</option>
+          <option value="110|NORDLI Chest (8‑drawer)">NORDLI Chest (8‑drawer) — ~110 min</option>
+          <option value="60|TARVA Bed Frame (double)">TARVA Bed Frame (double) — ~60 min</option>
+          <option value="50|FJÄLLBO TV bench">FJÄLLBO TV bench — ~50 min</option>
+          <option value="55|HEMNES Shoe cabinet">HEMNES Shoe cabinet — ~55 min</option>
+          <option value="50|MICKE Desk">MICKE Desk — ~50 min</option>
+          <option value="40|ALEX Drawer unit">ALEX Drawer unit — ~40 min</option>
+          <option value="50|PAX Sliding door pair (add‑on)">PAX Sliding door pair (add‑on) — ~50 min</option>
+          <option value="45|KOMPLEMENT Drawer set (×4)">KOMPLEMENT Drawer set (×4) — ~45 min</option>
+        </select>
+        <input id="ikeaQtyAdd" type="number" min="1" step="1" value="1" />
+        <button id="ikeaAddBtn" class="btn secondary small" type="button">Add</button>
+      </div>
+
+      <div id="ikeaList" class="list"></div>
       <div class="hint" id="ikeaTimeHint"></div>
     </div>
 
-    <!-- IKEA quantity -->
+    <!-- IKEA quantity (kept so legacy calc still shows if no basket used) -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
-      <label for="ikeaQty">How many items to build?</label>
+      <label for="ikeaQty">How many items to build? (legacy)</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
     </div>
 
@@ -212,10 +224,7 @@
   </div>
 </div>
 
-<!-- App script -->
-<script src="main.js?v=r313" defer></script>
-
-<!-- Google Maps WITHOUT callback (JS polls) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r313"></script>
+<script src="main.js?v=r315" defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r315"></script>
 </body>
 </html>
