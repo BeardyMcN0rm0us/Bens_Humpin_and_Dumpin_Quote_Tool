@@ -46,7 +46,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r350</div>
+    <div class="build" id="buildTag">Build r351</div>
   </header>
 
   <div class="card">
@@ -89,9 +89,9 @@
       <div class="hint">Selecting a store sets the collection address.</div>
     </div>
 
-    <!-- Assembly items basket (IKEA/Flatpack) -->
+    <!-- IKEA Items "basket" (for Collect & Build only) -->
     <div id="ikeaItemsWrap" class="hidden" hidden>
-      <label>Assembly items</label>
+      <label>Assembly items (IKEA)</label>
       <div class="grid3">
         <select id="ikeaItemSel">
           <option value="" selected>(pick an item…)</option>
@@ -145,14 +145,51 @@
           <option value="50|MICKE Desk">MICKE Desk — ~50 min</option>
           <option value="40|ALEX Drawer unit">ALEX Drawer unit — ~40 min</option>
           <option value="50|PAX Sliding door pair (add‑on)">PAX Sliding door pair (add‑on) — ~50 min</option>
-          <option value="45|KOMPLEMENT Drawer set (×4)">KOMPLEMENT Drawer set (×4) — ~45 min</option>
+          <option value="other|Other (enter details below)">Other (enter details below)</option>
         </select>
         <input id="ikeaQtyAdd" type="number" min="1" step="1" value="1" />
         <button id="ikeaAddBtn" class="btn secondary small" type="button">Add</button>
       </div>
-
+      <div id="ikeaOtherWrap" class="grid2 hidden" hidden>
+        <input id="ikeaOtherName" type="text" placeholder="Item name (e.g., sideboard)">
+        <input id="ikeaOtherMinutes" type="number" min="5" step="5" placeholder="Minutes (e.g., 60)">
+      </div>
       <div id="ikeaList" class="list"></div>
       <div class="hint" id="ikeaTimeHint"></div>
+    </div>
+
+    <!-- FLATPACK Items (Build Only) -->
+    <div id="flatpackItemsWrap" class="hidden" hidden>
+      <label>Flat Pack items (Build only)</label>
+      <div class="grid3">
+        <select id="flatItemSel">
+          <option value="" selected>(pick an item…)</option>
+          <!-- minutes|name -->
+          <option value="45|Bed (Single)">Bed (Single) — ~45 min</option>
+          <option value="60|Bed (Double)">Bed (Double) — ~60 min</option>
+          <option value="75|Bed (King/Super King)">Bed (King/Super King) — ~75 min</option>
+          <option value="90|Wardrobe (2‑door)">Wardrobe (2‑door) — ~90 min</option>
+          <option value="120|Wardrobe (3‑door)">Wardrobe (3‑door) — ~120 min</option>
+          <option value="45|Chest of drawers (3‑drawer)">Chest of drawers (3‑drawer) — ~45 min</option>
+          <option value="60|Chest of drawers (6‑drawer)">Chest of drawers (6‑drawer) — ~60 min</option>
+          <option value="30|Bedside table">Bedside table — ~30 min</option>
+          <option value="45|TV stand">TV stand — ~45 min</option>
+          <option value="90|Dining table & 4 chairs">Dining table & 4 chairs — ~90 min</option>
+          <option value="120|Dining table & 6 chairs">Dining table & 6 chairs — ~120 min</option>
+          <option value="60|Desk">Desk — ~60 min</option>
+          <option value="45|Bookcase">Bookcase — ~45 min</option>
+          <option value="30|Coffee table">Coffee table — ~30 min</option>
+          <option value="other|Other (enter details below)">Other (enter details below)</option>
+        </select>
+        <input id="flatQtyAdd" type="number" min="1" step="1" value="1" />
+        <button id="flatAddBtn" class="btn secondary small" type="button">Add</button>
+      </div>
+      <div id="flatOtherWrap" class="grid2 hidden" hidden>
+        <input id="flatOtherName" type="text" placeholder="Item name (e.g., bunk bed)">
+        <input id="flatOtherMinutes" type="number" min="5" step="5" placeholder="Minutes (e.g., 75)">
+      </div>
+      <div id="flatList" class="list"></div>
+      <div class="hint" id="flatTimeHint"></div>
     </div>
 
     <!-- Addresses -->
@@ -200,7 +237,7 @@
     <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
-      <textarea id="jobDesc" placeholder="e.g., wardrobe, desk, bunk bed…"></textarea>
+      <textarea id="jobDesc" placeholder="e.g., 2x wardrobes, 1x TV stand… access info, parking etc."></textarea>
     </div>
 
     <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
@@ -219,7 +256,7 @@
   </div>
 </div>
 
-<script src="main.js?v=r350" defer></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r350"></script>
+<script src="main.js?v=r351" defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r351"></script>
 </body>
 </html>
