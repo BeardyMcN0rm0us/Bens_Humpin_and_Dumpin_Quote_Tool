@@ -1,4 +1,4 @@
-name: Deploy BHD Quote Tool (static)
+name: Deploy Bens Humpin an Dumpin Quote Tool (static)
 
 on:
   push:
