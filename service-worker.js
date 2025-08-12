@@ -1,5 +1,5 @@
-// Ben’s Humpin’ & Dumpin’ — SW r36
-const CACHE = 'bhd-cache-r36';
+// Ben’s Humpin’ & Dumpin’ — SW r37
+const CACHE = 'bhd-cache-r37';
 const ASSETS = [
   './',
   './index.html',
@@ -30,7 +30,6 @@ self.addEventListener('fetch', e => {
   }
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(resp => {
-      // cache GETs
       if (e.request.method === 'GET' && resp.ok) {
         const copy = resp.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
