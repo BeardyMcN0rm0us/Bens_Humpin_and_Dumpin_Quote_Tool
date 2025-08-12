@@ -39,7 +39,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build clean2</div>
+    <div class="build" id="buildTag">Build r305</div>
   </header>
 
   <div class="card">
@@ -86,7 +86,17 @@
       <select id="shopTime"><option value="before22" selected>Before 10pm</option><option value="after22">After 10pm</option></select>
     </div>
 
-    <!-- Waste (safe if you delete it; JS is guarded) -->
+    <!-- Team & stairs -->
+    <div id="twoManWrap" class="hidden" hidden>
+      <label for="twoMan">Two‑person team?</label>
+      <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
+    </div>
+    <div id="stairsWrap" class="grid2 hidden" hidden>
+      <div><label for="stairsPickup">Stairs at pickup (floors)</label><input id="stairsPickup" type="number" min="0" step="1" value="0"></div>
+      <div><label for="stairsDrop">Stairs at drop‑off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
+    </div>
+
+    <!-- Waste -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
@@ -115,10 +125,9 @@
   </div>
 </div>
 
-<!-- App script -->
-<script src="main.js?v=clean2" defer></script>
-
-<!-- Google Maps WITHOUT callback (we wait for it in main.js) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=clean2"></script>
+<!-- External JS -->
+<script src="main.js?v=r305" defer></script>
+<!-- Google Maps WITHOUT callback (JS polls) -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r305"></script>
 </body>
 </html>
