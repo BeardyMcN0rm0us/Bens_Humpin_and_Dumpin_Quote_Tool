@@ -1,6 +1,6 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r38b)
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r39)
 window.BHD_CONFIG = {
-  version: "r38b",
+  version: "r39",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -9,7 +9,7 @@ window.BHD_CONFIG = {
   // WhatsApp number (no +, no leading 0)
   whatsappNumber: "447717463496",
 
-  // Per-job-type minimums (blank "" = no minimum)
+  // Per‑job‑type minimums ("" = no minimum)
   minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
 
   // Price ranges (±%)
@@ -31,7 +31,7 @@ window.BHD_CONFIG = {
   stairsPerFloor: 5,
 
   // Disposal (Waterbeach) — min drop fee = disposalMinPct * ratePerTonne
-  disposalMinPct: 0.25, // 25%
+  disposalMinPct: 0.25,
   disposal: {
     general:      { label: "General Waste",                    ratePerTonne: 192.50 },
     soil_inert:   { label: "Soil / Inert Waste",               ratePerTonne: 69.75  },
@@ -59,7 +59,7 @@ window.BHD_CONFIG = {
     { name: "IKEA Greenwich", address: "IKEA, Bugsby’s Way, London SE10 0QJ" }
   ],
 
-  // Quick-pick IKEA items
+  // Quick pick IKEA items
   ikeaItems: [
     { name: "Billy bookcase", qty: 1 },
     { name: "Kallax shelving unit", qty: 1 },
