@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="style.css?v=r352">
+<link rel="stylesheet" href="style.css?v=r353">
 </head>
 <body>
 <div class="wrap">
@@ -16,7 +16,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r352</div>
+    <div class="build" id="buildTag">Build r353</div>
   </header>
 
   <div class="card">
@@ -226,7 +226,42 @@
   </div>
 </div>
 
+<!-- HELP OVERLAY (CSS-only) -->
+<input type="checkbox" id="helpToggle" />
+<label class="helpFab" for="helpToggle">Help</label>
+<div class="helpOverlay">
+  <label class="helpClose" for="helpToggle">Close ✕</label>
+  <div class="helpPanel">
+    <h2>How to get an instant estimate</h2>
+    <ol>
+      <li><strong>Pick a job type</strong> from the dropdown.</li>
+      <li><strong>Enter addresses</strong> if asked (postcodes work great).</li>
+      <li><strong>Add extras</strong>: stairs, two‑person, waste, or items to build.</li>
+      <li>Tap <strong>Calculate Quote</strong>.</li>
+      <li>Review the breakdown. You’ll see <em>Total journey</em> and <em>Charged mileage</em>.</li>
+      <li>Tap <strong>Send to WhatsApp</strong> to message Ben with everything filled in.</li>
+    </ol>
+
+    <h3>Job types (what’s charged)</h3>
+    <p><strong>Tip Run</strong> — Collection → Waterbeach. If collection is >50 miles from home, mileage is charged from home. Minimum disposal fee based on waste type.</p>
+    <p><strong>House Move / FB Pickup / Student</strong> — Home → Pickup → Delivery (one‑way charged). Stairs and two‑person if needed.</p>
+    <p><strong>Emergency Shop Run</strong> — Home → Shop → Delivery. Before/after 10pm base fee.</p>
+    <p><strong>IKEA Collect & Build</strong> — Pick a store (sets collection), add items as needed. Mileage: Home → IKEA → Delivery.</p>
+    <p><strong>Flat Pack Build Only</strong> — Enter your address. If it’s <em>over 15 miles</em> from Ben’s home, mileage is charged <em>one‑way (home → destination)</em>, rounded up. Otherwise no mileage.</p>
+
+    <h3>What the numbers mean</h3>
+    <ul>
+      <li><strong>Total journey</strong> — Ben’s full loop (e.g., Home → Destination → Home).</li>
+      <li><strong>Charged mileage</strong> — The miles billed @ your per‑mile rate, based on the job rules.</li>
+      <li><strong>Assembly</strong> — Time‑based at £/hour (or per‑item, if Ben flips the switch).</li>
+      <li><strong>Estimated total</strong> — A range like £80–£100. Final price confirmed after photos/access.</li>
+    </ul>
+
+    <p class="muted">This is an estimate. Final price depends on photos, access, and actual load on the day.</p>
+  </div>
+</div>
+
 <script src="main.js?v=r352" defer></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r352"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r353"></script>
 </body>
 </html>
