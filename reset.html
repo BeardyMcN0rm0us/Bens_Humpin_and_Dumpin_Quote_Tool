@@ -1,1 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BHD Reset</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  .wrap{max-width:680px;margin:0 auto;padding:18px}
+  .card{background:#0f0f0f;border:1px solid #222;border-radius:16px;padding:16px;margin:14px 0}
+  .log{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+  .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem;background:#25D366;color:#0b1b12}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>Ben’s H&D — Reset</h2>
+  <div class="card">
+    <div id="status">Running reset…</div>
+    <div class="log" id="log"></div>
+  </div>
+  <button id="go" class="btn" style="display:none">Go to App</button>
+</div>
 
+<script>
+(async function(){
+  const logEl = document.getElementById('log');
+  const statusEl = document.getElementById('status');
+  const say = (m)=>{ logEl.textContent += m + "\n"; console.log('[reset]', m); };
+
+  try {
+    if (!('serviceWorker' in navigator)) {
+      say('No service worker support — nothing to reset.');
+    } else {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      if (regs.length === 0) {
+        say('No registered service workers.');
+      } else {
+        for (const r of regs) {
+          say('Unregistering SW at scope: ' + (r.scope || '(unknown)'));
+          await r.unregister();
+        }
+      }
+    }
+  } catch(e){ say('SW error: ' + e); }
+
+  try {
+    if (window.caches && caches.keys) {
+      const keys = await caches.keys();
+      if (keys.length === 0) {
+        say('No CacheStorage entries.');
+      } else {
+        for (const k of keys) {
+          say('Deleting cache: ' + k);
+          await caches.delete(k);
+        }
+      }
+    } else {
+      say('CacheStorage not available.');
+    }
+  } catch(e){ say('Cache error: ' + e); }
+
+  try {
+    localStorage.clear(); sessionStorage.clear();
+    say('Cleared localStorage & sessionStorage.');
+  } catch(e){ say('Storage clear error: ' + e); }
+
+  statusEl.textContent = 'Reset complete ✔';
+  const go = document.getElementById('go');
+  go.style.display = 'block';
+  go.addEventListener('click', function(){
+    // Hard cache-bust when navigating back
+    const t = Date.now();
+    location.href = './index.html?reset=' + t;
+  });
+})();
+</script>
+</body>
+</html>
