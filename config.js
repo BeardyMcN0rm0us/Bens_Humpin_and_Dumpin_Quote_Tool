@@ -1,7 +1,9 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r31)
-// EDIT THIS FILE ONLY to change prices, minimums, stores, etc.
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r33)
+// EDIT THIS FILE ONLY to change prices, minimums, ranges, stores, items, version, etc.
 
 window.BHD_CONFIG = {
+  version: "r33", // bump each update
+
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
@@ -9,16 +11,10 @@ window.BHD_CONFIG = {
   // WhatsApp number (no +, no leading 0)
   whatsappNumber: "447717463496",
 
-  // Per-job-type minimums (number or "" to disable)
+  // Per-job-type minimums
   minByType: {
-    tip: "",       // Tip Run
-    move: "",      // House Move
-    fb: "",        // Facebook Marketplace
-    shop: "",      // Emergency Shop Run
-    student: "",   // Student Relocation
-    business: "",  // Business/Barter
-    other: "",     // Other
-    ikea: ""       // IKEA Collect / Collect & Build
+    tip: "", move: "", fb: "", shop: "",
+    student: "", business: "", other: "", ikea: ""
   },
 
   // Price ranges (±%)
@@ -30,12 +26,12 @@ window.BHD_CONFIG = {
 
   // Base fees
   baseFees: {
-    default: 35,            // fallback if a type has no specific base
-    move: 50,               // House Move
-    shopBefore22: 25,       // Shop run before 10pm
-    shopAfter22: 40,        // Shop run after 10pm
-    ikeaCollect: 45,        // IKEA collect only
-    ikeaCollectBuild: 55    // IKEA collect + build
+    default: 35,
+    move: 50,
+    shopBefore22: 25,
+    shopAfter22: 40,
+    ikeaCollect: 45,
+    ikeaCollectBuild: 55
   },
 
   // Mileage & surcharges
@@ -57,7 +53,7 @@ window.BHD_CONFIG = {
   // IKEA build pricing
   ikeaAssemblyPerItem: 15,
 
-  // IKEA stores (used for the store picker; editable)
+  // IKEA stores
   ikeaStores: [
     { name: "IKEA Milton Keynes", address: "IKEA, 2 Grafton Gate, Milton Keynes MK9 1DL" },
     { name: "IKEA Lakeside (Thurrock)", address: "IKEA, Lakeside Retail Park, RM20 3WJ" },
@@ -77,9 +73,9 @@ window.BHD_CONFIG = {
     { name: "Lack coffee table", qty: 1 }
   ],
 
-  // UI toggles
+  // UI
   ui: {
     showShopNoMinNote: true,
-    splashMs: 4000          // 4s splash
+    splashMs: 4000
   }
 };
