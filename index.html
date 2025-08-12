@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="style.css?v=r360">
+<link rel="stylesheet" href="style.css?v=r361">
 </head>
 <body>
 <div class="wrap">
@@ -16,7 +16,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r360</div>
+    <div class="build" id="buildTag">Build r361</div>
   </header>
 
   <div class="card">
@@ -79,7 +79,6 @@
       <div class="grid3">
         <select id="ikeaItemSel">
           <option value="" selected>(pick an item…)</option>
-          <!-- minutes|name … (list unchanged for brevity) -->
           <option value="90|MALM Chest (6‑drawer)">MALM Chest (6‑drawer) — ~90 min</option>
           <option value="70|MALM Chest (4‑drawer)">MALM Chest (4‑drawer) — ~70 min</option>
           <option value="60|MALM Chest (3‑drawer)">MALM Chest (3‑drawer) — ~60 min</option>
@@ -229,7 +228,11 @@
   </div>
 </div>
 
-<script src="main.js?v=r360" defer></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&cbust=r360"></script>
+<script src="main.js?v=r361" defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=voidFunc"></script>
+<script>
+  // harmless no-op callback to appease some setups
+  function voidFunc(){}
+</script>
 </body>
 </html>
