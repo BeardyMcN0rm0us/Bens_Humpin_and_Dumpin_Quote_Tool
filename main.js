@@ -1,18 +1,18 @@
-// r315 — Adds IKEA "basket": multiple items with qty, edit/remove
-// Keeps: UI toggle, Maps, ranges, WhatsApp, time/per-item flag
+// r316 — IKEA basket + time pricing shown as £/hour, durations formatted Hh Mm
+// Keeps: UI toggle, Maps, ranges, WhatsApp, per-item flag fallback
 
 window.BHD = Object.assign({
-  version: "r315",
+  version: "r316",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
-  mileagePerMile: 0.28,
+  mileagePerMile: 0.40,
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  baseFees:{ default:15, move:20, shopBefore22:10, shopAfter22:20, ikeaCollect:20, ikeaCollectBuild:20 },
+  baseFees:{ default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
 
@@ -33,10 +33,10 @@ window.BHD = Object.assign({
   },
 
   // IKEA assembly pricing controls
-  useTimePricing: true,      // true = time-based, false = per-item
-  ikeaLaborPerHour: 15,      // £/hour
-  ikeaLaborPerMinute: null,  // null => derive from per-hour
-  ikeaAssemblyPerItem: 15    // per-item fallback
+  useTimePricing: true,      // true = time-based (shown as £/hour), false = per-item fallback
+  ikeaLaborPerHour: 36,      // £/hour (UI displays this)
+  ikeaLaborPerMinute: null,  // null => derive from per-hour; internal only
+  ikeaAssemblyPerItem: 15    // per-item fallback if not using time or no minutes
 }, window.BHD||{});
 
 (function(){
@@ -47,6 +47,12 @@ window.BHD = Object.assign({
   const metersToMiles=m=>m/1609.344;
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
+  const fmtMins = (mins)=>{
+    const m = Math.max(0, Math.round(mins));
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m/60), r = m%60;
+    return r ? `${h}h ${r}m` : `${h}h`;
+  };
 
   const CFG=window.BHD;
 
@@ -54,15 +60,14 @@ window.BHD = Object.assign({
     jobType:$('jobType'),
     ikeaModeWrap:$('ikeaModeWrap'), ikeaMode:$('ikeaMode'),
     ikeaStoreWrap:$('ikeaStoreWrap'), ikeaStore:$('ikeaStore'),
-    // basket controls
+    // basket
     ikeaItemsWrap:$('ikeaItemsWrap'),
     ikeaItemSel:$('ikeaItemSel'),
     ikeaQtyAdd:$('ikeaQtyAdd'),
     ikeaAddBtn:$('ikeaAddBtn'),
     ikeaList:$('ikeaList'),
     ikeaTimeHint:$('ikeaTimeHint'),
-    // legacy qty (not used when basket has items)
-    ikeaQty:$('ikeaQty'),
+    ikeaQty:$('ikeaQty'), // legacy, unused if basket has items
 
     pickupField:$('pickupField'), addrPickup:$('addrPickup'),
     addrDropWrap:$('addrDropWrap'), addrDrop:$('addrDrop'),
@@ -78,7 +83,7 @@ window.BHD = Object.assign({
   };
   if (els.buildTag) els.buildTag.textContent = 'Build ' + (CFG.version||'');
 
-  // waste types
+  // seed waste types
   if (els.wasteType && els.wasteType.options.length===0){
     Object.keys(CFG.disposal||{}).forEach(k=>{
       const it=CFG.disposal[k], o=document.createElement('option');
@@ -86,13 +91,13 @@ window.BHD = Object.assign({
     });
   }
 
-  // ---- state for IKEA basket
+  // ---- IKEA basket state
   const ikeaBasket = []; // [{name, minutes, qty}]
 
   function laborPerMinute(){
     if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
     const perHour = Number(CFG.ikeaLaborPerHour||0);
-    return perHour>0 ? (perHour/60) : 0.6;
+    return perHour>0 ? (perHour/60) : 0.6; // default £36/hr
   }
 
   function renderIkeaList(){
@@ -109,7 +114,7 @@ window.BHD = Object.assign({
       const row = document.createElement('div');
       row.className = 'row';
       row.innerHTML = `
-        <div class="meta"><strong>${it.name}</strong><br><span class="hint">${it.minutes} min each</span></div>
+        <div class="meta"><strong>${it.name}</strong><br><span class="hint">${fmtMins(it.minutes)} each</span></div>
         <div class="qty">
           <input type="number" min="1" step="1" value="${it.qty}" data-idx="${idx}" class="qtyInput">
           <button class="btn small" data-remove="${idx}" type="button">Remove</button>
@@ -117,7 +122,7 @@ window.BHD = Object.assign({
       `;
       els.ikeaList.appendChild(row);
     });
-    els.ikeaTimeHint.textContent = `Est. total build time: ~${totalMin} min`;
+    els.ikeaTimeHint.textContent = `Est. total build time: ~${fmtMins(totalMin)}`;
     // bind qty edits + remove
     els.ikeaList.querySelectorAll('.qtyInput').forEach(inp=>{
       inp.addEventListener('input', e=>{
@@ -144,7 +149,6 @@ window.BHD = Object.assign({
     const minutes = Math.max(0, parseInt(minsStr||'0',10) || 0);
     if (!name || minutes<=0) return;
 
-    // merge with existing if same name
     const existing = ikeaBasket.find(i=>i.name===name && i.minutes===minutes);
     if (existing) existing.qty += qty;
     else ikeaBasket.push({name, minutes, qty});
@@ -154,7 +158,7 @@ window.BHD = Object.assign({
 
   if (els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
 
-  // ---- UI toggle
+  // ---- UI toggle / address behaviours
   let lastJobType='';
   function clearAddresses(){
     if (els.addrPickup){ els.addrPickup.value=''; els.addrPickup.blur(); }
@@ -273,24 +277,25 @@ window.BHD = Object.assign({
       ikeaBasket.forEach(i=>{
         totalMinutes += i.minutes * i.qty;
         totalItems   += i.qty;
-        lines.push(`${i.qty} × ${i.name} (${i.minutes}m each)`);
+        lines.push(`${i.qty} × ${i.name} (${fmtMins(i.minutes)} each)`);
       });
     } else {
-      // legacy path (kept for simplicity)
       const qty = Math.max(1, parseInt(els.ikeaQty && els.ikeaQty.value || "1")||1);
       const sel = els.ikeaItemSel && els.ikeaItemSel.value;
       const minutesPer = sel ? parseInt(sel.split('|')[0],10) || 0 : 0;
+      const name = sel ? sel.split('|')[1] : '';
       totalMinutes = minutesPer * qty;
       totalItems   = qty;
-      if (minutesPer) lines.push(`${qty} × ${sel.split('|')[1]} (${minutesPer}m each)`);
+      if (minutesPer) lines.push(`${qty} × ${name} (${fmtMins(minutesPer)} each)`);
     }
 
     let cost=0, txt='';
     if (els.ikeaMode && els.ikeaMode.value==='collectBuild'){
       if (CFG.useTimePricing && totalMinutes>0){
+        const perHour = Number(CFG.ikeaLaborPerHour||0) || Math.round(laborPerMinuteEffective()*60);
         const perMin = laborPerMinuteEffective();
         cost = totalMinutes * perMin;
-        txt = ` (~${totalMinutes} min @ £${perMin.toFixed(2)}/min)`;
+        txt = ` (~${fmtMins(totalMinutes)} @ £${perHour}/hour)`; // show per-hour only
       } else {
         const perItem = Number(CFG.ikeaAssemblyPerItem||15);
         cost = totalItems * perItem;
