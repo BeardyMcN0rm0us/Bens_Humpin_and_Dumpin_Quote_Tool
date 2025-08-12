@@ -2,7 +2,7 @@
 const CACHE = 'bhd-cache-r38b';
 const ASSETS = [
   './',
-  './index.html',
+  './index.template.html',
   './config.js',
   './icon-192.png',
   './icon-512.png',
