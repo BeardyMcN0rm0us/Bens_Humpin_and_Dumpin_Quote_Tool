@@ -5,10 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
 
+<!-- CRITICAL FALLBACK so page isn’t white if CSS fails -->
+<style>
+  body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  .hidden,[hidden]{display:none!important}
+</style>
+
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <meta name="theme-color" content="#000000" />
-<link rel="stylesheet" href="style.css?v=r35">
+<link rel="stylesheet" href="style.css?v=r35b">
 </head>
 <body>
 
@@ -20,7 +26,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r35</div>
+    <div class="build">Build r35b</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -46,31 +52,31 @@
     </select>
 
     <!-- IKEA mode/store -->
-    <div id="ikeaModeWrap" class="hidden">
+    <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
       <select id="ikeaMode">
         <option value="collect" selected>Collect Only</option>
         <option value="collectBuild">Collect & Build</option>
       </select>
     </div>
-    <div id="ikeaStoreWrap" class="hidden">
+    <div id="ikeaStoreWrap" class="hidden" hidden>
       <label for="ikeaStore">IKEA store</label>
       <select id="ikeaStore"></select>
       <div class="hint">Choosing a store fills the collection address (you can edit it).</div>
     </div>
 
     <!-- Addresses -->
-    <div id="pickupField" class="hidden">
+    <div id="pickupField" class="hidden" hidden>
       <label for="addrPickup">Collection address</label>
       <input id="addrPickup" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
-    <div id="addrDropWrap" class="hidden">
+    <div id="addrDropWrap" class="hidden" hidden>
       <label for="addrDrop">Delivery address</label>
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
     <!-- Shop timing -->
-    <div id="shopTimeWrap" class="hidden">
+    <div id="shopTimeWrap" class="hidden" hidden>
       <label for="shopTime">Run time (for shop runs)</label>
       <select id="shopTime">
         <option value="before22" selected>Before 10pm</option>
@@ -79,7 +85,7 @@
     </div>
 
     <!-- IKEA build qty + quick picks -->
-    <div id="ikeaQtyWrap" class="hidden">
+    <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
       <div id="ikeaQuickPick" class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px"></div>
@@ -87,27 +93,27 @@
     </div>
 
     <!-- Hidden mileage holder -->
-    <input id="mileage" type="number" class="hidden" readonly>
+    <input id="mileage" type="number" class="hidden" hidden readonly>
 
     <!-- Team & stairs -->
-    <div id="twoManWrap" class="hidden">
+    <div id="twoManWrap" class="hidden" hidden>
       <label for="twoMan">Two-person team?</label>
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
     </div>
-    <div id="stairsWrap" class="grid2 hidden">
+    <div id="stairsWrap" class="grid2 hidden" hidden>
       <div><label for="stairsPickup">Stairs at pickup (floors)</label><input id="stairsPickup" type="number" min="0" step="1" value="0"></div>
       <div><label for="stairsDrop">Stairs at drop-off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
     </div>
 
     <!-- Waste for tip runs -->
-    <div id="wasteWrap" class="hidden">
+    <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
       <div class="hint">We’ll use the minimum disposal fee (25% of the published £/tonne). If it’s more, Ben confirms from photos.</div>
     </div>
 
     <!-- Description -->
-    <div id="descWrap" class="hidden">
+    <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
       <textarea id="jobDesc" placeholder="e.g., Billy bookcase + Malm drawers; room & access notes…"></textarea>
     </div>
@@ -120,14 +126,14 @@
     <div id="quoteId" class="muted">Quote ID — (after send)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
     <div id="total" class="total">Estimated: £0–£0</div>
-    <div id="shopNote" class="muted hidden" style="margin-top:6px">No minimum charge — you only pay for the job.</div>
+    <div id="shopNote" class="muted hidden" hidden style="margin-top:6px">No minimum charge — you only pay for the job.</div>
     <div class="hr"></div>
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
 
   <div class="card">
     <div class="row">
-      <button id="btnWhatsApp" class="btn primary hidden" type="button">Send to WhatsApp</button>
+      <button id="btnWhatsApp" class="btn primary hidden" hidden type="button">Send to WhatsApp</button>
     </div>
     <div class="hint" style="margin-top:8px">WhatsApp opens with your details and Ben’s number prefilled.</div>
   </div>
@@ -139,13 +145,15 @@
 </div>
 
 <!-- Load config FIRST -->
-<script src="config.js?v=r35"></script>
+<script src="config.js?v=r35b" defer></script>
 
 <script>
 // ======= Boot / shortcuts =======
-const CFG = window.BHD_CONFIG || {};
-if(!CFG){ document.getElementById('cfgWarn').style.display='block'; }
+const $=id=>document.getElementById(id);
+function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
+function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
 
+const CFG = window.BHD_CONFIG || {};
 const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
 const BASE = CFG.baseFees || {};
 const RANGES = CFG.rangePct || {};
@@ -162,7 +170,7 @@ const PRICE = {
   ikeaAssemblyPerItem: Number(CFG.ikeaAssemblyPerItem||0)
 };
 
-const $=id=>document.getElementById(id);
+// DOM
 const els={
   jobType:$('#jobType'),
   ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -180,11 +188,12 @@ const els={
   quoteId:$('#quoteId'), btnWA:$('#btnWhatsApp')
 };
 
+// State
 let pickupAddress="", dropAddress="", directions=null;
 
+// Helpers
 function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
-const round5=v=>Math.round(v/5)*5, show=el=>{el.classList.remove('hidden');el.classList.add('slide')}, hide=el=>{el.classList.add('hidden');el.classList.remove('slide')};
-const metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
+const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
 const pctFor = jt => Number(RANGES[jt] ?? 0.12);
 const minFor = jt => { const v = MIN_BY[jt]; return (v === "" || v == null) ? 0 : Math.max(0, Number(v)); };
 function baseFeeFor(jt){
@@ -194,7 +203,7 @@ function baseFeeFor(jt){
   return Number(BASE.default ?? 0);
 }
 
-// ======= UI logic =======
+// UI logic
 function setJobTypeUI(){
   const jt=els.jobType.value;
   [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap].forEach(hide);
@@ -225,7 +234,7 @@ function setJobTypeUI(){
   }
 }
 
-// ======= Disposal calc =======
+// Disposal calc
 function calcDisposal(){
   const key=els.wasteType.value;
   const item = DISP[key] || {};
@@ -234,7 +243,7 @@ function calcDisposal(){
   return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
 }
 
-// ======= Quote calc =======
+// Quote calc
 function calculate(miles){
   const jt=els.jobType.value;
   if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return {total:0,lines:[],range:[0,0]}; }
@@ -259,7 +268,6 @@ function calculate(miles){
   if(jt==="shop") lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
   if(jt==="ikea" && ikeaAssemblyFee) lines.push(`Assembly: £${ikeaAssemblyFee.toFixed(2)} (${els.ikeaQty.value} item${(parseInt(els.ikeaQty.value)||1)>1?"s":""})`);
 
-  // min per type
   const MIN = minFor(jt);
   if (MIN > 0 && total < MIN){ lines.push(`Minimum charge applied`); total = MIN; }
 
@@ -271,24 +279,23 @@ function calculate(miles){
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
   els.total.classList.add('show');
-  els.btnWA.classList.remove('hidden'); els.btnWA.classList.add('slide');
+  show(els.btnWA);
   return {total,lines,range:[low,high]};
 }
 
-// ======= Mileage rules =======
+// Mileage rules
 function calcMileage(){
   if(!directions){ calculate(0); return; }
   const jt=els.jobType.value;
   if(!pickupAddress){ els.routeHint.textContent="Enter collection address."; return; }
   if(jt!=="tip" && !dropAddress){ els.routeHint.textContent="Enter delivery address."; return; }
 
-  // TIP RUN special rule
+  // TIP RUN
   if(jt==="tip"){
     directions.route({origin:ADDR.home,destination:pickupAddress,travelMode:'DRIVING'},(r1,s1)=>{
       if(s1!=="OK"){els.routeHint.textContent="Route error"; return;}
       const milesHomeToPickup=metersToMiles(legsMiles(r1.routes[0].legs));
       if(milesHomeToPickup<=50){
-        // one-way: collection -> Waterbeach
         directions.route({origin:pickupAddress,destination:ADDR.tipSite,travelMode:'DRIVING'},(r2,s2)=>{
           if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
           const miles=metersToMiles(legsMiles(r2.routes[0].legs));
@@ -296,7 +303,6 @@ function calcMileage(){
           calculate(miles);
         });
       }else{
-        // >50mi: home -> collection -> Waterbeach -> home
         directions.route({origin:ADDR.home,destination:ADDR.home,waypoints:[{location:pickupAddress,stopover:true},{location:ADDR.tipSite,stopover:true}],travelMode:'DRIVING'},(r2,s2)=>{
           if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
           const miles=metersToMiles(legsMiles(r2.routes[0].legs));
@@ -308,7 +314,7 @@ function calcMileage(){
     return;
   }
 
-  // All others: home -> pickup -> delivery (one-way)
+  // Others
   directions.route({origin:ADDR.home,destination:dropAddress,waypoints:[{location:pickupAddress,stopover:true}],travelMode:'DRIVING'},(r,s)=>{
     if(s!=="OK"){els.routeHint.textContent="Route error"; return;}
     const miles=metersToMiles(legsMiles(r.routes[0].legs));
@@ -317,10 +323,10 @@ function calcMileage(){
   });
 }
 
-// ======= WhatsApp =======
+// WhatsApp
 function sendWhatsApp(){
   const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
-  const {lines,range}=calculate(0); // ensure latest breakdown shows
+  const {lines,range}=calculate(0);
   const jt=els.jobType.value;
 
   const ikeaBits = (jt==="ikea")
@@ -344,7 +350,7 @@ function sendWhatsApp(){
   window.open(url,'_blank');
 }
 
-// ======= Maps init & IKEA helpers =======
+// Maps init + IKEA helpers
 function initMapsStuff(){
   try{
     directions=new google.maps.DirectionsService();
@@ -356,6 +362,7 @@ function initMapsStuff(){
 }
 window.initMapsStuff=initMapsStuff;
 
+// Populate IKEA
 (function initIkeaStores(){
   const el = document.getElementById('ikeaStore'); if(!el) return;
   el.innerHTML = "";
@@ -379,9 +386,8 @@ window.initMapsStuff=initMapsStuff;
   });
 })();
 
-// ======= Events / boot =======
+// Boot
 document.addEventListener('DOMContentLoaded',()=>{
-  // Splash + footer
   const splash = document.getElementById('splash');
   const vb = document.getElementById('versionBadge');
   const lu = document.getElementById('lastUpdated');
@@ -398,7 +404,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <!-- Google Maps (API key injected by your GH Action) -->
 <script async
-  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r35"
+  src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r35b"
   onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'">
 </script>
 </body>
