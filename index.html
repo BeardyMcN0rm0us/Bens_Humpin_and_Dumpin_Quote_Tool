@@ -3,248 +3,44 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BHD — Instant Quote (r203‑ui‑test)</title>
+<title>BHD — JS Load Probe</title>
 <meta name="theme-color" content="#000000" />
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <style>
-  :root{--bg:#000;--panel:#0f0f0f;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e}
-  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
-  .wrap{max-width:720px;margin:0 auto;padding:18px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
-  header{display:flex;flex-direction:column;align-items:center;gap:10px}
-  header img{width:110px;height:110px;border-radius:20px;border:1px solid var(--line);object-fit:cover;background:#000}
-  h1{margin:4px 0 2px;text-align:center;font-size:1.45rem;color:var(--brand)}
-  .sub{color:var(--muted);text-align:center}.build{color:#6f6f6f;text-align:center;font-size:.82rem;margin-top:6px}
-  label{display:block;margin:12px 0 6px;color:var(--muted)}
-  input,select,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:#111;color:#fff;outline:none;font-size:1.05rem}
-  textarea{min-height:96px}
-  .btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:1.05rem}
-  .btn.primary{background:linear-gradient(135deg,#29d980,#25D366);color:#0b1b12}
-  .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media (max-width:560px){.grid2{grid-template-columns:1fr}}
-  .hidden,[hidden]{display:none!important}
-  .hint{font-size:.9rem;color:var(--muted)}
-  .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
-  .total.show{opacity:1}
+  body{margin:0;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  .wrap{max-width:680px;margin:0 auto;padding:18px}
+  .card{background:#0f0f0f;border:1px solid #222;border-radius:14px;padding:16px;margin:16px 0}
+  label{display:block;margin:12px 0 6px;color:#b7b7b7}
+  select{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;font-size:1.05rem}
+  .hidden{display:none!important}
   #dbg{position:fixed;left:10px;right:10px;bottom:10px;background:#0f0f0f;border:1px solid #222;border-radius:12px;padding:8px 10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#cfcfcf;z-index:9999}
 </style>
-
-<!-- ===== EDITABLE SETTINGS (update here) ===== -->
-<script>
-window.BHD = {
-  version: "r203-ui-test",
-  whatsappNumber: "447717463496",
-
-  // Simple pricing just for the test (no maps):
-  mileagePerMile: 0.40,
-  twoManSurcharge: 20,
-  stairsPerFloor: 5,
-
-  baseFees: { default: 35, move: 50, shopBefore22: 25, shopAfter22: 40, ikeaCollect: 45, ikeaCollectBuild: 55 },
-  rangePct: { tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
-  minByType: { tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" }
-};
-</script>
 </head>
 <body>
-<div id="dbg">loading…</div>
+<div id="dbg">loading (no JS yet)…</div>
 
 <div class="wrap">
-  <header class="card">
-    <img src="icon-192.png" alt="Logo">
-    <h1>Instant Quote</h1>
-    <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r203‑ui‑test</div>
-  </header>
-
   <div class="card">
-    <label for="jobType" style="margin:0;color:#fff">Job Type</label>
-    <select id="jobType" onchange="window.BHD_forceUI && window.BHD_forceUI()">
-      <option value="" selected disabled hidden>Choose a job type…</option>
+    <label>Job Type</label>
+    <select id="jobType">
+      <option value="" selected disabled hidden>Choose…</option>
       <option value="tip">Tip Run</option>
       <option value="move">House Move</option>
-      <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
-      <option value="shop">Emergency Shop Run</option>
-      <option value="student">Student Relocation (to/from uni)</option>
-      <option value="ikea">IKEA Collect / Collect & Build</option>
-      <option value="business">Business Enquiries / Barter Deals</option>
-      <option value="other">Other (Tell me what you need)</option>
     </select>
-
-    <!-- Addresses (just text placeholders for test) -->
-    <div id="pickupField" class="hidden" hidden>
-      <label for="addrPickup">Collection address</label>
-      <input id="addrPickup" type="text" placeholder="Type anything (test)">
-    </div>
-    <div id="addrDropWrap" class="hidden" hidden>
-      <label for="addrDrop">Delivery / destination</label>
-      <input id="addrDrop" type="text" placeholder="Type anything (test)">
-    </div>
-
-    <!-- Manual miles JUST for this test -->
-    <div id="milesWrap" class="hidden" hidden>
-      <label for="manualMiles">Miles (one‑way) — manual for test</label>
-      <input id="manualMiles" type="number" min="0" step="0.1" value="12">
-      <div class="hint">This build ignores Google Maps. We’re proving UI + calc only.</div>
-    </div>
-
-    <!-- Shop timing -->
-    <div id="shopTimeWrap" class="hidden" hidden>
-      <label for="shopTime">Run time (shop)</label>
-      <select id="shopTime"><option value="before22" selected>Before 10pm</option><option value="after22">After 10pm</option></select>
-    </div>
-
-    <!-- IKEA options -->
-    <div id="ikeaModeWrap" class="hidden" hidden>
-      <label for="ikeaMode">IKEA service</label>
-      <select id="ikeaMode"><option value="collect" selected>Collect Only</option><option value="collectBuild">Collect & Build</option></select>
-    </div>
-    <div id="ikeaQtyWrap" class="hidden" hidden>
-      <label for="ikeaQty">Items to build</label>
-      <input id="ikeaQty" type="number" min="1" step="1" value="1">
-    </div>
-
-    <!-- Team & stairs -->
-    <div id="twoManWrap" class="hidden" hidden>
-      <label for="twoMan">Two‑person team?</label>
-      <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
-    </div>
-    <div id="stairsWrap" class="grid2 hidden" hidden>
-      <div><label for="stairsPickup">Stairs at pickup (floors)</label><input id="stairsPickup" type="number" min="0" step="1" value="0"></div>
-      <div><label for="stairsDrop">Stairs at drop‑off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
-    </div>
-
-    <!-- Waste — optional; not used in this test calc -->
-    <div id="wasteWrap" class="hidden" hidden>
-      <label for="wasteType">Waste type</label>
-      <select id="wasteType"><option>General</option></select>
-    </div>
-
-    <!-- Description -->
-    <div id="descWrap" class="hidden" hidden>
-      <label for="jobDesc">Job description</label>
-      <textarea id="jobDesc" placeholder="e.g., sofa + access notes…"></textarea>
-    </div>
-
-    <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
-    <div id="routeHint" class="hint">Choose a job type to start.</div>
   </div>
 
-  <div class="card">
-    <div id="quoteId" class="hint">Quote ID — (after send)</div>
-    <div id="breakdown" class="hint" style="margin-top:6px"></div>
-    <div id="total" class="total">Estimated: £0–£0</div>
+  <div id="pickup" class="card hidden">
+    <label>Collection address</label>
+    <input placeholder="type anything">
   </div>
 
-  <div class="card">
-    <button id="btnWhatsApp" class="btn primary hidden" hidden type="button">Send to WhatsApp</button>
-    <div class="hint" style="margin-top:8px">This test will still open WhatsApp with a message.</div>
+  <div id="drop" class="card hidden">
+    <label>Delivery address</label>
+    <input placeholder="type anything">
   </div>
 </div>
 
-<script>
-(function(){
-  const DBG = document.getElementById('dbg');
-  const say = t => { DBG.textContent = t; console.log('[ui-test]', t); };
-
-  const CFG = window.BHD;
-  document.getElementById('buildTag').textContent = 'Build ' + CFG.version;
-
-  // helpers
-  const $ = id => document.getElementById(id);
-  const show = el => { if(!el) return; el.hidden=false; el.classList.remove('hidden'); };
-  const hide = el => { if(!el) return; el.hidden=true; el.classList.add('hidden'); };
-  const round5 = v => Math.round(v/5)*5;
-  const nextQuoteId = () => { const n=new Date(),p=v=>String(v).padStart(2,"0"); return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`; };
-
-  const els = {
-    jobType:$('#jobType'), pickupField:$('#pickupField'), addrPickup:$('#addrPickup'),
-    addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'), milesWrap:$('#milesWrap'), manualMiles:$('#manualMiles'),
-    shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
-    ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'), ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'),
-    twoManWrap:$('#twoManWrap'), twoMan:$('#twoMan'), stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
-    wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'), descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
-    btnCalc:$('#btnCalc'), routeHint:$('#routeHint'), breakdown:$('#breakdown'), total:$('#total'), quoteId:$('#quoteId'),
-    btnWA:$('#btnWhatsApp')
-  };
-
-  function setJobTypeUI(){
-    const jt = els.jobType.value || "";
-    [els.pickupField,els.addrDropWrap,els.milesWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaQtyWrap,els.twoManWrap,els.stairsWrap,els.wasteWrap,els.descWrap].forEach(hide);
-    if(!jt){ els.routeHint.textContent="Choose a job type to start."; say('jobType: none'); return; }
-
-    show(els.pickupField);
-    show(els.milesWrap); // manual miles visible for test
-
-    if(jt==="tip"){ show(els.wasteWrap); els.routeHint.textContent="Enter miles (manual for test)."; }
-    else if (jt==="move"||jt==="fb"||jt==="student"){ show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); }
-    else if (jt==="shop"){ show(els.addrDropWrap); show(els.shopTimeWrap); }
-    else if (jt==="ikea"){ show(els.addrDropWrap); show(els.ikeaModeWrap); if(els.ikeaMode.value==="collectBuild") show(els.ikeaQtyWrap); show(els.twoManWrap); show(els.stairsWrap); }
-    else if (jt==="business"||jt==="other"){ show(els.addrDropWrap); show(els.descWrap); }
-
-    say('jobType: '+jt+' (UI toggled)');
-  }
-  window.BHD_forceUI = setJobTypeUI;
-
-  function pctFor(jt){ const v=CFG.rangePct[jt]; return (v==null)?0.12:Number(v); }
-  function minFor(jt){ const v=CFG.minByType[jt]; return (v===""||v==null)?0:Math.max(0,Number(v)); }
-  function baseFeeFor(jt){
-    if(jt==="move") return Number(CFG.baseFees.move||CFG.baseFees.default||0);
-    if(jt==="shop") return (els.shopTime.value==="after22")?Number(CFG.baseFees.shopAfter22||CFG.baseFees.default||0):Number(CFG.baseFees.shopBefore22||CFG.baseFees.default||0);
-    if(jt==="ikea") return (els.ikeaMode.value==="collectBuild")?Number(CFG.baseFees.ikeaCollectBuild||CFG.baseFees.default||0):Number(CFG.baseFees.ikeaCollect||CFG.baseFees.default||0);
-    return Number(CFG.baseFees.default||0);
-  }
-
-  function calculate(){
-    const jt = els.jobType.value || "";
-    if(!jt){ say('calc blocked: no job type'); return; }
-    const miles = Math.max(0, Number(els.manualMiles.value||0));
-    const base = baseFeeFor(jt);
-    const mileageCost = miles * Number(CFG.mileagePerMile||0);
-    const twoMan = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?Number(CFG.twoManSurcharge||0):0);
-    const stairs = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(((+els.stairsPickup.value||0)+(+els.stairsDrop.value||0))*Number(CFG.stairsPerFloor||0));
-    let ikeaAsm=0; if(jt==="ikea" && els.ikeaMode.value==="collectBuild"){ const qty=Math.max(1,parseInt(els.ikeaQty.value)||1); ikeaAsm = qty * 15; }
-
-    let total = base + mileageCost + stairs + twoMan + ikeaAsm;
-    const MIN=minFor(jt); if(MIN>0 && total<MIN) total=MIN;
-    const pct=pctFor(jt); const low=round5(total*(1-pct)), high=round5(total*(1+pct));
-
-    els.breakdown.innerHTML = `• Base: £${base.toFixed(2)}<br>• Mileage: £${mileageCost.toFixed(2)} (${miles.toFixed(1)} mi @ £${Number(CFG.mileagePerMile||0).toFixed(2)}/mi)` +
-                               (stairs?`<br>• Stairs: £${stairs.toFixed(2)}`:"") +
-                               (twoMan?`<br>• Two-person: £${twoMan.toFixed(2)}`:"") +
-                               (ikeaAsm?`<br>• Assembly: £${ikeaAsm.toFixed(2)}`:"");
-    els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
-    els.total.classList.add('show');
-    els.quoteId.textContent = "Quote ID — " + nextQuoteId();
-    els.btnWA.hidden=false; els.btnWA.classList.remove('hidden');
-    say('calc ok');
-  }
-
-  function sendWA(){
-    const id = (els.quoteId.textContent||"").replace("Quote ID — ","").trim();
-    const jt = els.jobType.value;
-    const msg = [
-      "Hey Ben! I need something Humpin' & Dumpin'",
-      "Quote ID: "+id,
-      "Job Type: "+jt,
-      "Collection: "+(els.addrPickup.value||"N/A"),
-      "Delivery: "+(els.addrDrop.value||"N/A"),
-      els.total.textContent
-    ].join("\n");
-    window.open("https://wa.me/"+CFG.whatsappNumber+"?text="+encodeURIComponent(msg),'_blank');
-    say('whatsapp open');
-  }
-
-  // Bind
-  ['change','input'].forEach(ev=>els.jobType.addEventListener(ev,setJobTypeUI));
-  if (els.ikeaMode) ['change','input'].forEach(ev=>els.ikeaMode.addEventListener(ev,setJobTypeUI));
-  els.btnCalc.addEventListener('click',calculate);
-  els.btnWA.addEventListener('click',sendWA);
-
-  // Start
-  setJobTypeUI();
-  say('ready — UI wired (no Maps)');
-})();
-</script>
+<!-- EXTERNAL JS ONLY -->
+<script src="main.js?v=probe1" defer></script>
 </body>
 </html>
