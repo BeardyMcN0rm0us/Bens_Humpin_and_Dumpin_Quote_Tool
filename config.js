@@ -1,8 +1,7 @@
-// Ben’s Humpin’ & Dumpin’ — Pricing Config (r34)
-// EDIT THIS FILE ONLY for prices, mins, ranges, stores, items, version, etc.
+// Ben’s Humpin’ & Dumpin’ — Pricing Config (r35)
 
 window.BHD_CONFIG = {
-  version: "r34",
+  version: "r35",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -11,7 +10,7 @@ window.BHD_CONFIG = {
   // WhatsApp number (no +, no leading 0)
   whatsappNumber: "447717463496",
 
-  // Per-job-type minimums (number or "" to disable)
+  // Per-job-type minimums (blank "" = no minimum)
   minByType: {
     tip: "", move: "", fb: "", shop: "",
     student: "", business: "", other: "", ikea: ""
@@ -39,7 +38,7 @@ window.BHD_CONFIG = {
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  // Disposal (Waterbeach) — min drop fee is % of rate below
+  // Disposal (Waterbeach) — min drop fee = disposalMinPct * ratePerTonne
   disposalMinPct: 0.25, // 25%
   disposal: {
     general:      { label: "General Waste",                    ratePerTonne: 192.50 },
