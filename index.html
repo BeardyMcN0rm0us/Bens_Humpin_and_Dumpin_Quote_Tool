@@ -49,7 +49,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r39d</div>
+    <div class="build">Build r40-restore</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -166,46 +166,34 @@
   </footer>
 </div>
 
-<!-- Load config FIRST, but defer execution until DOM is parsed -->
-<script src="config.js?v=r39d" defer></script>
+<!-- 1) Load external config ONLY (no backup), defer so DOM exists -->
+<script src="config.js?v=r40-restore" defer></script>
 
-<!-- Main script (deferred) -->
+<!-- 2) App logic (deferred) -->
 <script defer>
-// ===== Everything runs AFTER DOM is parsed =====
-
-// Safe fallback if config failed to load
-const DEFAULT_CFG = {
-  version:"r39d-fallback",
-  homeAddress:"15 Primrose Hill, Doddington, Cambs, PE15 0SU",
-  waterbeachAddress:"Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
-  whatsappNumber:"447717463496",
-  minByType:{tip:"",move:"",fb:"",shop:"",student:"",business:"",other:"",ikea:""},
-  rangePct:{tip:0.15,business:0.15,other:0.15,move:0.12,fb:0.12,student:0.12,shop:0.10,ikea:0.12},
-  baseFees:{default:35,move:50,shopBefore22:25,shopAfter22:40,ikeaCollect:45,ikeaCollectBuild:55},
-  mileagePerMile:0.40,twoManSurcharge:20,stairsPerFloor:5,
-  disposalMinPct:0.25,disposal:{general:{label:"General Waste",ratePerTonne:192.50}},
-  ikeaAssemblyPerItem:15,ikeaStores:[],ikeaItems:[],ui:{splashMs:4000,showShopNoMinNote:true}
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-  const CFG = window.BHD_CONFIG || DEFAULT_CFG;
-  if (!window.BHD_CONFIG) document.getElementById('cfgWarn').style.display='block';
+  if (!window.BHD_CONFIG) {
+    document.getElementById('cfgWarn').style.display='block';
+    console.error('BHD: config.js failed to load.');
+    return; // stop — no config, no app
+  }
+  const CFG = window.BHD_CONFIG;
 
-  // Helpers
+  // ========== Helpers ==========
   const $=id=>document.getElementById(id);
   const show=el=>{ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); };
   const hide=el=>{ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); };
   const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
   const nextQuoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
 
-  // Config bits
-  const ADDR={home:CFG.homeAddress,tipSite:CFG.waterbeachAddress};
+  // ========== Config ==========
+  const ADDR={home:CFG.homeAddress, tipSite:CFG.waterbeachAddress};
   const BASE=CFG.baseFees||{}, RANGES=CFG.rangePct||{}, MIN_BY=CFG.minByType||{};
   const DISP=CFG.disposal||{}, DISP_MIN=Number(CFG.disposalMinPct??0.25);
   const UI=CFG.ui||{}, IKEA_STORES=CFG.ikeaStores||[], IKEA_ITEMS=CFG.ikeaItems||[];
-  const PRICE={mileagePerMile:Number(CFG.mileagePerMile||0),twoMan:Number(CFG.twoManSurcharge||0),stairsPerFloor:Number(CFG.stairsPerFloor||0),ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0)};
+  const PRICE={mileagePerMile:Number(CFG.mileagePerMile||0), twoMan:Number(CFG.twoManSurcharge||0), stairsPerFloor:Number(CFG.stairsPerFloor||0), ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0)};
 
-  // Grab elements NOW (DOM exists)
+  // ========== DOM refs ==========
   const els={
     jobType:$('#jobType'),
     ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -352,20 +340,16 @@ document.addEventListener('DOMContentLoaded', () => {
       (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
       `${els.total.textContent || ""}`
     ].filter(Boolean);
-    const url=`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`;
-    window.open(url,'_blank');
+    window.open(`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`,'_blank');
   }
 
-  // Splash + meta
+  // Splash/meta
   const splash = document.getElementById('splash');
   if (els.versionBadge && CFG.version) els.versionBadge.textContent = `Version: ${CFG.version}`;
   els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
-  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
+  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number((CFG.ui||{}).splashMs || 4000));
 
-  // Service worker
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39d').catch(()=>{}); }
-
-  // Events
+  // Wire events
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
   if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
   if (els.addrPickup) els.addrPickup.addEventListener('input', ()=> pickupAddress = els.addrPickup.value.trim());
@@ -373,15 +357,19 @@ document.addEventListener('DOMContentLoaded', () => {
   els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // Maps autocomplete & directions
+  // Google Maps (directions + autocomplete)
   try{
-    directions=new google.maps.DirectionsService();
-    const opt={fields:["formatted_address"],componentRestrictions:{country:["gb"]}};
-    if(els.addrPickup){const ac1=new google.maps.places.Autocomplete(els.addrPickup,opt); ac1.addListener('place_changed',()=>{const p=ac1.getPlace(); pickupAddress=p?.formatted_address||els.addrPickup.value.trim();});}
-    if(els.addrDrop){const ac2=new google.maps.places.Autocomplete(els.addrDrop,opt); ac2.addListener('place_changed',()=>{const p=ac2.getPlace(); dropAddress=p?.formatted_address||els.addrDrop.value.trim();});}
-  }catch(e){ /* ignore if Maps not loaded yet */ }
+    window.initMapsStuff = function(){
+      try{
+        directions=new google.maps.DirectionsService();
+        const opt={fields:["formatted_address"],componentRestrictions:{country:["gb"]}};
+        if(els.addrPickup){const ac1=new google.maps.places.Autocomplete(els.addrPickup,opt); ac1.addListener('place_changed',()=>{const p=ac1.getPlace(); pickupAddress=p?.formatted_address||els.addrPickup.value.trim();});}
+        if(els.addrDrop){const ac2=new google.maps.places.Autocomplete(els.addrDrop,opt); ac2.addListener('place_changed',()=>{const p=ac2.getPlace(); dropAddress=p?.formatted_address||els.addrDrop.value.trim();});}
+      }catch(e){ console.warn('Maps init failed:', e); }
+    };
+  }catch(e){}
 
-  // IKEA data
+  // IKEA lists
   const storeSel = els.ikeaStore;
   if (storeSel) {
     storeSel.innerHTML = "";
@@ -400,12 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial UI state
+  // Start state
   setJobTypeUI();
 });
 </script>
 
-<!-- Maps JS (Actions injects the API key) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=9&cbust=r39d"></script>
+<!-- 3) Maps (Actions injects API key). No service worker used in this restore build. -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r40-restore"></script>
 </body>
 </html>
