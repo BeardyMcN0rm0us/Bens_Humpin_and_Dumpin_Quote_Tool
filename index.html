@@ -40,8 +40,6 @@
 <meta name="theme-color" content="#000000" />
 </head>
 <body>
-
-<!-- Splash -->
 <div id="splash"><img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo"></div>
 
 <div class="wrap">
@@ -49,7 +47,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r40-restore</div>
+    <div class="build">Build r40b</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -62,7 +60,8 @@
       <span class="tag">WhatsApp checkout</span>
     </div>
 
-    <select id="jobType">
+    <!-- inline onchange fallback added -->
+    <select id="jobType" onchange="window.BHD_setJobTypeUI && window.BHD_setJobTypeUI()">
       <option value="" selected disabled hidden>Choose a job type…</option>
       <option value="tip">Tip Run</option>
       <option value="move">House Move</option>
@@ -74,7 +73,6 @@
       <option value="other">Other (Tell me what you need)</option>
     </select>
 
-    <!-- IKEA mode/store -->
     <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
       <select id="ikeaMode">
@@ -88,7 +86,6 @@
       <div class="hint">Choosing a store fills the collection address (you can edit it).</div>
     </div>
 
-    <!-- Addresses -->
     <div id="pickupField" class="hidden" hidden>
       <label for="addrPickup">Collection address</label>
       <input id="addrPickup" type="text" placeholder="Start typing…" autocomplete="street-address">
@@ -98,7 +95,6 @@
       <input id="addrDrop" type="text" placeholder="Start typing…" autocomplete="street-address">
     </div>
 
-    <!-- Shop timing -->
     <div id="shopTimeWrap" class="hidden" hidden>
       <label for="shopTime">Run time (for shop runs)</label>
       <select id="shopTime">
@@ -107,7 +103,6 @@
       </select>
     </div>
 
-    <!-- IKEA build qty + quick picks -->
     <div id="ikeaQtyWrap" class="hidden" hidden>
       <label for="ikeaQty">How many items to build?</label>
       <input id="ikeaQty" type="number" min="1" step="1" value="1">
@@ -115,10 +110,8 @@
       <div class="hint">Tap an item to auto-fill description and bump the quantity.</div>
     </div>
 
-    <!-- Hidden mileage holder -->
     <input id="mileage" type="number" class="hidden" hidden readonly>
 
-    <!-- Team & stairs -->
     <div id="twoManWrap" class="hidden" hidden>
       <label for="twoMan">Two-person team?</label>
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
@@ -128,14 +121,12 @@
       <div><label for="stairsDrop">Stairs at drop-off (floors)</label><input id="stairsDrop" type="number" min="0" step="1" value="0"></div>
     </div>
 
-    <!-- Waste for tip runs -->
     <div id="wasteWrap" class="hidden" hidden>
       <label for="wasteType">Waste type (Tip runs)</label>
       <select id="wasteType"></select>
       <div class="hint">We’ll use the minimum disposal fee (25% of the published £/tonne). If it’s more, Ben confirms from photos.</div>
     </div>
 
-    <!-- Description -->
     <div id="descWrap" class="hidden" hidden>
       <label for="jobDesc">What is it? (Describe the job)</label>
       <textarea id="jobDesc" placeholder="e.g., Billy bookcase + Malm drawers; room & access notes…"></textarea>
@@ -166,34 +157,29 @@
   </footer>
 </div>
 
-<!-- 1) Load external config ONLY (no backup), defer so DOM exists -->
-<script src="config.js?v=r40-restore" defer></script>
+<!-- External config ONLY, and defer -->
+<script src="config.js?v=r40b" defer></script>
 
-<!-- 2) App logic (deferred) -->
 <script defer>
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.BHD_CONFIG) {
     document.getElementById('cfgWarn').style.display='block';
-    console.error('BHD: config.js failed to load.');
-    return; // stop — no config, no app
+    return;
   }
   const CFG = window.BHD_CONFIG;
 
-  // ========== Helpers ==========
   const $=id=>document.getElementById(id);
   const show=el=>{ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); };
   const hide=el=>{ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); };
   const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
   const nextQuoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
 
-  // ========== Config ==========
   const ADDR={home:CFG.homeAddress, tipSite:CFG.waterbeachAddress};
   const BASE=CFG.baseFees||{}, RANGES=CFG.rangePct||{}, MIN_BY=CFG.minByType||{};
   const DISP=CFG.disposal||{}, DISP_MIN=Number(CFG.disposalMinPct??0.25);
   const UI=CFG.ui||{}, IKEA_STORES=CFG.ikeaStores||[], IKEA_ITEMS=CFG.ikeaItems||[];
   const PRICE={mileagePerMile:Number(CFG.mileagePerMile||0), twoMan:Number(CFG.twoManSurcharge||0), stairsPerFloor:Number(CFG.stairsPerFloor||0), ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0)};
 
-  // ========== DOM refs ==========
   const els={
     jobType:$('#jobType'),
     ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -213,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let pickupAddress="", dropAddress="", directions=null;
-
   const pctFor = jt => Number(RANGES[jt] ?? 0.12);
   const minFor = jt => { const v = MIN_BY[jt]; return (v === "" || v == null) ? 0 : Math.max(0, Number(v)); };
   function baseFeeFor(jt){
@@ -250,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
       els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
     }
   }
+  // expose for inline onchange fallback
+  window.BHD_setJobTypeUI = setJobTypeUI;
 
   function calcDisposal(){
     const key=els.wasteType.value;
@@ -349,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
   setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number((CFG.ui||{}).splashMs || 4000));
 
-  // Wire events
+  // Events (also have inline onchange fallback above)
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
   if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
   if (els.addrPickup) els.addrPickup.addEventListener('input', ()=> pickupAddress = els.addrPickup.value.trim());
@@ -357,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.btnCalc.addEventListener('click', calcMileage);
   els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // Google Maps (directions + autocomplete)
+  // Google Maps autocomplete + directions
   try{
     window.initMapsStuff = function(){
       try{
@@ -369,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }catch(e){}
 
-  // IKEA lists
+  // IKEA data
   const storeSel = els.ikeaStore;
   if (storeSel) {
     storeSel.innerHTML = "";
@@ -388,12 +375,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Start state
+  // Initial UI
   setJobTypeUI();
 });
 </script>
 
-<!-- 3) Maps (Actions injects API key). No service worker used in this restore build. -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r40-restore"></script>
+<!-- Maps (API key injected by Actions). No service worker in this build. -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r40b"></script>
 </body>
 </html>
