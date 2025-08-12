@@ -1,8 +1,8 @@
-// r350 — Adds "Flat Pack Build Only" job type (no mileage), shows desc, uses assembly basket.
-// Keeps: IKEA basket, £/hour display, Hh Mm formatting, two mileage lines for other jobs, WA export.
+// r351 — Flat Pack Build gets its own item list + "Other" (free text). IKEA list also gains "Other".
+// Flatpack doesn't bill mileage. Keeps: mileage lines, IKEA basket, £/hour display, WA export.
 
 window.BHD = Object.assign({
-  version: "r350",
+  version: "r351",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -13,13 +13,13 @@ window.BHD = Object.assign({
   stairsPerFloor: 5,
 
   baseFees:{
-    default:35,
-    move:50,
-    shopBefore22:25,
-    shopAfter22:40,
-    ikeaCollect:45,
-    ikeaCollectBuild:55,
-    flatpack:35           // tweak if you want a different call‑out for build‑only
+    default:5,
+    move:5,
+    shopBefore22:5,
+    shopAfter22:10,
+    ikeaCollect:5,
+    ikeaCollectBuild:5,
+    flatpack:5
   },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
@@ -40,11 +40,11 @@ window.BHD = Object.assign({
     wuds:{label:"WUDs & POPs",ratePerTonne:345.00}
   },
 
-  // Assembly pricing controls
-  useTimePricing: true,      // true = time-based (shown as £/hour), false = per-item
-  ikeaLaborPerHour: 36,      // £/hour
-  ikeaLaborPerMinute: null,  // null => derive from per-hour
-  ikeaAssemblyPerItem: 15    // fallback if not using time
+  // Assembly pricing
+  useTimePricing: true,
+  ikeaLaborPerHour: 15,
+  ikeaLaborPerMinute: null,
+  ikeaAssemblyPerItem: 15
 }, window.BHD||{});
 
 (function(){
@@ -67,7 +67,12 @@ window.BHD = Object.assign({
     ikeaItemsWrap:$('ikeaItemsWrap'), ikeaItemSel:$('ikeaItemSel'),
     ikeaQtyAdd:$('ikeaQtyAdd'), ikeaAddBtn:$('ikeaAddBtn'),
     ikeaList:$('ikeaList'), ikeaTimeHint:$('ikeaTimeHint'),
-    ikeaQty:$('ikeaQty'),
+    ikeaOtherWrap:$('ikeaOtherWrap'), ikeaOtherName:$('ikeaOtherName'), ikeaOtherMinutes:$('ikeaOtherMinutes'),
+
+    flatpackItemsWrap:$('flatpackItemsWrap'),
+    flatItemSel:$('flatItemSel'), flatQtyAdd:$('flatQtyAdd'), flatAddBtn:$('flatAddBtn'),
+    flatList:$('flatList'), flatTimeHint:$('flatTimeHint'),
+    flatOtherWrap:$('flatOtherWrap'), flatOtherName:$('flatOtherName'), flatOtherMinutes:$('flatOtherMinutes'),
 
     pickupField:$('pickupField'), addrPickup:$('addrPickup'),
     addrDropWrap:$('addrDropWrap'), addrDrop:$('addrDrop'),
@@ -83,7 +88,7 @@ window.BHD = Object.assign({
   };
   if (els.buildTag) els.buildTag.textContent = 'Build ' + (CFG.version||'');
 
-  // seed waste
+  // Seed waste types once
   if (els.wasteType && els.wasteType.options.length===0){
     Object.keys(CFG.disposal||{}).forEach(k=>{
       const it=CFG.disposal[k], o=document.createElement('option');
@@ -91,19 +96,21 @@ window.BHD = Object.assign({
     });
   }
 
-  // IKEA/Flatpack basket
+  // Baskets
   const ikeaBasket=[];
+  const flatBasket=[];
   function laborPerMinute(){
     if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
     const perHour = Number(CFG.ikeaLaborPerHour||0);
     return perHour>0 ? (perHour/60) : 0.6;
   }
+
+  // ----- IKEA basket -----
   function renderIkeaList(){
-    if (!els.ikeaList) return;
-    els.ikeaList.innerHTML = '';
+    els.ikeaList.innerHTML='';
     if (ikeaBasket.length===0){
       els.ikeaList.innerHTML = `<div class="hint">No items added yet.</div>`;
-      els.ikeaTimeHint.textContent = '';
+      els.ikeaTimeHint.textContent='';
       return;
     }
     let totalMin=0;
@@ -119,39 +126,101 @@ window.BHD = Object.assign({
         </div>`;
       els.ikeaList.appendChild(row);
     });
-    els.ikeaTimeHint.textContent = `Est. total build time: ~${fmtMins(totalMin)}`;
+    els.ikeaTimeHint.textContent=`Est. total build time: ~${fmtMins(totalMin)}`;
     els.ikeaList.querySelectorAll('.qtyInput').forEach(inp=>{
       inp.addEventListener('input',e=>{
-        const i=parseInt(e.target.getAttribute('data-idx'),10);
-        const v=Math.max(1,parseInt(e.target.value||'1',10)||1);
+        const i=+e.target.getAttribute('data-idx'); const v=Math.max(1,parseInt(e.target.value||'1',10)||1);
         ikeaBasket[i].qty=v; renderIkeaList();
       });
     });
     els.ikeaList.querySelectorAll('button[data-remove]').forEach(btn=>{
       btn.addEventListener('click',e=>{
-        const i=parseInt(e.target.getAttribute('data-remove'),10);
-        ikeaBasket.splice(i,1); renderIkeaList();
+        const i=+e.target.getAttribute('data-remove'); ikeaBasket.splice(i,1); renderIkeaList();
       });
     });
   }
+  function maybeToggleIkeaOther(){
+    if (!els.ikeaItemSel) return;
+    const isOther = (els.ikeaItemSel.value||'').startsWith('other');
+    if (isOther){ show(els.ikeaOtherWrap); } else { hide(els.ikeaOtherWrap); }
+  }
   function addIkeaItem(){
-    const val=(els.ikeaItemSel&&els.ikeaItemSel.value)||'';
-    if(!val) return;
-    const qty=Math.max(1,parseInt(els.ikeaQtyAdd&&els.ikeaQtyAdd.value||'1',10)||1);
-    const [minsStr,name]=val.split('|');
-    const minutes=Math.max(0,parseInt(minsStr||'0',10)||0);
-    if(!name||minutes<=0) return;
-    const existing=ikeaBasket.find(i=>i.name===name&&i.minutes===minutes);
-    if(existing) existing.qty+=qty; else ikeaBasket.push({name,minutes,qty});
+    const sel=(els.ikeaItemSel&&els.ikeaItemSel.value)||'';
+    let minutes=0, name='', qty=Math.max(1,parseInt(els.ikeaQtyAdd&&els.ikeaQtyAdd.value||'1',10)||1);
+    if (sel.startsWith('other')){
+      name=(els.ikeaOtherName&&els.ikeaOtherName.value||'Custom item').trim();
+      minutes=Math.max(5,parseInt(els.ikeaOtherMinutes&&els.ikeaOtherMinutes.value||'60',10)||60);
+      if(!name) name='Custom item';
+    } else {
+      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
+    }
+    if(minutes<=0) return;
+    const ex=ikeaBasket.find(i=>i.name===name && i.minutes===minutes);
+    if(ex) ex.qty+=qty; else ikeaBasket.push({name,minutes,qty});
     renderIkeaList();
   }
-  if (els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
+
+  // ----- FLATPACK basket -----
+  function renderFlatList(){
+    els.flatList.innerHTML='';
+    if (flatBasket.length===0){
+      els.flatList.innerHTML = `<div class="hint">No items added yet.</div>`;
+      els.flatTimeHint.textContent='';
+      return;
+    }
+    let totalMin=0;
+    flatBasket.forEach((it,idx)=>{
+      totalMin += it.minutes*it.qty;
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML=`
+        <div class="meta"><strong>${it.name}</strong><br><span class="hint">${fmtMins(it.minutes)} each</span></div>
+        <div class="qty">
+          <input type="number" min="1" step="1" value="${it.qty}" data-fidx="${idx}" class="qtyInputF">
+          <button class="btn small" data-fremove="${idx}" type="button">Remove</button>
+        </div>`;
+      els.flatList.appendChild(row);
+    });
+    els.flatTimeHint.textContent=`Est. total build time: ~${fmtMins(totalMin)}`;
+    els.flatList.querySelectorAll('.qtyInputF').forEach(inp=>{
+      inp.addEventListener('input',e=>{
+        const i=+e.target.getAttribute('data-fidx'); const v=Math.max(1,parseInt(e.target.value||'1',10)||1);
+        flatBasket[i].qty=v; renderFlatList();
+      });
+    });
+    els.flatList.querySelectorAll('button[data-fremove]').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        const i=+e.target.getAttribute('data-fremove'); flatBasket.splice(i,1); renderFlatList();
+      });
+    });
+  }
+  function maybeToggleFlatOther(){
+    if (!els.flatItemSel) return;
+    const isOther = (els.flatItemSel.value||'').startsWith('other');
+    if (isOther){ show(els.flatOtherWrap); } else { hide(els.flatOtherWrap); }
+  }
+  function addFlatItem(){
+    const sel=(els.flatItemSel&&els.flatItemSel.value)||'';
+    let minutes=0, name='', qty=Math.max(1,parseInt(els.flatQtyAdd&&els.flatQtyAdd.value||'1',10)||1);
+    if (sel.startsWith('other')){
+      name=(els.flatOtherName&&els.flatOtherName.value||'Custom item').trim();
+      minutes=Math.max(5,parseInt(els.flatOtherMinutes&&els.flatOtherMinutes.value||'60',10)||60);
+      if(!name) name='Custom item';
+    } else {
+      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
+    }
+    if(minutes<=0) return;
+    const ex=flatBasket.find(i=>i.name===name && i.minutes===minutes);
+    if(ex) ex.qty+=qty; else flatBasket.push({name,minutes,qty});
+    renderFlatList();
+  }
 
   // UI toggle
   let lastJobType='';
   function clearAddresses(){ if(els.addrPickup) els.addrPickup.value=''; if(els.addrDrop) els.addrDrop.value=''; }
   function hideAll(){
-    [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap].forEach(hide);
+    [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,
+     els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap,els.flatpackItemsWrap].forEach(hide);
   }
   function setUI(){
     const v=els.jobType?els.jobType.value:'';
@@ -161,7 +230,7 @@ window.BHD = Object.assign({
     hideAll();
     if(!v){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return; }
 
-    // default pickup field shown for most jobs
+    // default: show pickup address for most flows
     show(els.pickupField);
 
     if(v==='tip'){
@@ -175,6 +244,7 @@ window.BHD = Object.assign({
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Shop → Delivery.";
     } else if (v==='ikea'){
       show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap);
+      // Collect & Build shows assembly list
       if (els.ikeaMode && els.ikeaMode.value==='collectBuild'){
         show(els.ikeaItemsWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
       } else {
@@ -182,11 +252,10 @@ window.BHD = Object.assign({
       }
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → IKEA → Delivery.";
     } else if (v==='flatpack'){
-      // Build only: no travel inputs, no IKEA store/mode. Just items + description.
+      // Build only: no travel fields or IKEA store. Use flatpack list + description.
       hide(els.pickupField); hide(els.addrDropWrap);
-      hide(els.ikeaModeWrap); hide(els.ikeaStoreWrap);
-      show(els.ikeaItemsWrap); show(els.descWrap);
-      // You might still want two‑man/stairs on heavy builds — keep hidden for now; easy to enable if needed.
+      hide(els.ikeaModeWrap); hide(els.ikeaStoreWrap); hide(els.ikeaItemsWrap);
+      show(els.flatpackItemsWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Build only (no travel billed).";
     } else {
       show(els.addrDropWrap); show(els.descWrap);
@@ -197,12 +266,11 @@ window.BHD = Object.assign({
   // IKEA store -> overwrite pickup
   if (els.ikeaStore){
     els.ikeaStore.addEventListener('change', ()=>{
-      const v=els.ikeaStore.value||'';
-      if (els.addrPickup) els.addrPickup.value=v;
+      const v=els.ikeaStore.value||''; if (els.addrPickup) els.addrPickup.value=v;
     });
   }
 
-  // Maps
+  // Google Maps
   let directions=null;
   function initMaps(){
     try{
@@ -225,7 +293,7 @@ window.BHD = Object.assign({
     });
   }
 
-  // Compute charged + loop miles for all job types (flatpack returns 0s)
+  // charged + loop miles (flatpack = 0)
   async function getMilesBoth(cb){
     const jt=(els.jobType&&els.jobType.value)||"";
     const home=CFG.homeAddress, tip=CFG.waterbeachAddress;
@@ -242,7 +310,6 @@ window.BHD = Object.assign({
     if(jt!=="tip" && !drop){ if(els.routeHint) els.routeHint.textContent="Enter delivery address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return; }
 
     let charged=0, loop=0, noteC='', noteL='';
-
     if (jt==='tip'){
       const toPickup=await routeP({origin:home,destination:pickup,travelMode:'DRIVING'});
       if(toPickup.miles<=50){
@@ -260,7 +327,6 @@ window.BHD = Object.assign({
       const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:'DRIVING'});
       loop=lp.miles; noteL='Home → Pickup → Delivery → Home';
     }
-
     if(els.routeHint) els.routeHint.textContent=`Charged route: ${noteC} — ${round1(charged)} mi.`;
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
@@ -282,38 +348,42 @@ window.BHD = Object.assign({
     return {fee:minFee, detail:`Minimum disposal for ${item.label||key} — ${Math.round((Number(CFG.disposalMinPct||0.25))*100)}% of £${Number(item.ratePerTonne||0).toFixed(2)}/t`};
   }
 
-  // Assembly calculation (IKEA/flatpack)
   function laborPerMinuteEffective(){
     if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
     const perHour=Number(CFG.ikeaLaborPerHour||0);
     return perHour>0?(perHour/60):0.6;
   }
-  function calcAssemblyFor(jt){
-    const isBuild = (jt==='ikea' && els.ikeaMode && els.ikeaMode.value==='collectBuild') || jt==='flatpack';
-    if (!isBuild) return {cost:0,txt:'',itemLines:[]};
-
+  function calcAssemblyForIkea(){
     let totalMinutes=0,totalItems=0,lines=[];
     if(ikeaBasket.length>0){
       ikeaBasket.forEach(i=>{ totalMinutes+=i.minutes*i.qty; totalItems+=i.qty; lines.push(`${i.qty} × ${i.name} (${fmtMins(i.minutes)} each)`); });
-    }else{
-      // fallback if user didn't add items
-      const sel=els.ikeaItemSel&&els.ikeaItemSel.value;
-      const minutesPer=sel?parseInt(sel.split('|')[0],10)||0:0;
-      const name=sel?sel.split('|')[1]:'Flat pack item';
-      const qty=1;
-      if(minutesPer){ totalMinutes=minutesPer*qty; totalItems=qty; lines.push(`${qty} × ${name} (${fmtMins(minutesPer)} each)`); }
     }
-
     let cost=0, txt='';
     if (CFG.useTimePricing && totalMinutes>0){
       const perHour=Number(CFG.ikeaLaborPerHour||0)||Math.round(laborPerMinuteEffective()*60);
       const perMin=laborPerMinuteEffective();
       cost=totalMinutes*perMin;
       txt=` (~${fmtMins(totalMinutes)} @ £${perHour}/hour)`;
-    }else{
+    }else if(totalItems>0){
       const perItem=Number(CFG.ikeaAssemblyPerItem||15);
-      cost=totalItems*perItem;
-      txt=` (${totalItems} × £${perItem.toFixed(2)}/item)`;
+      cost=totalItems*perItem; txt=` (${totalItems} × £${perItem.toFixed(2)}/item)`;
+    }
+    return {cost,txt,itemLines:lines};
+  }
+  function calcAssemblyForFlat(){
+    let totalMinutes=0,totalItems=0,lines=[];
+    if(flatBasket.length>0){
+      flatBasket.forEach(i=>{ totalMinutes+=i.minutes*i.qty; totalItems+=i.qty; lines.push(`${i.qty} × ${i.name} (${fmtMins(i.minutes)} each)`); });
+    }
+    let cost=0, txt='';
+    if (CFG.useTimePricing && totalMinutes>0){
+      const perHour=Number(CFG.ikeaLaborPerHour||0)||Math.round(laborPerMinuteEffective()*60);
+      const perMin=laborPerMinuteEffective();
+      cost=totalMinutes*perMin;
+      txt=` (~${fmtMins(totalMinutes)} @ £${perHour}/hour)`;
+    }else if(totalItems>0){
+      const perItem=Number(CFG.ikeaAssemblyPerItem||15);
+      cost=totalItems*perItem; txt=` (${totalItems} × £${perItem.toFixed(2)}/item)`;
     }
     return {cost,txt,itemLines:lines};
   }
@@ -329,10 +399,10 @@ window.BHD = Object.assign({
 
     const base=baseFeeFor(jt);
     const mileageCost = (jt==='flatpack') ? 0 : (chargedMiles * Number(CFG.mileagePerMile||0));
-    const twoMan = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other") ? 0 : ((els.twoMan && els.twoMan.value==="yes") ? Number(CFG.twoManSurcharge||0):0);
+    const twoMan = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack") ? 0 : ((els.twoMan && els.twoMan.value==="yes") ? Number(CFG.twoManSurcharge||0):0);
     const stairs = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack") ? 0 : (((+(els.stairsPickup&&els.stairsPickup.value)||0)+(+(els.stairsDrop&&els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0));
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
-    const asm = (jt==="ikea"||jt==="flatpack") ? calcAssemblyFor(jt) : {cost:0,txt:'',itemLines:[]};
+    const asm = (jt==="ikea") ? calcAssemblyForIkea() : (jt==="flatpack" ? calcAssemblyForFlat() : {cost:0,txt:'',itemLines:[]});
 
     let total=base + mileageCost + stairs + twoMan + disp.fee + asm.cost;
 
@@ -348,7 +418,7 @@ window.BHD = Object.assign({
     if(stairs) lines.push(`Stairs: £${stairs.toFixed(2)}`);
     if(twoMan) lines.push(`Two-person: £${twoMan.toFixed(2)}`);
     if(jt==="tip" && disp.fee) lines.push(`Disposal: £${disp.fee.toFixed(2)} — ${disp.detail}`);
-    if((jt==="ikea"||jt==="flatpack") && asm.cost){
+    if(asm.cost){
       if (asm.itemLines.length) lines.push(`Items:\n- ${asm.itemLines.join('\n- ')}`);
       lines.push(`Assembly: £${asm.cost.toFixed(2)}${asm.txt}`);
     }
@@ -363,7 +433,7 @@ window.BHD = Object.assign({
     if(els.btnWA){ els.btnWA.hidden=false; els.btnWA.classList.remove('hidden'); }
   }
 
-  // WhatsApp
+  // WhatsApp export
   function sendWhatsApp(){
     const id=(els.quoteId&&els.quoteId.textContent||"").replace("Quote ID — ","").trim();
     const jt=(els.jobType&&els.jobType.value)||"";
@@ -386,9 +456,19 @@ window.BHD = Object.assign({
 
   // Bindings
   if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
-  if(els.ikeaMode) ['change','input','click'].forEach(ev=>els.ikeaMode.addEventListener(ev, ()=>{ setUI(); renderIkeaList(); }));
-  if(els.ikeaItemSel) els.ikeaItemSel.addEventListener('change', ()=>{});
-  if(els.ikeaQtyAdd)  els.ikeaQtyAdd.addEventListener('keypress', e=>{ if(e.key==='Enter'){ e.preventDefault(); addIkeaItem(); } });
+
+  if(els.ikeaItemSel){
+    els.ikeaItemSel.addEventListener('change', maybeToggleIkeaOther);
+    maybeToggleIkeaOther();
+  }
+  if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
+
+  if(els.flatItemSel){
+    els.flatItemSel.addEventListener('change', maybeToggleFlatOther);
+    maybeToggleFlatOther();
+  }
+  if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', addFlatItem);
+
   if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
     initMaps();
     const jt=(els.jobType&&els.jobType.value)||"";
@@ -399,7 +479,7 @@ window.BHD = Object.assign({
   if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
 
   // First paint
-  hideAll(); setUI(); renderIkeaList();
+  hideAll(); setUI(); renderIkeaList(); renderFlatList();
   const mv=setInterval(()=>{ initMaps(); if(window.google&&google.maps) clearInterval(mv); },300);
 
   // keep UI reactive
