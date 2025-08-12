@@ -36,7 +36,7 @@ jobs:
           mkdir -p dist
 
           # Required files
-          req=(index.html config.js reset.html)
+          req=(index.html main.js)
           miss=0
           for f in "${req[@]}"; do
             if [[ -f "$f" ]]; then cp -v "$f" dist/; else echo "::error ::Missing required file: $f"; miss=1; fi
