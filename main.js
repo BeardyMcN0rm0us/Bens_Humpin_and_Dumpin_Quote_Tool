@@ -1,8 +1,7 @@
-// r360 — House Move by bedrooms (adds labour hours + optional Luton hire).
-// Flatpack 15‑mile rule (one‑way, rounded up) retained. Help overlay intact. IKEA/Other intact.
+// r361 — Fixes: robust Google Maps init + fail-safe calc. Bedrooms/Luton + flatpack 15mi rule intact.
 
 window.BHD = Object.assign({
-  version: "r360",
+  version: "r361",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -10,12 +9,12 @@ window.BHD = Object.assign({
 
   // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.75,
-  twoManSurcharge: 20,   // flat add-on if you flip "Two-person" to Yes (for non-tip/shop/business/other/flatpack)
-  stairsPerFloor: 5,     // per floor (pickup + drop counted)
+  twoManSurcharge: 20,
+  stairsPerFloor: 5,
 
   baseFees:{
     default:35,
-    move:50,               // base call-out for House Move
+    move:50,
     shopBefore22:25,
     shopAfter22:40,
     ikeaCollect:45,
@@ -23,18 +22,18 @@ window.BHD = Object.assign({
     flatpack:35
   },
 
-  // House Move labour based on bedrooms
-  HOURLY_RATE_MOVE: 50,   // £ per hour for your standard team
-  LUTON_HIRE_COST: 95,    // £ per day (auto-added if bedrooms imply Luton)
+  // House Move labour by bedrooms
+  HOURLY_RATE_MOVE: 50,
+  LUTON_HIRE_COST: 95,
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
     2: { hours: 5, luton: false },
     3: { hours: 6, luton: true  },
     4: { hours: 8, luton: true  },
-    5: { hours:10, luton: true  } // 5+ bedrooms
+    5: { hours:10, luton: true  }
   },
 
-  // Min/range
+  // Min & range
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
 
@@ -107,12 +106,14 @@ window.BHD = Object.assign({
   if (els.buildTag) els.buildTag.textContent = 'Build ' + (CFG.version||'');
 
   // Seed waste select
-  if (els.wasteType && els.wasteType.options.length===0){
-    Object.keys(CFG.disposal||{}).forEach(k=>{
-      const it=CFG.disposal[k], o=document.createElement('option');
-      o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t)`; els.wasteType.appendChild(o);
-    });
-  }
+  try{
+    if (els.wasteType && els.wasteType.options.length===0){
+      Object.keys(CFG.disposal||{}).forEach(k=>{
+        const it=CFG.disposal[k], o=document.createElement('option');
+        o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t)`; els.wasteType.appendChild(o);
+      });
+    }
+  }catch(e){/* ignore */}
 
   // IKEA “Other” toggle
   function maybeToggleIkeaOther(){
@@ -129,6 +130,7 @@ window.BHD = Object.assign({
     return perHour>0 ? (perHour/60) : 0.6;
   }
   function renderList(targetEl, timeHintEl, basket){
+    if(!targetEl||!timeHintEl) return;
     targetEl.innerHTML='';
     if (basket.length===0){
       targetEl.innerHTML = `<div class="hint">No items added yet.</div>`;
@@ -218,18 +220,42 @@ window.BHD = Object.assign({
     });
   }
 
-  // Google Maps
-  let directions=null;
+  // ----- Google Maps bootstrap (robust) -----
+  let directions=null, autoPickup=null, autoDrop=null, mapsReady=false, tryCount=0;
   function initMaps(){
     try{
-      if(window.google&&google.maps&&!directions){
-        directions=new google.maps.DirectionsService();
-        const opt={fields:["formatted_address"],componentRestrictions:{country:["gb"]}};
-        if(els.addrPickup) new google.maps.places.Autocomplete(els.addrPickup,opt);
-        if(els.addrDrop)   new google.maps.places.Autocomplete(els.addrDrop,opt);
+      if (!window.google || !google.maps) return false;
+      if (!directions) directions = new google.maps.DirectionsService();
+      if (!autoPickup && els.addrPickup){
+        autoPickup = new google.maps.places.Autocomplete(els.addrPickup, {
+          fields:["formatted_address","geometry"], componentRestrictions:{ country: ["gb"] }, types:["geocode"]
+        });
       }
-    }catch(e){}
+      if (!autoDrop && els.addrDrop){
+        autoDrop = new google.maps.places.Autocomplete(els.addrDrop, {
+          fields:["formatted_address","geometry"], componentRestrictions:{ country: ["gb"] }, types:["geocode"]
+        });
+      }
+      mapsReady = !!(directions && autoPickup && autoDrop);
+      if (mapsReady && els.routeHint && (els.routeHint.textContent||'').toLowerCase().includes('loading')) {
+        els.routeHint.textContent = "Maps OK — enter addresses.";
+      }
+      return mapsReady;
+    }catch(e){
+      return false;
+    }
   }
+  // Poll until ready (covers async loading)
+  const poll = setInterval(()=>{
+    if (initMaps()){ clearInterval(poll); }
+    else {
+      tryCount++;
+      if (els.routeHint && tryCount%5===0){
+        els.routeHint.textContent = "Loading Google Maps…";
+      }
+    }
+  }, 300);
+
   function routeP(req){
     return new Promise(res=>{
       if(!directions){ res({miles:0,legs:[]}); return; }
@@ -253,7 +279,7 @@ window.BHD = Object.assign({
       if(!drop){ if(els.routeHint) els.routeHint.textContent="Enter destination address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return; }
       const oneWay = await routeP({origin:home, destination:drop, travelMode:'DRIVING'});
       const loop   = await routeP({origin:home, destination:home, waypoints:[{location:drop,stopover:true}], travelMode:'DRIVING'});
-      const charged = (oneWay.miles>15) ? ceil0(oneWay.miles) : 0; // round up whole miles if >15
+      const charged = (oneWay.miles>15) ? ceil0(oneWay.miles) : 0;
       if(els.routeHint) els.routeHint.textContent = `Flatpack: ${charged>0? "Charging one-way (home→dest)":"No mileage charged"} — ${charged} mi.`;
       cb({charged, loop:round1(loop.miles), noteCharged: charged>0 ? 'Home → Destination — >15mi rule' : 'No mileage billed (≤15mi)', noteLoop: 'Home → Destination → Home'});
       return;
@@ -280,7 +306,7 @@ window.BHD = Object.assign({
       const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:'DRIVING'});
       loop=lp.miles; noteL='Home → Pickup → Delivery → Home';
     }
-    if(els.routeHint) els.routeHint.textContent=`Charged route: ${noteC} — ${round1(charged)} mi.`;
+    if(els.routeHint) els.routeHint.textContent=`Charged route: ${round1(charged)} mi — ${noteC}.`;
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
@@ -324,7 +350,7 @@ window.BHD = Object.assign({
 
   function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
-    if(!jt) return;
+    if(!jt){ if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return; }
 
     const chargedMiles = (jt==='flatpack') ? milesObj.charged : round1(milesObj.charged||0);
     const loopMiles    = round1(milesObj.loop||0);
@@ -338,7 +364,7 @@ window.BHD = Object.assign({
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
     const asm = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
 
-    // NEW: House Move labour & Luton by bedrooms
+    // House Move: bedrooms -> labour + optional Luton
     let labourCost = 0, labourLine = '', lutonLine = '', lutonCost = 0;
     if (jt==='move'){
       const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
@@ -404,32 +430,34 @@ window.BHD = Object.assign({
   }
 
   // Bindings
-  if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
-  if(els.ikeaItemSel){ els.ikeaItemSel.addEventListener('change', maybeToggleIkeaOther); maybeToggleIkeaOther(); }
-  if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
-  if(els.flatItemSel){
-    els.flatItemSel.addEventListener('change', ()=>{
-      const isOther=(els.flatItemSel.value||'').startsWith('other');
-      if(isOther) show(els.flatOtherWrap); else hide(els.flatOtherWrap);
-    });
-  }
-  if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', addFlatItem);
+  try{
+    if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
+    if(els.ikeaItemSel){ els.ikeaItemSel.addEventListener('change', maybeToggleIkeaOther); maybeToggleIkeaOther(); }
+    if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', ()=>{renderList(els.ikeaList, els.ikeaTimeHint, (function(){ addIkeaItem(); return ikeaBasket; })());});
+    if(els.flatItemSel){
+      els.flatItemSel.addEventListener('change', ()=>{
+        const isOther=(els.flatItemSel.value||'').startsWith('other');
+        if(isOther) show(els.flatOtherWrap); else hide(els.flatOtherWrap);
+      });
+    }
+    if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', ()=>{renderList(els.flatList, els.flatTimeHint, (function(){ addFlatItem(); return flatBasket; })());});
 
-  if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
-    initMaps();
-    const miles=await new Promise(resolve=>getMilesBoth(resolve));
-    calculate(miles);
-  });
-  if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
+    if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
+      if(els.routeHint) els.routeHint.textContent = "Calculating…";
+      // Ensure maps attempted
+      initMaps();
+      const miles=await new Promise(resolve=>getMilesBoth(resolve));
+      calculate(miles);
+    });
+    if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
+  }catch(e){
+    if(els.routeHint) els.routeHint.textContent = "Error wiring UI. Refresh the page.";
+  }
 
   // First paint
   hideAll(); setUI();
-  renderList(els.ikeaList, els.ikeaTimeHint, ikeaBasket);
-  renderList(els.flatList, els.flatTimeHint, flatBasket);
+  renderList(els.ikeaList, els.ikeaTimeHint, []);
+  renderList(els.flatList, els.flatTimeHint, []);
 
-  const mv=setInterval(()=>{ initMaps(); if(window.google&&google.maps) clearInterval(mv); },300);
-
-  // keep UI reactive
-  let last = els.jobType ? els.jobType.value : '';
-  setInterval(()=>{ if(els.jobType && els.jobType.value!==last){ last=els.jobType.value; setUI(); } },150);
+  // (poller defined above)
 })();
