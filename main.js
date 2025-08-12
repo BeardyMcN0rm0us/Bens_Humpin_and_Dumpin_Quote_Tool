@@ -14,13 +14,13 @@ window.BHD = Object.assign({
   stairsPerFloor: 5,
 
   baseFees:{
-    default:35,
-    move:50,
-    shopBefore22:25,
-    shopAfter22:40,
-    ikeaCollect:45,
-    ikeaCollectBuild:55,
-    flatpack:35
+    default:5,
+    move:5,
+    shopBefore22:5,
+    shopAfter22:15,
+    ikeaCollect:5,
+    ikeaCollectBuild:5,
+    flatpack:5
   },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
@@ -43,7 +43,7 @@ window.BHD = Object.assign({
 
   // Assembly pricing
   useTimePricing: true,
-  ikeaLaborPerHour: 36,
+  ikeaLaborPerHour: 15,
   ikeaLaborPerMinute: null,
   ikeaAssemblyPerItem: 15
 }, window.BHD||{});
