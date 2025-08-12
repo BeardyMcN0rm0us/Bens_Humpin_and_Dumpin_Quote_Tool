@@ -8,11 +8,11 @@ window.BHD = Object.assign({
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
-  mileagePerMile: 0.40,
+  mileagePerMile: 0.28,
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  baseFees:{ default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
+  baseFees:{ default:15, move:20, shopBefore22:10, shopAfter22:20, ikeaCollect:20, ikeaCollectBuild:20 },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
 
@@ -34,7 +34,7 @@ window.BHD = Object.assign({
 
   // IKEA assembly pricing controls
   useTimePricing: true,      // true = time-based, false = per-item
-  ikeaLaborPerHour: 36,      // £/hour
+  ikeaLaborPerHour: 15,      // £/hour
   ikeaLaborPerMinute: null,  // null => derive from per-hour
   ikeaAssemblyPerItem: 15    // per-item fallback
 }, window.BHD||{});
