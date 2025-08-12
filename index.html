@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
+<title>Ben’s Humpin’ & Dumpin’ — Instant Quote (debug)</title>
 
 <style>
   :root{--bg:#000;--panel:#0e0e0e;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e;--chip:#141414;--shadow:0 10px 30px rgba(0,0,0,.45)}
@@ -33,6 +33,11 @@
   #splash img{width:160px;height:160px;border-radius:24px;border:1px solid #222;background:#000;object-fit:cover}
   #splash.hide{opacity:0;pointer-events:none}
   footer{text-align:center;margin-top:24px;color:var(--muted);font-size:.85rem;line-height:1.4}
+
+  /* Debug panel */
+  #debug{position:fixed;left:8px;right:8px;bottom:8px;background:#111;border:1px solid #333;color:#eee;
+    border-radius:10px;padding:10px;font-size:12px;line-height:1.4;z-index:99999;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+  #debug b{color:#9be7ff}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -48,7 +53,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r39b</div>
+    <div class="build">Build r39c‑debug</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -133,14 +138,13 @@
     </div>
 
     <button id="btnCalc" class="btn secondary" type="button">Calculate Quote</button>
-    <div id="routeHint" class="hint">Choose a job type to start.</div>
+    <div id="routeHint" class="hint">Choose a job type to start. (Debug build: mileage fixed at 0)</div>
   </div>
 
   <div class="card">
     <div id="quoteId" class="muted">Quote ID — (after send)</div>
     <div id="breakdown" class="muted" style="margin-top:6px"></div>
     <div id="total" class="total">Estimated: £0–£0</div>
-    <div id="shopNote" class="muted hidden" hidden style="margin-top:6px">No minimum charge — you only pay for the job.</div>
     <div class="hr"></div>
     <div class="muted"><strong>Estimate only.</strong> Final price depends on access, load & photos. Ben confirms before booking.</div>
   </div>
@@ -159,12 +163,21 @@
 </div>
 
 <!-- Load config FIRST -->
-<script src="config.js?v=r39b"></script>
+<script src="config.js?v=r39c-debug"></script>
 
 <script>
-// ===== Safe config fallback (prevents total JS crash) =====
+// ==== DEBUG PANEL ====
+(function(){
+  const box=document.createElement('div'); box.id='debug';
+  box.innerHTML='🔎 <b>Debug</b> — waiting...'; document.body.appendChild(box);
+  function log(msg){ box.innerHTML += '<br>'+msg; console.log('[BHD]',msg); }
+  window.BHD_DEBUG = { log, box };
+  window.addEventListener('error', e => log('❌ JS error: '+ (e.message||e)));
+})();
+
+// ==== Safe config fallback ====
 const DEFAULT_CFG = {
-  version: "r39a-fallback",
+  version: "r39c-debug",
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, Ely Road, Waterbeach, Cambridge CB25 9PG",
   whatsappNumber: "447717463496",
@@ -174,53 +187,39 @@ const DEFAULT_CFG = {
   mileagePerMile: 0.40, twoManSurcharge: 20, stairsPerFloor: 5,
   disposalMinPct: 0.25,
   disposal: { general:{label:"General Waste",ratePerTonne:192.50} },
-  ikeaAssemblyPerItem: 15, ikeaStores: [], ikeaItems: [], ui:{ splashMs:4000, showShopNoMinNote:true }
+  ikeaAssemblyPerItem: 15, ikeaStores: [], ikeaItems: [], ui:{ splashMs:1200, showShopNoMinNote:true }
 };
 const CFG = window.BHD_CONFIG || DEFAULT_CFG;
 if (!window.BHD_CONFIG) { document.getElementById('cfgWarn').style.display='block'; }
+BHD_DEBUG.log('CFG loaded: ' + (!!window.BHD_CONFIG ? '✅ external' : '⚠️ fallback') + ' ('+(CFG.version||'n/a')+')');
 
-// ===== Utilities =====
+// ==== Utilities ====
 const $=id=>document.getElementById(id);
 function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
 function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
 
-// ===== Constants from config =====
+// ==== Constants from config ====
 const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
 const BASE = CFG.baseFees || {}, RANGES = CFG.rangePct || {}, MIN_BY = CFG.minByType || {};
 const DISP = CFG.disposal || {}, DISP_MIN = Number(CFG.disposalMinPct ?? 0.25);
-const UI = CFG.ui || {}, IKEA_STORES = CFG.ikeaStores || [], IKEA_ITEMS = CFG.ikeaItems || [];
-const PRICE = {
-  mileagePerMile: Number(CFG.mileagePerMile||0),
-  twoMan: Number(CFG.twoManSurcharge||0),
-  stairsPerFloor: Number(CFG.stairsPerFloor||0),
-  ikeaAssemblyPerItem: Number(CFG.ikeaAssemblyPerItem||0)
-};
+const PRICE = { mileagePerMile:Number(CFG.mileagePerMile||0), twoMan:Number(CFG.twoManSurcharge||0), stairsPerFloor:Number(CFG.stairsPerFloor||0), ikeaAssemblyPerItem:Number(CFG.ikeaAssemblyPerItem||0) };
 
-// ===== DOM refs =====
-const els={
-  jobType:$('#jobType'),
-  ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
-  ikeaStoreWrap:$('#ikeaStoreWrap'), ikeaStore:$('#ikeaStore'),
-  pickupField:$('#pickupField'), addrPickup:$('#addrPickup'),
-  addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'),
-  shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
-  ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'), ikeaQuickPick:$('#ikeaQuickPick'),
-  twoManWrap:$('#twoManWrap'), twoMan:$('#twoMan'),
-  stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
-  wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'),
-  descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
-  btnCalc:$('#btnCalc'), routeHint:$('#routeHint'),
-  breakdown:$('#breakdown'), total:$('#total'),
-  quoteId:$('#quoteId'), btnWA:$('#btnWhatsApp'),
-  versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated')
-};
+// ==== DOM refs ====
+const els={ jobType:$('#jobType'), ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
+  ikeaStoreWrap:$('#ikeaStoreWrap'), ikeaStore:$('#ikeaStore'), pickupField:$('#pickupField'), addrPickup:$('#addrPickup'),
+  addrDropWrap:$('#addrDropWrap'), addrDrop:$('#addrDrop'), shopTimeWrap:$('#shopTimeWrap'), shopTime:$('#shopTime'),
+  ikeaQtyWrap:$('#ikeaQtyWrap'), ikeaQty:$('#ikeaQty'), ikeaQuickPick:$('#ikeaQuickPick'), twoManWrap:$('#twoManWrap'),
+  twoMan:$('#twoMan'), stairsWrap:$('#stairsWrap'), stairsPickup:$('#stairsPickup'), stairsDrop:$('#stairsDrop'),
+  wasteWrap:$('#wasteWrap'), wasteType:$('#wasteType'), descWrap:$('#descWrap'), jobDesc:$('#jobDesc'),
+  btnCalc:$('#btnCalc'), routeHint:$('#routeHint'), breakdown:$('#breakdown'), total:$('#total'), quoteId:$('#quoteId'),
+  btnWA:$('#btnWhatsApp'), versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated') };
 
-// ===== State =====
-let pickupAddress="", dropAddress="", directions=null;
+// ==== State ====
+let pickupAddress="", dropAddress="";
 
-// ===== Helpers =====
+// ==== Helpers ====
 function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
-const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
+const round5=v=>Math.round(v/5)*5;
 const pctFor = jt => Number(RANGES[jt] ?? 0.12);
 const minFor = jt => { const v = MIN_BY[jt]; return (v === "" || v == null) ? 0 : Math.max(0, Number(v)); };
 function baseFeeFor(jt){
@@ -230,56 +229,51 @@ function baseFeeFor(jt){
   return Number(BASE.default ?? 0);
 }
 
-// ===== UI logic =====
+// ==== UI logic ====
 function setJobTypeUI(){
   const jt=els.jobType.value || "";
-  [
-    els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,
-    els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap
-  ].forEach(el=>{ hide(el); if(el) el.hidden=true; });
+  [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.descWrap,els.shopTimeWrap,els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaQtyWrap]
+    .forEach(el=>{ hide(el); if(el) el.hidden=true; });
 
-  if(!jt){els.routeHint.textContent="Choose a job type to start."; return;}
+  if(!jt){els.routeHint.textContent="Choose a job type to start. (Debug build: mileage fixed at 0)"; return;}
   show(els.pickupField);
 
   if(jt==="tip"){
     const wc = els.wasteType; if (wc){ wc.innerHTML=""; Object.keys(DISP).forEach(key=>{ const o=document.createElement('option'); o.value=key; o.textContent=(DISP[key]?.label)||key; wc.appendChild(o); }); }
     show(els.wasteWrap);
-    els.routeHint.textContent="Mileage: Home → Collection → Waterbeach (return added only if Home→Collection > 50mi).";
   } else if (jt==="move"||jt==="fb"||jt==="student"){
     show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
-    els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
   } else if (jt==="shop"){
     show(els.addrDropWrap); show(els.shopTimeWrap);
-    els.routeHint.textContent="Mileage: Home → Shop → Delivery.";
   } else if (jt==="ikea"){
     show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
     if (els.ikeaMode && els.ikeaMode.value === "collectBuild") show(els.ikeaQtyWrap);
     if (els.ikeaStore && els.ikeaStore.value){ els.addrPickup.value = els.ikeaStore.value; pickupAddress = els.ikeaStore.value; }
-    els.routeHint.textContent="Mileage: Home → IKEA store → Delivery.";
   } else if (jt==="business"||jt==="other"){
     show(els.addrDropWrap); show(els.descWrap);
-    els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
   }
+  BHD_DEBUG.log('UI updated for jobType=' + jt);
 }
 
-// ===== Disposal calc =====
+// ==== Disposal calc ====
 function calcDisposal(){
   const key=els.wasteType.value;
   const item = DISP[key] || {};
   const rate = Number(item.ratePerTonne || 0);
-  const minFee = rate * DISP_MIN;
+  const minFee = rate * (Number(CFG.disposalMinPct||0.25));
   return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
 }
 
-// ===== Quote calc =====
-function calculate(miles){
+// ==== Quote calc (mileage = 0 in debug) ====
+function calculate(){
   const jt=els.jobType.value || "";
-  if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return {total:0,lines:[],range:[0,0]}; }
+  if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return; }
 
+  const miles = 0; // debug
   const base=baseFeeFor(jt);
   const twoManFee=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:(els.twoMan.value==="yes"?PRICE.twoMan:0);
   const stairsCost=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other")?0:((parseInt(els.stairsPickup.value)||0)+(parseInt(els.stairsDrop.value)||0))*PRICE.stairsPerFloor;
-  const mileageCost=(miles||0)*PRICE.mileagePerMile;
+  const mileageCost=miles*PRICE.mileagePerMile;
   const disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
   let ikeaAssemblyFee=0;
   if(jt==="ikea" && els.ikeaMode && els.ikeaMode.value==="collectBuild"){
@@ -296,10 +290,7 @@ function calculate(miles){
   if(jt==="shop") lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
   if(jt==="ikea" && ikeaAssemblyFee) lines.push(`Assembly: £${ikeaAssemblyFee.toFixed(2)} (${els.ikeaQty.value} item${(parseInt(els.ikeaQty.value)||1)>1?"s":""})`);
 
-  const MIN = minFor(jt);
-  if (MIN > 0 && total < MIN){ lines.push(`Minimum charge applied`); total = MIN; }
-
-  const pct=pctFor(jt);
+  const pct=Number(RANGES[jt] ?? 0.12);
   let low = round5(total*(1-pct));
   let high = round5(total*(1+pct));
   if(high<low) high=low;
@@ -307,121 +298,45 @@ function calculate(miles){
   els.breakdown.innerHTML = lines.length ? ('• ' + lines.join('<br>• ')) : '';
   els.total.textContent = `Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`;
   els.total.classList.add('show');
+  BHD_DEBUG.log('Calculated. Total ~ £'+total.toFixed(2));
   show(els.btnWA);
-  return {total,lines,range:[low,high]};
 }
 
-// ===== Mileage rules =====
-function calcMileage(){
-  if(!directions){ calculate(0); return; }
-  const jt=els.jobType.value;
-  if(!pickupAddress){ els.routeHint.textContent="Enter collection address."; return; }
-  if(jt!=="tip" && !dropAddress){ els.routeHint.textContent="Enter delivery address."; return; }
-
-  if(jt==="tip"){
-    directions.route({origin:ADDR.home,destination:pickupAddress,travelMode:'DRIVING'},(r1,s1)=>{
-      if(s1!=="OK"){els.routeHint.textContent="Route error"; return;}
-      const milesHomeToPickup=metersToMiles(legsMiles(r1.routes[0].legs));
-      if(milesHomeToPickup<=50){
-        directions.route({origin:pickupAddress,destination:ADDR.tipSite,travelMode:'DRIVING'},(r2,s2)=>{
-          if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
-          const miles=metersToMiles(legsMiles(r2.routes[0].legs));
-          els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
-        });
-      }else{
-        directions.route({origin:ADDR.home,destination:ADDR.home,waypoints:[{location:pickupAddress,stopover:true},{location:ADDR.tipSite,stopover:true}],travelMode:'DRIVING'},(r2,s2)=>{
-          if(s2!=="OK"){els.routeHint.textContent="Route error"; return;}
-          const miles=metersToMiles(legsMiles(r2.routes[0].legs));
-          els.routeHint.textContent=`>50mi rule: ${miles.toFixed(1)} mi.`; calculate(miles);
-        });
-      }
-    });
-    return;
-  }
-
-  directions.route({origin:ADDR.home,destination:dropAddress,waypoints:[{location:pickupAddress,stopover:true}],travelMode:'DRIVING'},(r,s)=>{
-    if(s!=="OK"){els.routeHint.textContent="Route error"; return;}
-    const miles=metersToMiles(legsMiles(r.routes[0].legs));
-    els.routeHint.textContent=`Mileage (one-way): ${miles.toFixed(1)} mi.`; calculate(miles);
-  });
-}
-
-// ===== WhatsApp =====
+// ==== WhatsApp ====
 function sendWhatsApp(){
   const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
-  const {lines,range}=calculate(0);
+  const lines = (els.breakdown.innerText||'').split('• ').filter(Boolean);
   const jt=els.jobType.value;
-  const ikeaBits = (jt==="ikea")
-    ? [`IKEA Mode: ${els.ikeaMode?.value==="collectBuild"?"Collect & Build":"Collect Only"}`, `IKEA Store: ${els.ikeaStore?.options[els.ikeaStore.selectedIndex]?.text || "N/A"}`]
-    : [];
   const msgLines=[
     "Hey Ben! I need something Humpin' & Dumpin'",
     `Quote ID: ${id}`,
     `Job Type: ${jt || "N/A"}`,
-    ...ikeaBits,
     `Collection: ${pickupAddress || els.addrPickup.value.trim() || "N/A"}`,
     (jt==="tip" ? `Destination: Waterbeach Waste Management Park` : `Delivery: ${dropAddress || els.addrDrop.value.trim() || "N/A"}`),
-    (jt==="shop" ? `Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}` : ""),
     (lines.length ? `\nBreakdown:\n- ${lines.join("\n- ")}` : ""),
-    `\nEstimated range: £${range[0].toFixed(0)}–£${range[1].toFixed(0)}`
+    `${els.total.textContent || ""}`
   ].filter(Boolean);
   const url=`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msgLines.join("\n"))}`;
   window.open(url,'_blank');
 }
 
-// ===== Maps init & IKEA helpers =====
-function initMapsStuff(){
-  try{
-    directions=new google.maps.DirectionsService();
-    const opt={fields:["formatted_address"],componentRestrictions:{country:["gb"]}};
-    const ap=document.getElementById('addrPickup'), ad=document.getElementById('addrDrop');
-    if(ap){const ac1=new google.maps.places.Autocomplete(ap,opt); ac1.addListener('place_changed',()=>{const p=ac1.getPlace(); pickupAddress=p?.formatted_address||ap.value.trim();}); ap.addEventListener('input',()=>pickupAddress=ap.value.trim());}
-    if(ad){const ac2=new google.maps.places.Autocomplete(ad,opt); ac2.addListener('place_changed',()=>{const p=ac2.getPlace(); dropAddress=p?.formatted_address||ad.value.trim();}); ad.addEventListener('input',()=>dropAddress=ad.value.trim());}
-  }catch(e){ console.warn("Maps init failed:", e); }
-}
-window.initMapsStuff=initMapsStuff;
-
-(function initIkeaStores(){
-  const el = document.getElementById('ikeaStore'); if(!el) return;
-  el.innerHTML = "";
-  const ph = document.createElement('option'); ph.value=""; ph.textContent="Select IKEA store…"; ph.disabled=true; ph.selected=true; el.appendChild(ph);
-  (IKEA_STORES||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s.address; o.textContent=s.name; el.appendChild(o); });
-})();
-(function initIkeaQuickPick(){
-  const wrap=document.getElementById('ikeaQuickPick'); if(!wrap) return;
-  wrap.innerHTML = "";
-  (IKEA_ITEMS||[]).forEach(item=>{
-    const b=document.createElement('button'); b.type="button"; b.textContent=item.name; b.className="btn secondary";
-    b.style.padding="6px 10px"; b.style.fontSize="0.85rem"; b.style.flex="0 0 auto";
-    b.addEventListener('click',()=>{
-      const ta=document.getElementById('jobDesc'); ta.value = ta.value ? (ta.value + "; " + item.name) : item.name;
-      const q=document.getElementById('ikeaQty'); q.value = (parseInt(q.value||"0",10) + (item.qty||1));
-    });
-    wrap.appendChild(b);
-  });
-})();
-
-// ===== Boot =====
+// ==== Boot (no SW, no Maps) ====
 document.addEventListener('DOMContentLoaded',()=>{
   const splash = document.getElementById('splash');
-  if (els.versionBadge && CFG.version) els.versionBadge.textContent = `Version: ${CFG.version}`;
-  els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
-  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
+  (document.getElementById('versionBadge')||{}).textContent = `Version: ${CFG.version||'n/a'} (debug)`;
+  (document.getElementById('lastUpdated')||{}).textContent = `Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, (CFG.ui?.splashMs)||1200);
 
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39a').catch(()=>{}); }
-
-  // Wire events robustly
+  // Wire events
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
   if (els.ikeaMode) ['change','input'].forEach(evt => els.ikeaMode.addEventListener(evt, setJobTypeUI));
-  els.btnCalc.addEventListener('click', calcMileage);
+  els.btnCalc.addEventListener('click', calculate);
   els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // Start with all hidden, then apply selection state (if any)
   setJobTypeUI();
+  BHD_DEBUG.log('Events wired ✅');
 });
 </script>
 
-<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r39a"
-  onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'"></script>
 </body>
 </html>
