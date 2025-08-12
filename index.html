@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ben’s Humpin’ & Dumpin’ — Instant Quote</title>
 
-<!-- Inline styles (app look) -->
 <style>
   :root{--bg:#000;--panel:#0e0e0e;--ink:#fff;--muted:#b7b7b7;--brand:#f4a261;--brand2:#e76f51;--ok:#25D366;--line:#1e1e1e;--chip:#141414;--shadow:0 10px 30px rgba(0,0,0,.45)}
   *{box-sizing:border-box}
@@ -50,7 +49,7 @@
     <img src="icon-192.png" alt="Ben’s Humpin’ & Dumpin’ logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build">Build r38b</div>
+    <div class="build">Build r39</div>
   </header>
 
   <div class="card" id="cfgWarn" style="display:none">
@@ -168,16 +167,16 @@
   </footer>
 </div>
 
-<!-- LOAD CONFIG FIRST (sync) -->
-<script src="config.js?v=r38b"></script>
+<!-- Load config FIRST -->
+<script src="config.js?v=r39"></script>
 
 <script>
-// --- Utilities ---
+// ===== Utilities =====
 const $=id=>document.getElementById(id);
 function show(el){ if(!el) return; el.hidden=false; el.classList.remove('hidden'); el.classList.add('slide'); }
 function hide(el){ if(!el) return; el.hidden=true; el.classList.add('hidden'); el.classList.remove('slide'); }
 
-// --- Config & constants ---
+// ===== Config & constants =====
 const CFG = window.BHD_CONFIG;
 if(!CFG){ document.getElementById('cfgWarn').style.display='block'; }
 const ADDR = { home: CFG.homeAddress, tipSite: CFG.waterbeachAddress };
@@ -191,7 +190,7 @@ const PRICE = {
   ikeaAssemblyPerItem: Number(CFG.ikeaAssemblyPerItem||0)
 };
 
-// --- DOM refs ---
+// ===== DOM refs =====
 const els={
   jobType:$('#jobType'),
   ikeaModeWrap:$('#ikeaModeWrap'), ikeaMode:$('#ikeaMode'),
@@ -210,10 +209,10 @@ const els={
   versionBadge:$('#versionBadge'), lastUpdated:$('#lastUpdated')
 };
 
-// --- State ---
+// ===== State =====
 let pickupAddress="", dropAddress="", directions=null;
 
-// --- Small utils ---
+// ===== Small utils =====
 function nextQuoteId(){const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;}
 const round5=v=>Math.round(v/5)*5, metersToMiles=m=>m/1609.344, legsMiles=legs=>legs.reduce((s,l)=>s+(l.distance?.value||0),0);
 const pctFor = jt => Number(RANGES[jt] ?? 0.12);
@@ -225,7 +224,7 @@ function baseFeeFor(jt){
   return Number(BASE.default ?? 0);
 }
 
-// --- UI logic ---
+// ===== UI logic =====
 function setJobTypeUI(){
   const jt=els.jobType.value;
   [
@@ -258,16 +257,16 @@ function setJobTypeUI(){
   }
 }
 
-// --- Disposal calc ---
+// ===== Disposal calc =====
 function calcDisposal(){
   const key=els.wasteType.value;
   const item = DISP[key] || {};
-  const rate = Number(item.ratePerTonne || 0);
-  const minFee = rate * DISP_MIN;
-  return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${rate.toFixed(2)}/t`};
+  theRate = Number(item.ratePerTonne || 0);
+  const minFee = theRate * DISP_MIN;
+  return {fee:minFee, detail:`Minimum disposal for ${item.label || key} — 25% of £${theRate.toFixed(2)}/t`};
 }
 
-// --- Quote calc ---
+// ===== Quote calc =====
 function calculate(miles){
   const jt=els.jobType.value;
   if(!jt){els.breakdown.innerHTML=""; els.total.textContent="Estimated: £0–£0"; els.total.classList.remove('show'); return {total:0,lines:[],range:[0,0]}; }
@@ -307,7 +306,7 @@ function calculate(miles){
   return {total,lines,range:[low,high]};
 }
 
-// --- Mileage rules ---
+// ===== Mileage rules =====
 function calcMileage(){
   if(!directions){ calculate(0); return; }
   const jt=els.jobType.value;
@@ -342,7 +341,7 @@ function calcMileage(){
   });
 }
 
-// --- WhatsApp ---
+// ===== WhatsApp =====
 function sendWhatsApp(){
   const id=nextQuoteId(); els.quoteId.textContent="Quote ID — "+id;
   const {lines,range}=calculate(0);
@@ -365,7 +364,7 @@ function sendWhatsApp(){
   window.open(url,'_blank');
 }
 
-// --- Maps init & IKEA helpers ---
+// ===== Maps init & IKEA helpers =====
 function initMapsStuff(){
   try{
     directions=new google.maps.DirectionsService();
@@ -397,14 +396,14 @@ window.initMapsStuff=initMapsStuff;
   });
 })();
 
-// --- Boot ---
+// ===== Boot =====
 document.addEventListener('DOMContentLoaded',()=>{
   const splash = document.getElementById('splash');
   if (els.versionBadge && CFG.version) els.versionBadge.textContent = `Version: ${CFG.version}`;
   els.lastUpdated.textContent=`Last updated: ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
   setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=> splash.remove(), 450); }, Number(UI.splashMs || 4000));
 
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r38b').catch(()=>{}); }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js?v=r39').catch(()=>{}); }
 
   setJobTypeUI();
   ['change','input'].forEach(evt => els.jobType.addEventListener(evt, setJobTypeUI));
@@ -414,8 +413,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
-<!-- Maps last -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r38b"
+<!-- Maps last (key injected by Actions: __MAPS_API_KEY__) -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&callback=initMapsStuff&v=9&cbust=r39"
   onerror="document.getElementById('routeHint').textContent='Maps failed to load. Estimate will exclude mileage.'"></script>
 </body>
 </html>
