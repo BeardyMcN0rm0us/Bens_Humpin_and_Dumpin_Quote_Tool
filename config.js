@@ -1,8 +1,7 @@
 // Ben’s Humpin’ & Dumpin’ — Pricing Config (r33)
-// EDIT THIS FILE ONLY to change prices, minimums, ranges, stores, items, version, etc.
 
 window.BHD_CONFIG = {
-  version: "r33", // bump each update
+  version: "r33",
 
   // Addresses
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -11,7 +10,7 @@ window.BHD_CONFIG = {
   // WhatsApp number (no +, no leading 0)
   whatsappNumber: "447717463496",
 
-  // Per-job-type minimums
+  // Per-job-type minimums (blank = no minimum)
   minByType: {
     tip: "", move: "", fb: "", shop: "",
     student: "", business: "", other: "", ikea: ""
