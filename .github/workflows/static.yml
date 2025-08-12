@@ -1,4 +1,4 @@
-name: Deploy BHD Quote Tool to Pages
+name: Deploy BHD Quote Tool (static)
 
 on:
   push:
@@ -18,27 +18,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Prepare dist with cache-busting
+      - name: Prepare dist (copy + inject + cache-bust)
         env:
-          VERSION: ${{ github.run_number }}
+          VERSION: ${{ github.run_number }} # auto-bumps each run
           MAPS_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           set -e
           mkdir -p dist
-          # Copy static assets
+          # Copy site files to dist (add any extras you keep in root)
           cp -v index.html config.js service-worker.js manifest.webmanifest icon-192.png icon-512.png dist/
-          # Inject Google Maps API key
-          sed -i "s/__MAPS_API_KEY__/${MAPS_KEY}/g" dist/index.html
-          # Bump version query params in index.html
-          sed -i -E "s/\\?v=[a-zA-Z0-9_-]+/?v=${VERSION}/g" dist/index.html
-          sed -i -E "s/cbust=[a-zA-Z0-9_-]+/cbust=${VERSION}/g" dist/index.html
-          # Bump SW cache name
-          sed -i -E "s/(const CACHE = 'bhd-cache-)[^']*(';)/\\1${VERSION}\\2/g" dist/service-worker.js
 
-      - name: Upload artifact
+          # Inject Google Maps API key into index.html
+          sed -i "s/__MAPS_API_KEY__/${MAPS_KEY}/g" dist/index.html
+
+          # Cache-bust query params in index.html
+          sed -i -E "s/\?v=[a-zA-Z0-9._-]+/?v=${VERSION}/g" dist/index.html
+          sed -i -E "s/cbust=[a-zA-Z0-9._-]+/cbust=${VERSION}/g" dist/index.html
+
+          # Bump SW cache name
+          sed -i -E "s/(const CACHE = 'bhd-cache-)[^']*(';)/\1${VERSION}\2/g" dist/service-worker.js
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
