@@ -1,30 +1,44 @@
-// r352 — Flatpack destination + >15mi rule (one-way home→dest, rounded up); shows in UI & WhatsApp.
-// Split CSS to style.css. Keeps IKEA “Other”, Flatpack list “Other”, ranges, two mileage lines, etc.
+// r360 — House Move by bedrooms (adds labour hours + optional Luton hire).
+// Flatpack 15‑mile rule (one‑way, rounded up) retained. Help overlay intact. IKEA/Other intact.
 
 window.BHD = Object.assign({
-  version: "r352",
+  version: "r360",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
-  // PRICING VARS — tweak here
+  // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.75,
-  twoManSurcharge: 20,
-  stairsPerFloor: 5,
+  twoManSurcharge: 20,   // flat add-on if you flip "Two-person" to Yes (for non-tip/shop/business/other/flatpack)
+  stairsPerFloor: 5,     // per floor (pickup + drop counted)
 
   baseFees:{
-    default:5,
-    move:5,
-    shopBefore22:5,
-    shopAfter22:15,
-    ikeaCollect:5,
-    ikeaCollectBuild:5,
-    flatpack:5
+    default:35,
+    move:50,               // base call-out for House Move
+    shopBefore22:25,
+    shopAfter22:40,
+    ikeaCollect:45,
+    ikeaCollectBuild:55,
+    flatpack:35
   },
+
+  // House Move labour based on bedrooms
+  HOURLY_RATE_MOVE: 50,   // £ per hour for your standard team
+  LUTON_HIRE_COST: 95,    // £ per day (auto-added if bedrooms imply Luton)
+  BEDROOM_LOAD_MULTIPLIERS: {
+    1: { hours: 3, luton: false },
+    2: { hours: 5, luton: false },
+    3: { hours: 6, luton: true  },
+    4: { hours: 8, luton: true  },
+    5: { hours:10, luton: true  } // 5+ bedrooms
+  },
+
+  // Min/range
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
 
+  // Tip run disposal (Waterbeach)
   disposalMinPct:0.25,
   disposal:{
     general:{label:"General Waste",ratePerTonne:192.50},
@@ -41,9 +55,9 @@ window.BHD = Object.assign({
     wuds:{label:"WUDs & POPs",ratePerTonne:345.00}
   },
 
-  // Assembly pricing
+  // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 15,
+  ikeaLaborPerHour: 36,
   ikeaLaborPerMinute: null,
   ikeaAssemblyPerItem: 15
 }, window.BHD||{});
@@ -57,14 +71,15 @@ window.BHD = Object.assign({
   const metersToMiles=m=>m/1609.344;
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
-  const ceil1=v=>Math.ceil(v*10)/10; // keep one decimal when rounding up if needed
-  const ceil0=v=>Math.ceil(v);       // round up to whole mile
+  const ceil0=v=>Math.ceil(v);
   const fmtMins = (mins)=>{const m=Math.max(0,Math.round(mins)); if(m<60)return `${m} min`; const h=Math.floor(m/60),r=m%60; return r?`${h}h ${r}m`:`${h}h`;};
 
   const CFG=window.BHD;
 
   const els = {
     jobType:$('jobType'),
+    houseMoveBedroomsWrap:$('houseMoveBedroomsWrap'), houseMoveBedrooms:$('houseMoveBedrooms'),
+
     ikeaModeWrap:$('ikeaModeWrap'), ikeaMode:$('ikeaMode'),
     ikeaStoreWrap:$('ikeaStoreWrap'), ikeaStore:$('ikeaStore'),
     ikeaItemsWrap:$('ikeaItemsWrap'), ikeaItemSel:$('ikeaItemSel'),
@@ -146,43 +161,14 @@ window.BHD = Object.assign({
       });
     });
   }
-  function addIkeaItem(){
-    const sel=(els.ikeaItemSel&&els.ikeaItemSel.value)||'';
-    let minutes=0, name='', qty=Math.max(1,parseInt(els.ikeaQtyAdd&&els.ikeaQtyAdd.value||'1',10)||1);
-    if (sel.startsWith('other')){
-      name=(els.ikeaOtherName&&els.ikeaOtherName.value||'Custom item').trim();
-      minutes=Math.max(5,parseInt(els.ikeaOtherMinutes&&els.ikeaOtherMinutes.value||'60',10)||60);
-      if(!name) name='Custom item';
-    } else {
-      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
-    }
-    if(minutes<=0) return;
-    const ex=ikeaBasket.find(i=>i.name===name&&i.minutes===minutes);
-    if(ex) ex.qty+=qty; else ikeaBasket.push({name,minutes,qty});
-    renderList(els.ikeaList, els.ikeaTimeHint, ikeaBasket);
-  }
-  function addFlatItem(){
-    const sel=(els.flatItemSel&&els.flatItemSel.value)||'';
-    let minutes=0, name='', qty=Math.max(1,parseInt(els.flatQtyAdd&&els.flatQtyAdd.value||'1',10)||1);
-    if (sel.startsWith('other')){
-      name=(els.flatOtherName&&els.flatOtherName.value||'Custom item').trim();
-      minutes=Math.max(5,parseInt(els.flatOtherMinutes&&els.flatOtherMinutes.value||'60',10)||60);
-      if(!name) name='Custom item';
-    } else {
-      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
-    }
-    if(minutes<=0) return;
-    const ex=flatBasket.find(i=>i.name===name&&i.minutes===minutes);
-    if(ex) ex.qty+=qty; else flatBasket.push({name,minutes,qty});
-    renderList(els.flatList, els.flatTimeHint, flatBasket);
-  }
 
   // UI toggle
   let lastJobType='';
   function clearAddresses(){ if(els.addrPickup) els.addrPickup.value=''; if(els.addrDrop) els.addrDrop.value=''; }
   function hideAll(){
     [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,
-     els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap,els.flatpackItemsWrap].forEach(hide);
+     els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap,els.flatpackItemsWrap,
+     els.houseMoveBedroomsWrap].forEach(hide);
   }
   function setUI(){
     const v=els.jobType?els.jobType.value:'';
@@ -192,13 +178,16 @@ window.BHD = Object.assign({
     hideAll();
     if(!v){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return; }
 
-    // default: show pickup for most flows
+    // default: pickup for most flows
     show(els.pickupField);
 
     if(v==='tip'){
       show(els.wasteWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Collection → Waterbeach (with >50mi rule).";
-    } else if (v==='move'||v==='fb'||v==='student'){
+    } else if (v==='move'){
+      show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.houseMoveBedroomsWrap);
+      if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery. Labour & Luton based on bedrooms.";
+    } else if (v==='fb'||v==='student'){
       show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
     } else if (v==='shop'){
@@ -213,7 +202,6 @@ window.BHD = Object.assign({
       }
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → IKEA → Delivery.";
     } else if (v==='flatpack'){
-      // Build only: no pickup/store. NEED destination (addrDrop) + flatpack items + desc.
       hide(els.pickupField); hide(els.ikeaModeWrap); hide(els.ikeaStoreWrap); hide(els.ikeaItemsWrap);
       show(els.addrDropWrap); show(els.flatpackItemsWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Build only. Mileage billed only if >15 miles from home (one-way).";
@@ -230,7 +218,7 @@ window.BHD = Object.assign({
     });
   }
 
-  // Google Maps hookup
+  // Google Maps
   let directions=null;
   function initMaps(){
     try{
@@ -296,7 +284,7 @@ window.BHD = Object.assign({
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
-  // Pricing helpers
+  // helpers
   const pctFor=jt=>(CFG.rangePct&&CFG.rangePct[jt]!=null)?Number(CFG.rangePct[jt]):0.12;
   const minFor=jt=>{const v=(CFG.minByType||{})[jt];return (v===""||v==null)?0:Math.max(0,Number(v));};
   function baseFeeFor(jt){
@@ -312,7 +300,6 @@ window.BHD = Object.assign({
     const minFee=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25);
     return {fee:minFee, detail:`Minimum disposal for ${item.label||key} — ${Math.round((Number(CFG.disposalMinPct||0.25))*100)}% of £${Number(item.ratePerTonne||0).toFixed(2)}/t`};
   }
-
   function laborPerMinuteEffective(){
     if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
     const perHour=Number(CFG.ikeaLaborPerHour||0);
@@ -339,7 +326,7 @@ window.BHD = Object.assign({
     const jt=(els.jobType&&els.jobType.value)||"";
     if(!jt) return;
 
-    const chargedMiles = (jt==='flatpack') ? milesObj.charged : round1(milesObj.charged||0); // flatpack already whole‑mile ceil
+    const chargedMiles = (jt==='flatpack') ? milesObj.charged : round1(milesObj.charged||0);
     const loopMiles    = round1(milesObj.loop||0);
     const noteC=milesObj.noteCharged||'';
     const noteL=milesObj.noteLoop||'';
@@ -351,7 +338,22 @@ window.BHD = Object.assign({
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
     const asm = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
 
-    let total=base + mileageCost + stairs + twoMan + disp.fee + asm.cost;
+    // NEW: House Move labour & Luton by bedrooms
+    let labourCost = 0, labourLine = '', lutonLine = '', lutonCost = 0;
+    if (jt==='move'){
+      const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
+      const map = CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
+      if (map){
+        labourCost = Number(map.hours||0) * Number(CFG.HOURLY_RATE_MOVE||0);
+        labourLine = `${map.hours} hrs labour @ £${Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)}/hr = £${labourCost.toFixed(2)}`;
+        if (map.luton){
+          lutonCost = Number(CFG.LUTON_HIRE_COST||0);
+          lutonLine = `Luton van hire: £${lutonCost.toFixed(2)}`;
+        }
+      }
+    }
+
+    let total=base + mileageCost + stairs + twoMan + disp.fee + asm.cost + labourCost + lutonCost;
 
     const lines=[];
     lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL|| (jt==='flatpack'?'Home → Destination → Home':'') })`);
@@ -365,6 +367,10 @@ window.BHD = Object.assign({
       if (asm.itemLines.length) lines.push(`Items:\n- ${asm.itemLines.join('\n- ')}`);
       lines.push(`Assembly: £${asm.cost.toFixed(2)}${asm.txt}`);
     }
+    if (jt==='move'){
+      if(labourLine) lines.push(labourLine);
+      if(lutonLine)  lines.push(lutonLine);
+    }
     if(jt==="shop" && els.shopTime) lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
 
     const MIN=minFor(jt); if(MIN>0 && total<MIN){ lines.push("Minimum charge applied"); total=MIN; }
@@ -376,7 +382,7 @@ window.BHD = Object.assign({
     if(els.btnWA){ els.btnWA.hidden=false; els.btnWA.classList.remove('hidden'); }
   }
 
-  // WhatsApp export (includes both mileage lines)
+  // WhatsApp export
   function sendWhatsApp(){
     const id=(els.quoteId&&els.quoteId.textContent||"").replace("Quote ID — ","").trim();
     const jt=(els.jobType&&els.jobType.value)||"";
@@ -411,12 +417,6 @@ window.BHD = Object.assign({
 
   if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
     initMaps();
-    const jt=(els.jobType&&els.jobType.value)||"";
-    if (jt==='flatpack'){
-      const miles=await new Promise(resolve=>getMilesBoth(resolve));
-      calculate(miles);
-      return;
-    }
     const miles=await new Promise(resolve=>getMilesBoth(resolve));
     calculate(miles);
   });
