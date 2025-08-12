@@ -12,7 +12,7 @@ window.BHD = Object.assign({
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
-  baseFees:{ default:35, move:50, shopBefore22:25, shopAfter22:40, ikeaCollect:45, ikeaCollectBuild:55 },
+  baseFees:{ default:5, move:5, shopBefore22:5, shopAfter22:15, ikeaCollect:5, ikeaCollectBuild:5 },
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12 },
 
@@ -34,7 +34,7 @@ window.BHD = Object.assign({
 
   // IKEA assembly pricing controls
   useTimePricing: true,      // true = time-based (shown as £/hour), false = per-item fallback
-  ikeaLaborPerHour: 36,      // £/hour
+  ikeaLaborPerHour: 15,      // £/hour
   ikeaLaborPerMinute: null,  // null => derive from per-hour
   ikeaAssemblyPerItem: 15    // per-item fallback if not using time or no minutes
 }, window.BHD||{});
