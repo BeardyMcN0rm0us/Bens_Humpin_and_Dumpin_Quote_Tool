@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BHD UI Probe</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+  .wrap{max-width:640px;margin:0 auto;padding:16px}
+  select,input{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;font-size:1.05rem}
+  .card{background:#0f0f0f;border:1px solid #222;border-radius:16px;padding:16px;margin:14px 0}
+  .hidden{display:none!important}
+  #status{position:fixed;left:12px;right:12px;bottom:12px;background:#111;border:1px solid #333;border-radius:10px;padding:10px;font:12px/1.4 system-ui}
+  .ok{color:#7CFC00} .warn{color:#ffcc66} .err{color:#ffa0a0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>BHD UI Probe</h2>
+  <div class="card">
+    <label>Job Type</label>
+    <select id="jobType">
+      <option value="" selected disabled hidden>Choose…</option>
+      <option value="tip">Tip Run</option>
+      <option value="move">House Move</option>
+      <option value="fb">Facebook Marketplace</option>
+      <option value="shop">Emergency Shop Run</option>
+      <option value="student">Student Relocation</option>
+      <option value="ikea">IKEA</option>
+      <option value="business">Business / Barter</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+
+  <div id="pickupField" class="card hidden">
+    <label>Collection address</label>
+    <input placeholder="type anything">
+  </div>
+  <div id="addrDropWrap" class="card hidden">
+    <label>Delivery address</label>
+    <input placeholder="type anything">
+  </div>
+  <div id="wasteWrap" class="card hidden">
+    <label>Waste type</label>
+    <select><option>General</option></select>
+  </div>
+  <div id="shopTimeWrap" class="card hidden">
+    <label>Run time</label>
+    <select><option>Before 10pm</option><option>After 10pm</option></select>
+  </div>
+  <div id="twoManWrap" class="card hidden"><label>Two‑person?</label><select><option>No</option><option>Yes</option></select></div>
+  <div id="stairsWrap" class="card hidden"><label>Stairs?</label><input placeholder="floors"></div>
+  <div id="ikeaModeWrap" class="card hidden"><label>IKEA mode</label><select><option>Collect</option><option>Collect & Build</option></select></div>
+  <div id="ikeaStoreWrap" class="card hidden"><label>IKEA store</label><select><option>Milton Keynes</option></select></div>
+  <div id="ikeaQtyWrap" class="card hidden"><label>Qty</label><input type="number" value="1"></div>
+  <div id="descWrap" class="card hidden"><label>Description</label><input placeholder="what is it?"></div>
+</div>
+
+<div id="status">⏳ waiting…</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function show(el){if(el){el.classList.remove('hidden')}}
+  function hide(el){if(el){el.classList.add('hidden')}}
+  function log(msg,cls){var s=$('status'); s.innerHTML = (cls?'<span class="'+cls+'">'+msg+'</span>':msg); console.log('[probe]',msg)}
+
+  window.onerror=function(m,src,ln,col,err){ log('JS error: '+m,'err'); };
+
+  function setUI(){
+    var jt = ($('#jobType')||{}).value || "";
+    var ids=['pickupField','addrDropWrap','wasteWrap','twoManWrap','stairsWrap','descWrap','shopTimeWrap','ikeaModeWrap','ikeaStoreWrap','ikeaQtyWrap'];
+    ids.forEach(function(id){ hide($(id)); });
+    if(!jt){ log('change fired — empty selection','warn'); return; }
+    show($('#pickupField'));
+    if(jt==='tip'){ show($('#wasteWrap')); log('change fired — tip','ok'); }
+    else if(jt==='move'||jt==='fb'||jt==='student'){ show($('#addrDropWrap')); show($('#twoManWrap')); show($('#stairsWrap')); log('change fired — '+jt,'ok'); }
+    else if(jt==='shop'){ show($('#addrDropWrap')); show($('#shopTimeWrap')); log('change fired — shop','ok'); }
+    else if(jt==='ikea'){ show($('#ikeaModeWrap')); show($('#ikeaStoreWrap')); show($('#addrDropWrap')); show($('#twoManWrap')); show($('#stairsWrap')); show($('#descWrap')); log('change fired — ikea','ok'); }
+    else if(jt==='business'||jt==='other'){ show($('#addrDropWrap')); show($('#descWrap')); log('change fired — '+jt,'ok'); }
+  }
+
+  function bind(){
+    var sel=$('jobType');
+    if(!sel){ log('jobType select not found','err'); return; }
+    sel.setAttribute('onchange','window.__probeUI && window.__probeUI()');
+    ['change','input'].forEach(function(ev){ sel.addEventListener(ev,setUI) });
+    window.__probeUI=setUI;
+    setUI();
+    log('ready — listeners attached','ok');
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind);
+  else bind();
+})();
+</script>
+</body>
+</html>
