@@ -23,7 +23,7 @@ window.BHD = Object.assign({
   },
 
   // House Move labour by bedrooms
-  HOURLY_RATE_MOVE: 50,
+  HOURLY_RATE_MOVE: 25,
   LUTON_HIRE_COST: 95,
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
