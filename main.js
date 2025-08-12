@@ -2,7 +2,7 @@
 // Keeps: IKEA basket, time/per-item flag, Maps logic, ranges, etc.
 
 window.BHD = Object.assign({
-  version: "r317",
+  version: "r320",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
