@@ -13,12 +13,12 @@ window.BHD = Object.assign({
   stairsPerFloor: 5,
 
   baseFees:{
-    default:5,
-    move:5,
+    default:15,
+    move:15,
     shopBefore22:5,
     shopAfter22:15,
-    ikeaCollect:5,
-    ikeaCollectBuild:5,
+    ikeaCollect:10,
+    ikeaCollectBuild:10,
     flatpack:5
   },
 
