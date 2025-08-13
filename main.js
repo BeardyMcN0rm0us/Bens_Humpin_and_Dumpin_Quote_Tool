@@ -56,7 +56,7 @@ window.BHD = Object.assign({
 
   // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 36,
+  ikeaLaborPerHour: 15,
   ikeaLaborPerMinute: null,   // if null, calculated from perHour/60
   ikeaAssemblyPerItem: 15
 }, window.BHD||{});
