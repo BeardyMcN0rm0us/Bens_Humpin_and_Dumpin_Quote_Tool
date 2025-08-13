@@ -1,7 +1,7 @@
-// r361 — Fixes: robust Google Maps init + fail-safe calc. Bedrooms/Luton + flatpack 15mi rule intact.
+// r370 — IKEA/Flatpack add buttons fixed; ikeaMode toggling shows items; robust Maps; bedrooms+Luton; flatpack 15mi rule.
 
 window.BHD = Object.assign({
-  version: "r365",
+  version: "r370",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -9,17 +9,17 @@ window.BHD = Object.assign({
 
   // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.75,
-  twoManSurcharge: 20,
-  stairsPerFloor: 5,
+  twoManSurcharge: 20,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
+  stairsPerFloor: 5,     // per floor (pickup + drop)
 
   baseFees:{
     default:15,
-    move:15,
-    shopBefore22:5,
-    shopAfter22:15,
-    ikeaCollect:10,
-    ikeaCollectBuild:10,
-    flatpack:5
+    move:25,
+    shopBefore22:15,
+    shopAfter22:25,
+    ikeaCollect:15,
+    ikeaCollectBuild:15,
+    flatpack:15
   },
 
   // House Move labour by bedrooms
@@ -30,10 +30,10 @@ window.BHD = Object.assign({
     2: { hours: 5, luton: false },
     3: { hours: 6, luton: true  },
     4: { hours: 8, luton: true  },
-    5: { hours:10, luton: true  }
+    5: { hours:10, luton: true  } // 5+
   },
 
-  // Min & range
+  // Min & range (blank string = no minimum)
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
 
@@ -56,8 +56,8 @@ window.BHD = Object.assign({
 
   // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 15,
-  ikeaLaborPerMinute: null,
+  ikeaLaborPerHour: 36,
+  ikeaLaborPerMinute: null,   // if null, calculated from perHour/60
   ikeaAssemblyPerItem: 15
 }, window.BHD||{});
 
@@ -106,17 +106,15 @@ window.BHD = Object.assign({
   if (els.buildTag) els.buildTag.textContent = 'Build ' + (CFG.version||'');
 
   // Seed waste select
-  try{
-    if (els.wasteType && els.wasteType.options.length===0){
-      Object.keys(CFG.disposal||{}).forEach(k=>{
-        const it=CFG.disposal[k], o=document.createElement('option');
-        o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t)`; els.wasteType.appendChild(o);
-      });
-    }
-  }catch(e){/* ignore */}
+  if (els.wasteType && els.wasteType.options.length===0){
+    Object.keys(CFG.disposal||{}).forEach(k=>{
+      const it=CFG.disposal[k], o=document.createElement('option');
+      o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t)`; els.wasteType.appendChild(o);
+    });
+  }
 
   // IKEA “Other” toggle
-  function maybeToggleIkeaOther(){
+  function toggleIkeaOther(){
     if (!els.ikeaItemSel) return;
     const isOther = (els.ikeaItemSel.value||'').startsWith('other');
     if (isOther){ show(els.ikeaOtherWrap); } else { hide(els.ikeaOtherWrap); }
@@ -130,7 +128,6 @@ window.BHD = Object.assign({
     return perHour>0 ? (perHour/60) : 0.6;
   }
   function renderList(targetEl, timeHintEl, basket){
-    if(!targetEl||!timeHintEl) return;
     targetEl.innerHTML='';
     if (basket.length===0){
       targetEl.innerHTML = `<div class="hint">No items added yet.</div>`;
@@ -163,6 +160,34 @@ window.BHD = Object.assign({
       });
     });
   }
+  function addIkeaItem(){
+    const sel=(els.ikeaItemSel&&els.ikeaItemSel.value)||'';
+    let minutes=0, name='', qty=Math.max(1,parseInt(els.ikeaQtyAdd&&els.ikeaQtyAdd.value||'1',10)||1);
+    if (sel.startsWith('other')){
+      name=(els.ikeaOtherName&&els.ikeaOtherName.value||'Custom item').trim();
+      minutes=Math.max(5,parseInt(els.ikeaOtherMinutes&&els.ikeaOtherMinutes.value||'60',10)||60);
+      if(!name) name='Custom item';
+    } else if(sel){
+      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
+    } else { return; }
+    const ex=ikeaBasket.find(i=>i.name===name&&i.minutes===minutes);
+    if(ex) ex.qty+=qty; else ikeaBasket.push({name,minutes,qty});
+    renderList(els.ikeaList, els.ikeaTimeHint, ikeaBasket);
+  }
+  function addFlatItem(){
+    const sel=(els.flatItemSel&&els.flatItemSel.value)||'';
+    let minutes=0, name='', qty=Math.max(1,parseInt(els.flatQtyAdd&&els.flatQtyAdd.value||'1',10)||1);
+    if (sel.startsWith('other')){
+      name=(els.flatOtherName&&els.flatOtherName.value||'Custom item').trim();
+      minutes=Math.max(5,parseInt(els.flatOtherMinutes&&els.flatOtherMinutes.value||'60',10)||60);
+      if(!name) name='Custom item';
+    } else if(sel){
+      const [m,n]=sel.split('|'); minutes=Math.max(0,parseInt(m||'0',10)||0); name=n||'Item';
+    } else { return; }
+    const ex=flatBasket.find(i=>i.name===name&&i.minutes===minutes);
+    if(ex) ex.qty+=qty; else flatBasket.push({name,minutes,qty});
+    renderList(els.flatList, els.flatTimeHint, flatBasket);
+  }
 
   // UI toggle
   let lastJobType='';
@@ -179,9 +204,7 @@ window.BHD = Object.assign({
 
     hideAll();
     if(!v){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return; }
-
-    // default: pickup for most flows
-    show(els.pickupField);
+    show(els.pickupField); // default for most flows
 
     if(v==='tip'){
       show(els.wasteWrap);
@@ -213,48 +236,27 @@ window.BHD = Object.assign({
     }
   }
 
-  // IKEA store -> overwrite pickup
+  // IKEA store sets pickup
   if (els.ikeaStore){
     els.ikeaStore.addEventListener('change', ()=>{
       const v=els.ikeaStore.value||''; if (els.addrPickup) els.addrPickup.value=v;
     });
   }
 
-  // ----- Google Maps bootstrap (robust) -----
-  let directions=null, autoPickup=null, autoDrop=null, mapsReady=false, tryCount=0;
+  // Google Maps bootstrap (robust)
+  let directions=null, autoPickup=null, autoDrop=null, tryCount=0;
   function initMaps(){
     try{
       if (!window.google || !google.maps) return false;
       if (!directions) directions = new google.maps.DirectionsService();
-      if (!autoPickup && els.addrPickup){
-        autoPickup = new google.maps.places.Autocomplete(els.addrPickup, {
-          fields:["formatted_address","geometry"], componentRestrictions:{ country: ["gb"] }, types:["geocode"]
-        });
-      }
-      if (!autoDrop && els.addrDrop){
-        autoDrop = new google.maps.places.Autocomplete(els.addrDrop, {
-          fields:["formatted_address","geometry"], componentRestrictions:{ country: ["gb"] }, types:["geocode"]
-        });
-      }
-      mapsReady = !!(directions && autoPickup && autoDrop);
-      if (mapsReady && els.routeHint && (els.routeHint.textContent||'').toLowerCase().includes('loading')) {
-        els.routeHint.textContent = "Maps OK — enter addresses.";
-      }
-      return mapsReady;
-    }catch(e){
-      return false;
-    }
+      const opt={fields:["formatted_address","geometry"], componentRestrictions:{country:["gb"]}, types:["geocode"]};
+      if (!autoPickup && els.addrPickup) autoPickup = new google.maps.places.Autocomplete(els.addrPickup,opt);
+      if (!autoDrop   && els.addrDrop)   autoDrop   = new google.maps.places.Autocomplete(els.addrDrop,opt);
+      if (els.routeHint && tryCount>0) els.routeHint.textContent="Maps OK — enter addresses.";
+      return true;
+    }catch(e){ return false; }
   }
-  // Poll until ready (covers async loading)
-  const poll = setInterval(()=>{
-    if (initMaps()){ clearInterval(poll); }
-    else {
-      tryCount++;
-      if (els.routeHint && tryCount%5===0){
-        els.routeHint.textContent = "Loading Google Maps…";
-      }
-    }
-  }, 300);
+  const poll = setInterval(()=>{ if(initMaps()) clearInterval(poll); else { tryCount++; if(tryCount%5===0 && els.routeHint) els.routeHint.textContent='Loading Google Maps…'; } },300);
 
   function routeP(req){
     return new Promise(res=>{
@@ -274,7 +276,7 @@ window.BHD = Object.assign({
     const pickup=(els.addrPickup&&els.addrPickup.value||"").trim();
     const drop=(els.addrDrop&&els.addrDrop.value||"").trim();
 
-    // FLATPACK: only destination matters; charge if >15mi (one-way), loop is H→D→H
+    // FLATPACK: only destination matters; charge if >15mi one-way, loop is H→D→H
     if (jt==='flatpack'){
       if(!drop){ if(els.routeHint) els.routeHint.textContent="Enter destination address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return; }
       const oneWay = await routeP({origin:home, destination:drop, travelMode:'DRIVING'});
@@ -364,7 +366,7 @@ window.BHD = Object.assign({
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
     const asm = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
 
-    // House Move: bedrooms -> labour + optional Luton
+    // House Move labour & optional Luton
     let labourCost = 0, labourLine = '', lutonLine = '', lutonCost = 0;
     if (jt==='move'){
       const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
@@ -430,34 +432,30 @@ window.BHD = Object.assign({
   }
 
   // Bindings
-  try{
-    if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
-    if(els.ikeaItemSel){ els.ikeaItemSel.addEventListener('change', maybeToggleIkeaOther); maybeToggleIkeaOther(); }
-    if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', ()=>{renderList(els.ikeaList, els.ikeaTimeHint, (function(){ addIkeaItem(); return ikeaBasket; })());});
-    if(els.flatItemSel){
-      els.flatItemSel.addEventListener('change', ()=>{
-        const isOther=(els.flatItemSel.value||'').startsWith('other');
-        if(isOther) show(els.flatOtherWrap); else hide(els.flatOtherWrap);
-      });
-    }
-    if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', ()=>{renderList(els.flatList, els.flatTimeHint, (function(){ addFlatItem(); return flatBasket; })());});
-
-    if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
-      if(els.routeHint) els.routeHint.textContent = "Calculating…";
-      // Ensure maps attempted
-      initMaps();
-      const miles=await new Promise(resolve=>getMilesBoth(resolve));
-      calculate(miles);
+  if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
+  if(els.ikeaMode) els.ikeaMode.addEventListener('change', setUI); // show items immediately on Collect & Build
+  if(els.ikeaItemSel){ els.ikeaItemSel.addEventListener('change', toggleIkeaOther); toggleIkeaOther(); }
+  if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
+  if(els.flatItemSel){
+    els.flatItemSel.addEventListener('change', ()=>{
+      const isOther=(els.flatItemSel.value||'').startsWith('other');
+      if(isOther) show(els.flatOtherWrap); else hide(els.flatOtherWrap);
     });
-    if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
-  }catch(e){
-    if(els.routeHint) els.routeHint.textContent = "Error wiring UI. Refresh the page.";
   }
+  if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', addFlatItem);
+
+  if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
+    if(els.routeHint) els.routeHint.textContent = "Calculating…";
+    initMaps();
+    const miles=await new Promise(resolve=>getMilesBoth(resolve));
+    calculate(miles);
+  });
+  if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
 
   // First paint
   hideAll(); setUI();
-  renderList(els.ikeaList, els.ikeaTimeHint, []);
-  renderList(els.flatList, els.flatTimeHint, []);
+  renderList(els.ikeaList, els.ikeaTimeHint, ikeaBasket);
+  renderList(els.flatList, els.flatTimeHint, flatBasket);
 
-  // (poller defined above)
+  // maps poller (defined above)
 })();
