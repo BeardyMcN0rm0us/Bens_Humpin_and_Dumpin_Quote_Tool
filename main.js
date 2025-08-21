@@ -1,7 +1,7 @@
-// r370 — IKEA/Flatpack add buttons fixed; ikeaMode toggling shows items; robust Maps; bedrooms+Luton; flatpack 15mi rule.
+// r372 — Default Luton hire set to £175 and fully configurable via UI or here.
 
 window.BHD = Object.assign({
-  version: "r370",
+  version: "r372",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -13,18 +13,18 @@ window.BHD = Object.assign({
   stairsPerFloor: 5,     // per floor (pickup + drop)
 
   baseFees:{
-    default:15,
-    move:25,
-    shopBefore22:15,
-    shopAfter22:25,
-    ikeaCollect:15,
-    ikeaCollectBuild:15,
-    flatpack:15
+    default:35,
+    move:50,
+    shopBefore22:25,
+    shopAfter22:40,
+    ikeaCollect:45,
+    ikeaCollectBuild:55,
+    flatpack:35
   },
 
   // House Move labour by bedrooms
-  HOURLY_RATE_MOVE: 25,
-  LUTON_HIRE_COST: 95,
+  HOURLY_RATE_MOVE: 50,
+  LUTON_HIRE_COST: 175, // <— default; also editable in UI on House Move
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
     2: { hours: 5, luton: false },
@@ -33,7 +33,7 @@ window.BHD = Object.assign({
     5: { hours:10, luton: true  } // 5+
   },
 
-  // Min & range (blank string = no minimum)
+  // Min & range
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
   rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
 
@@ -56,9 +56,9 @@ window.BHD = Object.assign({
 
   // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 20,
-  ikeaLaborPerMinute: null,   // if null, calculated from perHour/60
-  ikeaAssemblyPerItem: 20
+  ikeaLaborPerHour: 36,
+  ikeaLaborPerMinute: null,
+  ikeaAssemblyPerItem: 15
 }, window.BHD||{});
 
 (function(){
@@ -78,6 +78,8 @@ window.BHD = Object.assign({
   const els = {
     jobType:$('jobType'),
     houseMoveBedroomsWrap:$('houseMoveBedroomsWrap'), houseMoveBedrooms:$('houseMoveBedrooms'),
+
+    lutonWrap:$('lutonWrap'), lutonNeeded:$('lutonNeeded'), lutonCost:$('lutonCost'), lutonHint:$('lutonHint'),
 
     ikeaModeWrap:$('ikeaModeWrap'), ikeaMode:$('ikeaMode'),
     ikeaStoreWrap:$('ikeaStoreWrap'), ikeaStore:$('ikeaStore'),
@@ -105,6 +107,8 @@ window.BHD = Object.assign({
   };
   if (els.buildTag) els.buildTag.textContent = 'Build ' + (CFG.version||'');
 
+  if (els.lutonCost) els.lutonCost.value = Number(CFG.LUTON_HIRE_COST||0);
+
   // Seed waste select
   if (els.wasteType && els.wasteType.options.length===0){
     Object.keys(CFG.disposal||{}).forEach(k=>{
@@ -113,18 +117,16 @@ window.BHD = Object.assign({
     });
   }
 
-  // IKEA “Other” toggle
   function toggleIkeaOther(){
     if (!els.ikeaItemSel) return;
     const isOther = (els.ikeaItemSel.value||'').startsWith('other');
     if (isOther){ show(els.ikeaOtherWrap); } else { hide(els.ikeaOtherWrap); }
   }
 
-  // Baskets
   const ikeaBasket=[]; const flatBasket=[];
-  function laborPerMinute(){
+  function laborPerMinuteEffective(){
     if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
-    const perHour = Number(CFG.ikeaLaborPerHour||0);
+    const perHour=Number(CFG.ikeaLaborPerHour||0);
     return perHour>0 ? (perHour/60) : 0.6;
   }
   function renderList(targetEl, timeHintEl, basket){
@@ -195,7 +197,7 @@ window.BHD = Object.assign({
   function hideAll(){
     [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,
      els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap,els.flatpackItemsWrap,
-     els.houseMoveBedroomsWrap].forEach(hide);
+     els.houseMoveBedroomsWrap,els.lutonWrap].forEach(hide);
   }
   function setUI(){
     const v=els.jobType?els.jobType.value:'';
@@ -204,14 +206,16 @@ window.BHD = Object.assign({
 
     hideAll();
     if(!v){ if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return; }
-    show(els.pickupField); // default for most flows
+    show(els.pickupField);
 
     if(v==='tip'){
       show(els.wasteWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Collection → Waterbeach (with >50mi rule).";
     } else if (v==='move'){
-      show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.houseMoveBedroomsWrap);
+      show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.houseMoveBedroomsWrap); show(els.lutonWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery. Labour & Luton based on bedrooms.";
+      if (els.lutonCost && !els.lutonCost.value) els.lutonCost.value = Number(CFG.LUTON_HIRE_COST||0);
+      updateLutonHint();
     } else if (v==='fb'||v==='student'){
       show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
@@ -222,9 +226,7 @@ window.BHD = Object.assign({
       show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap);
       if (els.ikeaMode && els.ikeaMode.value==='collectBuild'){
         show(els.ikeaItemsWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
-      } else {
-        show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap);
-      }
+      } else { show(els.twoManWrap); show(els.stairsWrap); show(els.descWrap); }
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → IKEA → Delivery.";
     } else if (v==='flatpack'){
       hide(els.pickupField); hide(els.ikeaModeWrap); hide(els.ikeaStoreWrap); hide(els.ikeaItemsWrap);
@@ -236,6 +238,21 @@ window.BHD = Object.assign({
     }
   }
 
+  function autoLutonFromBedrooms(){
+    const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
+    const map = CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
+    return !!(map && map.luton);
+  }
+  function updateLutonHint(){
+    if (!els.lutonHint || !els.lutonNeeded) return;
+    const mode = (els.lutonNeeded.value||'auto');
+    const auto = autoLutonFromBedrooms();
+    let txt = `Auto suggests: ${auto ? "Luton needed" : "no Luton"}.`;
+    if (mode==='yes') txt += ` Forced ON.`;
+    if (mode==='no')  txt += ` Forced OFF.`;
+    els.lutonHint.textContent = txt + ` Hire used: £${Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST).toFixed(0)}/day.`;
+  }
+
   // IKEA store sets pickup
   if (els.ikeaStore){
     els.ikeaStore.addEventListener('change', ()=>{
@@ -243,7 +260,7 @@ window.BHD = Object.assign({
     });
   }
 
-  // Google Maps bootstrap (robust)
+  // Google Maps bootstrap
   let directions=null, autoPickup=null, autoDrop=null, tryCount=0;
   function initMaps(){
     try{
@@ -276,7 +293,6 @@ window.BHD = Object.assign({
     const pickup=(els.addrPickup&&els.addrPickup.value||"").trim();
     const drop=(els.addrDrop&&els.addrDrop.value||"").trim();
 
-    // FLATPACK: only destination matters; charge if >15mi one-way, loop is H→D→H
     if (jt==='flatpack'){
       if(!drop){ if(els.routeHint) els.routeHint.textContent="Enter destination address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return; }
       const oneWay = await routeP({origin:home, destination:drop, travelMode:'DRIVING'});
@@ -312,7 +328,6 @@ window.BHD = Object.assign({
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
-  // helpers
   const pctFor=jt=>(CFG.rangePct&&CFG.rangePct[jt]!=null)?Number(CFG.rangePct[jt]):0.12;
   const minFor=jt=>{const v=(CFG.minByType||{})[jt];return (v===""||v==null)?0:Math.max(0,Number(v));};
   function baseFeeFor(jt){
@@ -327,11 +342,6 @@ window.BHD = Object.assign({
     const key=els.wasteType.value, item=CFG.disposal[key]||{};
     const minFee=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25);
     return {fee:minFee, detail:`Minimum disposal for ${item.label||key} — ${Math.round((Number(CFG.disposalMinPct||0.25))*100)}% of £${Number(item.ratePerTonne||0).toFixed(2)}/t`};
-  }
-  function laborPerMinuteEffective(){
-    if (typeof CFG.ikeaLaborPerMinute === 'number' && !isNaN(CFG.ikeaLaborPerMinute)) return Number(CFG.ikeaLaborPerMinute);
-    const perHour=Number(CFG.ikeaLaborPerHour||0);
-    return perHour>0?(perHour/60):0.6;
   }
   function calcAssembly(basket){
     let totalMinutes=0,totalItems=0,lines=[];
@@ -366,7 +376,6 @@ window.BHD = Object.assign({
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
     const asm = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
 
-    // House Move labour & optional Luton
     let labourCost = 0, labourLine = '', lutonLine = '', lutonCost = 0;
     if (jt==='move'){
       const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
@@ -374,10 +383,17 @@ window.BHD = Object.assign({
       if (map){
         labourCost = Number(map.hours||0) * Number(CFG.HOURLY_RATE_MOVE||0);
         labourLine = `${map.hours} hrs labour @ £${Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)}/hr = £${labourCost.toFixed(2)}`;
-        if (map.luton){
-          lutonCost = Number(CFG.LUTON_HIRE_COST||0);
-          lutonLine = `Luton van hire: £${lutonCost.toFixed(2)}`;
-        }
+      }
+      const mode = (els.lutonNeeded && els.lutonNeeded.value) || 'auto';
+      const autoNeed = map ? !!map.luton : false;
+      const include = (mode==='yes') || (mode==='auto' && autoNeed);
+      if (include){
+        lutonCost = Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST||0);
+        lutonLine = `Luton van hire: £${lutonCost.toFixed(2)} (${mode==='auto'?'auto':''}${mode==='yes'?'forced':''}${mode==='no'?'(overridden OFF)':''})`;
+      } else if (mode==='no') {
+        lutonLine = `Luton hire not included (overridden)`;
+      } else {
+        lutonLine = `Luton not required (auto)`;
       }
     }
 
@@ -410,7 +426,6 @@ window.BHD = Object.assign({
     if(els.btnWA){ els.btnWA.hidden=false; els.btnWA.classList.remove('hidden'); }
   }
 
-  // WhatsApp export
   function sendWhatsApp(){
     const id=(els.quoteId&&els.quoteId.textContent||"").replace("Quote ID — ","").trim();
     const jt=(els.jobType&&els.jobType.value)||"";
@@ -431,9 +446,8 @@ window.BHD = Object.assign({
     window.open("https://wa.me/"+CFG.whatsappNumber+"?text="+encodeURIComponent(msg),'_blank');
   }
 
-  // Bindings
   if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
-  if(els.ikeaMode) els.ikeaMode.addEventListener('change', setUI); // show items immediately on Collect & Build
+  if(els.ikeaMode) els.ikeaMode.addEventListener('change', setUI);
   if(els.ikeaItemSel){ els.ikeaItemSel.addEventListener('change', toggleIkeaOther); toggleIkeaOther(); }
   if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click', addIkeaItem);
   if(els.flatItemSel){
@@ -444,6 +458,12 @@ window.BHD = Object.assign({
   }
   if(els.flatAddBtn) els.flatAddBtn.addEventListener('click', addFlatItem);
 
+  if (els.houseMoveBedrooms) els.houseMoveBedrooms.addEventListener('change', ()=>{
+    if (els.lutonNeeded && els.lutonNeeded.value==='auto') updateLutonHint();
+  });
+  if (els.lutonNeeded) els.lutonNeeded.addEventListener('change', updateLutonHint);
+  if (els.lutonCost) els.lutonCost.addEventListener('input', updateLutonHint);
+
   if(els.btnCalc) els.btnCalc.addEventListener('click', async ()=>{
     if(els.routeHint) els.routeHint.textContent = "Calculating…";
     initMaps();
@@ -452,10 +472,7 @@ window.BHD = Object.assign({
   });
   if(els.btnWA) els.btnWA.addEventListener('click', sendWhatsApp);
 
-  // First paint
   hideAll(); setUI();
-  renderList(els.ikeaList, els.ikeaTimeHint, ikeaBasket);
-  renderList(els.flatList, els.flatTimeHint, flatBasket);
-
-  // maps poller (defined above)
+  renderList($('ikeaList'), $('ikeaTimeHint'), []);
+  renderList($('flatList'), $('flatTimeHint'), []);
 })();
