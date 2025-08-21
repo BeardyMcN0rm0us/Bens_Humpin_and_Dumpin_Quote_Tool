@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="style.css?v=r370">
+<link rel="stylesheet" href="style.css?v=r372">
 </head>
 <body>
 <div class="wrap">
@@ -16,7 +16,7 @@
     <img src="icon-192.png" alt="Logo">
     <h1>Instant Quote</h1>
     <div class="sub">Fast estimate. Final price confirmed after photos & access check.</div>
-    <div class="build" id="buildTag">Build r370</div>
+    <div class="build" id="buildTag">Build r372</div>
   </header>
 
   <div class="card">
@@ -45,10 +45,27 @@
         <option value="4">4 Bedrooms</option>
         <option value="5">5+ Bedrooms</option>
       </select>
-      <div class="hint">We use bedrooms to estimate labour time and whether a Luton van is needed.</div>
+      <div class="hint">We use bedrooms to estimate labour time. Larger moves may need a Luton van.</div>
     </div>
 
-    <!-- IKEA service mode -->
+    <!-- Luton hire control (House Move only) -->
+    <div id="lutonWrap" class="grid2 hidden" hidden>
+      <div>
+        <label for="lutonNeeded">Luton van hire?</label>
+        <select id="lutonNeeded">
+          <option value="auto" selected>Auto (based on bedrooms)</option>
+          <option value="yes">Yes, include hire</option>
+          <option value="no">No, not needed</option>
+        </select>
+      </div>
+      <div>
+        <label for="lutonCost">Hire £/day</label>
+        <input id="lutonCost" type="number" min="0" step="1" />
+      </div>
+      <div class="hint" style="grid-column:1/-1" id="lutonHint"></div>
+    </div>
+
+    <!-- IKEA mode -->
     <div id="ikeaModeWrap" class="hidden" hidden>
       <label for="ikeaMode">IKEA service</label>
       <select id="ikeaMode">
@@ -79,16 +96,16 @@
       <div class="grid3">
         <select id="ikeaItemSel">
           <option value="" selected>(pick an item…)</option>
-          <option value="90|MALM Chest (6‑drawer)">MALM Chest (6‑drawer) — ~90 min</option>
-          <option value="70|MALM Chest (4‑drawer)">MALM Chest (4‑drawer) — ~70 min</option>
-          <option value="60|MALM Chest (3‑drawer)">MALM Chest (3‑drawer) — ~60 min</option>
+          <option value="90|MALM Chest (6-drawer)">MALM Chest (6-drawer) — ~90 min</option>
+          <option value="70|MALM Chest (4-drawer)">MALM Chest (4-drawer) — ~70 min</option>
+          <option value="60|MALM Chest (3-drawer)">MALM Chest (3-drawer) — ~60 min</option>
           <option value="90|MALM Bed Frame (double)">MALM Bed Frame (double) — ~90 min</option>
           <option value="110|MALM Bed (double) w/ storage">MALM Bed (double) w/ storage — ~110 min</option>
           <option value="30|MALM Bedside Table">MALM Bedside Table — ~30 min</option>
-          <option value="120|PAX Wardrobe (2‑door basic)">PAX Wardrobe (2‑door basic) — ~120 min</option>
-          <option value="150|PAX Wardrobe (3‑door basic)">PAX Wardrobe (3‑door basic) — ~150 min</option>
-          <option value="140|PAX Wardrobe (2‑door sliding)">PAX Wardrobe (2‑door sliding) — ~140 min</option>
-          <option value="160|PAX 2‑door + KOMPLEMENT drawers">PAX 2‑door + KOMPLEMENT drawers — ~160 min</option>
+          <option value="120|PAX Wardrobe (2-door basic)">PAX Wardrobe (2-door basic) — ~120 min</option>
+          <option value="150|PAX Wardrobe (3-door basic)">PAX Wardrobe (3-door basic) — ~150 min</option>
+          <option value="140|PAX Wardrobe (2-door sliding)">PAX Wardrobe (2-door sliding) — ~140 min</option>
+          <option value="160|PAX 2-door + KOMPLEMENT drawers">PAX 2-door + KOMPLEMENT drawers — ~160 min</option>
           <option value="45|BILLY Bookcase 80×202">BILLY Bookcase 80×202 — ~45 min</option>
           <option value="35|BILLY Bookcase 40×202">BILLY Bookcase 40×202 — ~35 min</option>
           <option value="60|BILLY + OXBERG doors">BILLY + OXBERG doors — ~60 min</option>
@@ -114,10 +131,10 @@
           <option value="45|Bed (Single)">Bed (Single) — ~45 min</option>
           <option value="60|Bed (Double)">Bed (Double) — ~60 min</option>
           <option value="75|Bed (King/Super King)">Bed (King/Super King) — ~75 min</option>
-          <option value="90|Wardrobe (2‑door)">Wardrobe (2‑door) — ~90 min</option>
-          <option value="120|Wardrobe (3‑door)">Wardrobe (3‑door) — ~120 min</option>
-          <option value="45|Chest of drawers (3‑drawer)">Chest of drawers (3‑drawer) — ~45 min</option>
-          <option value="60|Chest of drawers (6‑drawer)">Chest of drawers (6‑drawer) — ~60 min</option>
+          <option value="90|Wardrobe (2-door)">Wardrobe (2-door) — ~90 min</option>
+          <option value="120|Wardrobe (3-door)">Wardrobe (3-door) — ~120 min</option>
+          <option value="45|Chest of drawers (3-drawer)">Chest of drawers (3-drawer) — ~45 min</option>
+          <option value="60|Chest of drawers (6-drawer)">Chest of drawers (6-drawer) — ~60 min</option>
           <option value="30|Bedside table">Bedside table — ~30 min</option>
           <option value="45|TV stand">TV stand — ~45 min</option>
           <option value="90|Dining table & 4 chairs">Dining table & 4 chairs — ~90 min</option>
@@ -159,7 +176,7 @@
 
     <!-- Team & stairs -->
     <div id="twoManWrap" class="hidden" hidden>
-      <label for="twoMan">Two‑person team?</label>
+      <label for="twoMan">Two-person team?</label>
       <select id="twoMan"><option value="no">No</option><option value="yes">Yes</option></select>
     </div>
     <div id="stairsWrap" class="grid2 hidden" hidden>
@@ -168,7 +185,7 @@
         <input id="stairsPickup" type="number" min="0" step="1" value="0">
       </div>
       <div>
-        <label for="stairsDrop">Stairs at drop‑off (floors)</label>
+        <label for="stairsDrop">Stairs at drop-off (floors)</label>
         <input id="stairsDrop" type="number" min="0" step="1" value="0">
       </div>
     </div>
@@ -202,7 +219,7 @@
   </div>
 </div>
 
-<!-- HELP OVERLAY (CSS-only) -->
+<!-- HELP OVERLAY -->
 <input type="checkbox" id="helpToggle" />
 <label class="helpFab" for="helpToggle">Help</label>
 <div class="helpOverlay">
@@ -217,18 +234,11 @@
       <li>Review the breakdown. You’ll see <em>Total journey</em> and <em>Charged mileage</em>.</li>
       <li>Tap <strong>Send to WhatsApp</strong> to message Ben with everything filled in.</li>
     </ol>
-
-    <h3>House Move</h3>
-    <p>We use bedrooms to estimate labour time. Bigger homes may require a Luton van hire (added automatically).</p>
-
-    <h3>Flat Pack Build Only</h3>
-    <p>If your address is over 15 miles from Ben’s home, mileage is billed one‑way (home → destination), rounded up. Otherwise no mileage.</p>
-
     <p class="muted">This is an estimate. Final price depends on photos, access, and actual load on the day.</p>
   </div>
 </div>
 
-<script src="main.js?v=r370" defer></script>
+<script src="main.js?v=r372" defer></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=voidFunc"></script>
 <script>function voidFunc(){}</script>
 </body>
