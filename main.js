@@ -8,18 +8,18 @@ window.BHD = Object.assign({
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
   // ===== PRICING VARS — tweak here =====
-  mileagePerMile: 1.50,
+  mileagePerMile: 1.00,
   twoManSurcharge: 25,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
   stairsPerFloor: 7.50,     // per floor (pickup + drop)
 
   baseFees:{
     default:40,
     move:50,
-    shopBefore22:25,
-    shopAfter22:40,
-    ikeaCollect:45,
-    ikeaCollectBuild:55,
-    flatpack:35
+    shopBefore22:15,
+    shopAfter22:30,
+    ikeaCollect:30,
+    ikeaCollectBuild:30,
+    flatpack:30
   },
 
   // House Move labour by bedrooms
