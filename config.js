@@ -4,7 +4,7 @@ window.BHD_CONFIG = {
   whatsappNumber: "447717463496",
 
   // Pricing knobs
-  mileagePerMile: 0.40,
+  mileagePerMile: 0.90,
   twoManSurcharge: 20,
   stairsPerFloor: 5,
 
@@ -18,7 +18,7 @@ window.BHD_CONFIG = {
 
   // Base fees
   baseFees: {
-    default: 35,
+    default: 40,
     move: 50,
     shopBefore22: 25,
     shopAfter22: 40,
@@ -37,7 +37,7 @@ window.BHD_CONFIG = {
   },
 
   // IKEA helpers
-  ikeaAssemblyPerItem: 15,
+  ikeaAssemblyPerItem: 35,
   ikeaStores: [
     { name: "IKEA Milton Keynes", address: "Geldered Close, Bletchley, Milton Keynes" },
     { name: "IKEA Peterborough Click & Collect", address: "Boongate, Peterborough" }
