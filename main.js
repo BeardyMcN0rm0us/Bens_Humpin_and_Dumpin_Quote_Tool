@@ -1,7 +1,7 @@
 // r372 — Default Luton hire set to £175 and fully configurable via UI or here.
 
 window.BHD = Object.assign({
-  version: "r372",
+  version: "r380",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -9,8 +9,8 @@ window.BHD = Object.assign({
 
   // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.90,
-  twoManSurcharge: 20,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
-  stairsPerFloor: 5,     // per floor (pickup + drop)
+  twoManSurcharge: 25,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
+  stairsPerFloor: 7.50,     // per floor (pickup + drop)
 
   baseFees:{
     default:40,
@@ -55,7 +55,7 @@ window.BHD = Object.assign({
   },
 
   // Assembly pricing (IKEA/Flatpack)
-  useTimePricing: true,
+  useTimePricing: false,
   ikeaLaborPerHour: 36,
   ikeaLaborPerMinute: null,
   ikeaAssemblyPerItem: 25
