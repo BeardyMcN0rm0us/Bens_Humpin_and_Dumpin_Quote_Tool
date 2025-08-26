@@ -1,7 +1,7 @@
 // r372 — Default Luton hire set to £175 and fully configurable via UI or here.
 
 window.BHD = Object.assign({
-  version: "r380",
+  version: "r390",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
