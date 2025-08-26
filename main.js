@@ -8,12 +8,12 @@ window.BHD = Object.assign({
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
   // ===== PRICING VARS — tweak here =====
-  mileagePerMile: 0.75,
+  mileagePerMile: 0.90,
   twoManSurcharge: 20,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
   stairsPerFloor: 5,     // per floor (pickup + drop)
 
   baseFees:{
-    default:35,
+    default:40,
     move:50,
     shopBefore22:25,
     shopAfter22:40,
@@ -24,10 +24,10 @@ window.BHD = Object.assign({
 
   // House Move labour by bedrooms
   HOURLY_RATE_MOVE: 50,
-  LUTON_HIRE_COST: 175, // <— default; also editable in UI on House Move
+  LUTON_HIRE_COST: 200, // <— default; also editable in UI on House Move
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
-    2: { hours: 5, luton: false },
+    2: { hours: 5, luton: true },
     3: { hours: 6, luton: true  },
     4: { hours: 8, luton: true  },
     5: { hours:10, luton: true  } // 5+
@@ -58,7 +58,7 @@ window.BHD = Object.assign({
   useTimePricing: true,
   ikeaLaborPerHour: 36,
   ikeaLaborPerMinute: null,
-  ikeaAssemblyPerItem: 15
+  ikeaAssemblyPerItem: 25
 }, window.BHD||{});
 
 (function(){
