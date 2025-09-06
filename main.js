@@ -1,25 +1,25 @@
 // r372 — Default Luton hire set to £175 and fully configurable via UI or here.
 
 window.BHD = Object.assign({
-  version: "r390",
+  version: "r391",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
   waterbeachAddress: "Waterbeach Waste Management Park, CB25 9PG",
 
   // ===== PRICING VARS — tweak here =====
-  mileagePerMile: 1.00,
+  mileagePerMile: 0.85,
   twoManSurcharge: 25,   // add-on if two-person team (not for tip/shop/business/other/flatpack)
   stairsPerFloor: 7.50,     // per floor (pickup + drop)
 
   baseFees:{
-    default:40,
+    default:25,
     move:50,
     shopBefore22:15,
-    shopAfter22:30,
-    ikeaCollect:30,
-    ikeaCollectBuild:30,
-    flatpack:30
+    shopAfter22:25,
+    ikeaCollect:25,
+    ikeaCollectBuild:25,
+    flatpack:25
   },
 
   // House Move labour by bedrooms
@@ -56,7 +56,7 @@ window.BHD = Object.assign({
 
   // Assembly pricing (IKEA/Flatpack)
   useTimePricing: true,
-  ikeaLaborPerHour: 36,
+  ikeaLaborPerHour: 35,
   ikeaLaborPerMinute: null,
   ikeaAssemblyPerItem: 25
 }, window.BHD||{});
