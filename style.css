@@ -24,8 +24,8 @@ textarea{min-height:96px}
 .btn.secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1b0b08}
 .btn.small{padding:8px 10px;font-size:.9rem}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
-@media (max-width:560px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
 .hidden,[hidden]{display:none!important}
 .hint{font-size:.9rem;color:var(--muted);white-space:pre-wrap}
 .total{font-weight:900;font-size:1.6rem;text-align:center;margin-top:8px;color:var(--brand);opacity:0;transition:opacity .3s}
@@ -63,3 +63,11 @@ textarea{min-height:96px}
   border-radius:12px; padding:8px 12px; font-weight:900; cursor:pointer
 }
 .muted{color:#b7b7b7;font-size:1rem}
+
+/* ADMIN */
+.adminOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.86);z-index:10000}
+.adminPanel{width:min(900px,96vw);background:#0f0f0f;border:1px solid #1f1f1f;border-radius:16px;padding:14px}
+.adminHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.adminBlock{border-top:1px solid #222;margin-top:8px;padding-top:10px}
+.sliders label{display:block;margin:8px 0}
+.sliders input[type=range]{width:100%}
