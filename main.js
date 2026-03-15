@@ -340,8 +340,8 @@ window.BHD = Object.assign({
   function calcDisposal(){
     if(!els.wasteType||!CFG.disposal) return {fee:0,detail:""};
     const key=els.wasteType.value, item=CFG.disposal[key]||{};
-    const minFee=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25);
-    return {fee:minFee, detail:`Minimum disposal for ${item.label||key} — ${Math.round((Number(CFG.disposalMinPct||0.25))*100)}% of £${Number(item.ratePerTonne||0).toFixed(2)}/t`};
+    const minFee=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25)*(1+Number(CFG.disposalVat||0));
+		return {fee:minFee, detail:`Minimum disposal for ${item.label||key} — ${Math.round((Number(CFG.disposalMinPct||0.25))*100)}% of £${Number(item.ratePerTonne||0).toFixed(2)}/t`};
   }
   function calcAssembly(basket){
     let totalMinutes=0,totalItems=0,lines=[];
