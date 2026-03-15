@@ -57,7 +57,8 @@ BEDROOM_LOAD_MULTIPLIERS: {
 
 // ── Tip run disposal — Waterbeach published rates ─────────────
 // Fee charged = disposalMinPct × ratePerTonne
-disposalMinPct: 0.25,     // 25% of published rate (minimum load)
+disposalMinPct: 0.25,
+disposalVat: 0.20,     // 25% of published rate (minimum load)
 disposal: {
 general:   { label: “General Waste”,              ratePerTonne: 192.50 },
 soil:      { label: “Soil / Inert”,               ratePerTonne:  69.75 },
