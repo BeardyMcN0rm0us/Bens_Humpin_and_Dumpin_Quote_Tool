@@ -285,27 +285,26 @@
     </div>
   </div>
 
-  <!-- Hay Bales -->
-<div id="hayWrap" class="hidden" hidden>
-  <div class="field-group">
-    <label class="field-label">Rental or sale?</label>
-    <div class="opt-row">
-      <button class="opt-btn is-active" data-sel="hayType" data-val="rental">Rental</button>
-      <button class="opt-btn" data-sel="hayType" data-val="sale">Buy outright</button>
-    </div>
-    <select id="hayType" hidden aria-hidden="true">
-      <option value="rental" selected>Rental</option>
-      <option value="sale">Sale</option>
-    </select>
-  </div>
-  <div class="field-group">
-    <label class="field-label" for="hayBales">How many bales?</label>
-    <input id="hayBales" type="number" min="1" step="1" value="10">
-    <div class="hint" id="hayHint">Rental: min 10 bales · Full load = 16 · Delivery &amp; collection included · £5/bale/day</div>
-  </div>
-  <!-- kept for legacy compat, no longer shown -->
-  <select id="hayIncludeCollection" hidden aria-hidden="true">
-    <option value="yes" selected>Yes</option>
+	<!-- Hay Bales -->
+	<div id="hayWrap" class="hidden" hidden>
+	  <div class="field-group">
+	    <label class="field-label">Rental or sale?</label>
+	    <div class="opt-row">
+	      <button class="opt-btn is-active" data-sel="hayType" data-val="rental">🌾 Rental</button>
+	      <button class="opt-btn" data-sel="hayType" data-val="sale">💰 Buy outright</button>
+	    </div>
+	    <select id="hayType" hidden aria-hidden="true">
+	      <option value="rental" selected>Rental</option>
+	      <option value="sale">Sale</option>
+	    </select>
+	  </div>
+	  <div class="field-group">
+	    <label class="field-label" for="hayBales">How many bales?</label>
+	    <input id="hayBales" type="number" min="1" step="1" value="10">
+	    <div class="hint">Rental minimum 10 bales · Full load = 16 bales · Damaged/wet bales: £2.50/bale</div>
+	  </div>
+	</div>
+	<div id="hayTypeWrap" hidden></div>
 
 
   <!-- Black Bags -->
