@@ -540,7 +540,10 @@ window.BHD = Object.assign({
     if(jt==="shop"&&els.shopTime) lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
 
     const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push("Minimum charge applied"); total=MIN;}
-    const pct=pctFor(jt),low=round5(total*(1-pct)),high=round5(total*(1+pct));
+		const pct=pctFor(jt);
+		const low=round5(total);
+		const high=round5(total*(1+pct));
+
     if(els.breakdown) els.breakdown.innerHTML='• '+lines.join('<br>• ');
     if(els.total){els.total.textContent=`Estimated: £${low.toFixed(0)}–£${high.toFixed(0)}`; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
