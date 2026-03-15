@@ -3,21 +3,24 @@
 //
 //  HOW TO ADD AN ITEM:
 //  1. Go to the Amazon product page
-//  2. Copy the URL from your browser address bar
-//  3. Add a new entry below – copy an existing one as a template
-//  4. Don’t forget the comma after each } except the very last one
+//  2. Copy the URL from your browser
+//  3. Right-click the main product photo -> “Copy image address” -> paste as img
+//  4. Fill in title, price, condition, postage, sold
+//  5. Comma after each } except the very last one
 //
 //  condition: “new”, “opened”, or “used”
-//  postage:   true (can post) or false (collection only)
-//  sold:      true (hide it) or false (show it)
+//  postage:   true or false
+//  sold:      false = show it,  true = hide it
 // =================================================================
 
 window.SHOP_ITEMS = [
 
 {
-url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
+url: “https://www.amazon.co.uk/dp/B0GH1Q73V2”,
+img: “”,
+title: “Your item title here”,
 price: 40,
-condition: "new",
+condition: “new”,
 postage: true,
 sold: false
 }
