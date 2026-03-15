@@ -429,8 +429,20 @@ window.BHD = Object.assign({
     const noteL=milesObj.noteLoop||'';
     const base=baseFeeFor(jt);
     const mileageCost=chargedMiles*Number(CFG.mileagePerMile||0);
-    const twoMan=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack"||jt==="hay")?0:((els.twoMan&&els.twoMan.value==="yes")?Number(CFG.twoManSurcharge||0):0);
-    const stairs=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack"||jt==="hay")?0:(((+(els.stairsPickup&&els.stairsPickup.value)||0)+(+(els.stairsDrop&&els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0));
+    let twoMan=0;
+			if(jt!=="tip"&&jt!=="shop"&&jt!=="business"&&jt!=="other"&&jt!=="flatpack"&&jt!=="hay"){
+			  if(els.twoMan&&els.twoMan.value==="yes"){
+			    if(jt==='move'){
+			      const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||'0',10);
+			      const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
+			      const hours=map?Number(map.hours||0):0;
+			      twoMan=hours*Number(CFG.twoManSurcharge||0);
+			    }else{
+			      twoMan=Number(CFG.twoManSurcharge||0);
+			    }
+			  }
+			}
+		const stairs=(jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack"||jt==="hay")?0:(((+(els.stairsPickup&&els.stairsPickup.value)||0)+(+(els.stairsDrop&&els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0));
     const disp=(jt==="tip")?calcDisposal():{fee:0,detail:""};
     const hay=(jt==="hay")?calcHay():{fee:0,lines:[]};
     const asm=(jt==="ikea")?calcAssembly(ikeaBasket):(jt==="flatpack"?calcAssembly(flatBasket):{cost:0,txt:'',itemLines:[]});
