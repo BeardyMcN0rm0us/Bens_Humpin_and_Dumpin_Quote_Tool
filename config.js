@@ -13,25 +13,25 @@ stairsPerFloor:   5,      // £ per floor at pickup + drop-off
 
 // ── Base call-out fees by job type ────────────────────────────
 baseFees: {
-default:          40,   // fallback for most job types
-move:             50,   // house moves
-shopBefore22:     25,   // emergency shop run before 10pm
-shopAfter22:      40,   // emergency shop run after 10pm
-ikeaCollect:      45,   // IKEA collect only
-ikeaCollectBuild: 55,   // IKEA collect + build
-flatpack:         40,   // flat pack build only
+default:          25,   // fallback for most job types
+move:             25,   // house moves
+shopBefore22:     10,   // emergency shop run before 10pm
+shopAfter22:      20,   // emergency shop run after 10pm
+ikeaCollect:      25,   // IKEA collect only
+ikeaCollectBuild: 25,   // IKEA collect + build
+flatpack:         25,   // flat pack build only
 },
 
 // ── Quote range (±% either side of calculated total) ─────────
 // e.g. 0.15 = quote shown as £85–£115 on a £100 job
 rangePct: {
-tip:      0.15,
-move:     0.12,
-fb:       0.12,
+tip:      0.10,
+move:     0.10,
+fb:       0.10,
 shop:     0.10,
-student:  0.12,
-business: 0.15,
-other:    0.15,
+student:  0.10,
+business: 0.10,
+other:    0.10,
 ikea:     0.12,
 flatpack: 0.12,
 },
@@ -43,8 +43,8 @@ student: “”, business: “”, other: “”, ikea: “”, flatpack: “”
 },
 
 // ── House move labour ─────────────────────────────────────────
-HOURLY_RATE_MOVE: 50,     // £/hr for move labour
-LUTON_HIRE_COST:  175,    // £/day default Luton van hire
+HOURLY_RATE_MOVE: 25,     // £/hr for move labour
+LUTON_HIRE_COST:  225,    // £/day default Luton van hire
 
 // Hours & Luton needed by bedroom count
 BEDROOM_LOAD_MULTIPLIERS: {
@@ -57,7 +57,7 @@ BEDROOM_LOAD_MULTIPLIERS: {
 
 // ── Tip run disposal — Waterbeach published rates ─────────────
 // Fee charged = disposalMinPct × ratePerTonne
-disposalMinPct: 0.25,
+disposalMinPct: 0.26,
 disposalVat: 0.20,     // 25% of published rate (minimum load)
 disposal: {
 general:   { label: “General Waste”,              ratePerTonne: 192.50 },
@@ -76,7 +76,7 @@ wuds:      { label: “WUDs & POPs”,                ratePerTonne: 345.00 },
 
 // ── IKEA / flat pack assembly ─────────────────────────────────
 useTimePricing:      true, // true = price by time, false = price per item
-ikeaLaborPerHour:    35,   // £/hr when useTimePricing is true
-ikeaAssemblyPerItem: 25,   // £/item when useTimePricing is false
+ikeaLaborPerHour:    25,   // £/hr when useTimePricing is true
+ikeaAssemblyPerItem: 40,   // £/item when useTimePricing is false
 
 };
