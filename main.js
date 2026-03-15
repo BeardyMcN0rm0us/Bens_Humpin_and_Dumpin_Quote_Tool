@@ -35,7 +35,7 @@ window.BHD = Object.assign({
   },
 
   minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"", hay:"", bags:"" },
-  rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12, hay:0.10, bags:0.00 },
+  rangePct:{ tip:0.15, move:0.15, fb:0.15, shop:0.15, student:0.15, business:0.15, other:0.15, ikea:0.15, flatpack:0.15, hay:0.15, bags:0.00 },
 
   disposalMinPct:0.25,
   disposalVat:0.20,
@@ -74,7 +74,8 @@ window.BHD = Object.assign({
   const hide=el=>{if(!el)return; el.hidden=true; el.classList.add('hidden'); el.style.display='none';};
   const round1=v=>Math.round(v*10)/10;
   const round5=v=>Math.round(v/5)*5;
-  const metersToMiles=m=>m/1609.344;
+	const roundMoney=v=>round5(v);
+	const metersToMiles=m=>m/1609.344;
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
   const ceil0=v=>Math.ceil(v);
@@ -384,7 +385,7 @@ window.BHD = Object.assign({
     const exVat=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25);
     const vat=exVat*Number(CFG.disposalVat||0);
     const minFee=exVat+vat;
-    return{fee:minFee,detail:`Disposal: ${item.label||key} — 25% of £${Number(item.ratePerTonne||0).toFixed(2)}/t = £${exVat.toFixed(2)} + VAT £${vat.toFixed(2)}`};
+    return{fee:minFee,detail:`Disposal: ${item.label||key} — 25% of £${Number(item.ratePerTonne||0).toFixed(2)}/t = £${roundMoney(exVat)} + VAT £${roundMoney(vat)}`};
   }
 
   function calcBags(){
@@ -493,14 +494,14 @@ window.BHD = Object.assign({
       const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
       if(map){
         labourCost=Number(map.hours||0)*Number(CFG.HOURLY_RATE_MOVE||0);
-        labourLine=`${map.hours} hrs labour @ £${Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)}/hr = £${labourCost.toFixed(2)}`;
+        labourLine=`${map.hours} hrs labour @ £${Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)}/hr = £${roundMoney(labourCost)}`;
       }
       const mode=(els.lutonNeeded&&els.lutonNeeded.value)||'auto';
       const autoNeed=map?!!map.luton:false;
       const include=(mode==='yes')||(mode==='auto'&&autoNeed);
       if(include){
         lutonCost=Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST||0);
-        lutonLine=`Luton van hire: £${lutonCost.toFixed(2)} (${mode==='auto'?'auto':''}${mode==='yes'?'forced':''}${mode==='no'?'(overridden OFF)':''})`;
+        lutonLine=`Luton van hire: £${roundMoney(lutonCost)} (${mode==='auto'?'auto':''}${mode==='yes'?'forced':''}${mode==='no'?'(overridden OFF)':''})`;
       }else if(mode==='no'){
         lutonLine=`Luton hire not included (overridden)`;
       }else{
@@ -515,18 +516,18 @@ window.BHD = Object.assign({
       // Bags — no mileage, no base fee, just bag cost
       bags.lines.forEach(l=>lines.push(l));
     }else{
-      lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL||(jt==='flatpack'?'Home → Destination → Home':'')})`);
-      lines.push(`Charged mileage: ${Number(chargedMiles).toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC||(jt==='flatpack'?'>15mi rule':'')})`);
-      lines.push(`Base: £${base.toFixed(2)}`);
-      lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
+			lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL||(jt==='flatpack'?'Home → Destination → Home':'')})`);
+			lines.push(`Charged mileage: ${Number(chargedMiles).toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC||(jt==='flatpack'?'>15mi rule':'')})`);
+			lines.push(`Base: £${roundMoney(base)}`);
+			lines.push(`Mileage: £${roundMoney(mileageCost)}`);
     }
 
-    if(stairs) lines.push(`Stairs: £${stairs.toFixed(2)}`);
-    if(twoMan){
-      const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||'0',10);
-      const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
-      lines.push(`Two-person helper: £${twoMan.toFixed(2)}${jt==='move'&&map?` (${map.hours} hrs @ £${Number(CFG.twoManSurcharge||0)}/hr)`:' (flat fee)'}`);
-    }
+		if(stairs) lines.push(`Stairs: £${roundMoney(stairs)}`);
+		if(twoMan){
+		  const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||'0',10);
+		  const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
+		  lines.push(`Two-person helper: £${roundMoney(twoMan)}${jt==='move'&&map?` (${map.hours} hrs @ £${Number(CFG.twoManSurcharge||0)}/hr)`:' (flat fee)'}`);
+		}
     if(jt==="tip"&&disp.fee) lines.push(disp.detail);
     if(jt==="hay") hay.lines.forEach(l=>lines.push(l));
     if(asm.cost){
