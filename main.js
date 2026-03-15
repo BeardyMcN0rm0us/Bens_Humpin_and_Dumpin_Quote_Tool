@@ -19,7 +19,8 @@ window.BHD = Object.assign({
     shopAfter22:25,
     ikeaCollect:25,
     ikeaCollectBuild:25,
-    flatpack:25
+    flatpack:25,
+    hay:0
   },
 
   HOURLY_RATE_MOVE: 50,
@@ -32,8 +33,8 @@ window.BHD = Object.assign({
     5: { hours:10, luton: true  }
   },
 
-  minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"" },
-  rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12 },
+  minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"", hay:"" },
+  rangePct:{ tip:0.15, move:0.12, fb:0.12, shop:0.10, student:0.12, business:0.15, other:0.15, ikea:0.12, flatpack:0.12, hay:0.10 },
 
   // Tip run disposal (Waterbeach) — rates are ex-VAT, VAT added via disposalVat
   disposalMinPct:0.25,
@@ -52,6 +53,12 @@ window.BHD = Object.assign({
     dmr:{label:"Dry Mixed Recycling",ratePerTonne:145.00},
     wuds:{label:"WUDs & POPs",ratePerTonne:345.00}
   },
+
+  // Hay bale pricing
+  hayPricePerBalePerDay: 5,
+  hayMinBales: 10,
+  hayFullLoad: 16,
+  hayDeliveryFee: 20,   // within 25 miles
 
   useTimePricing: true,
   ikeaLaborPerHour: 35,
@@ -222,6 +229,10 @@ window.BHD = Object.assign({
       hide(els.pickupField); hide(els.ikeaModeWrap); hide(els.ikeaStoreWrap); hide(els.ikeaItemsWrap);
       show(els.addrDropWrap); show(els.flatpackItemsWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Build only. Mileage billed only if >15 miles from home (one-way).";
+    } else if (v==='hay'){
+      show($('hayWrap'));
+      hide(els.pickupField); hide(els.addrDropWrap);
+      if(els.routeHint) els.routeHint.textContent="Delivery within 25 miles — £20. Enter address in the WhatsApp message.";
     } else {
       show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home → Pickup → Delivery.";
@@ -279,6 +290,9 @@ window.BHD = Object.assign({
     const home=CFG.homeAddress, tip=CFG.waterbeachAddress;
     const pickup=(els.addrPickup&&els.addrPickup.value||"").trim();
     const drop=(els.addrDrop&&els.addrDrop.value||"").trim();
+    if (jt==='hay'){
+      cb({charged:0,loop:0,noteCharged:'Flat delivery fee applies',noteLoop:''}); return;
+    }
     if (jt==='flatpack'){
       if(!drop){ if(els.routeHint) els.routeHint.textContent="Enter destination address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return; }
       const oneWay = await routeP({origin:home, destination:drop, travelMode:'DRIVING'});
@@ -319,6 +333,7 @@ window.BHD = Object.assign({
     if(jt==="shop") return (els.shopTime&&els.shopTime.value==="after22")?Number(CFG.baseFees.shopAfter22||CFG.baseFees.default||0):Number(CFG.baseFees.shopBefore22||CFG.baseFees.default||0);
     if(jt==="ikea") return (els.ikeaMode&&els.ikeaMode.value==="collectBuild")?Number(CFG.baseFees.ikeaCollectBuild||CFG.baseFees.default||0):Number(CFG.baseFees.ikeaCollect||CFG.baseFees.default||0);
     if(jt==="flatpack") return Number(CFG.baseFees.flatpack||CFG.baseFees.default||0);
+    if(jt==="hay") return Number(CFG.baseFees.hay||0);
     return Number(CFG.baseFees.default||0);
   }
 
@@ -329,6 +344,27 @@ window.BHD = Object.assign({
     const vat=exVat*Number(CFG.disposalVat||0);
     const minFee=exVat+vat;
     return {fee:minFee, detail:`Disposal: ${item.label||key} — 25% of £${Number(item.ratePerTonne||0).toFixed(2)}/t = £${exVat.toFixed(2)} + VAT £${vat.toFixed(2)}`};
+  }
+
+  function calcHay(){
+    const balesEl = document.getElementById('hayBales');
+    const collectionEl = document.getElementById('hayIncludeCollection');
+    const rawBales = parseInt(balesEl&&balesEl.value||'10', 10)||10;
+    const bales = Math.max(Number(CFG.hayMinBales||10), rawBales);
+    const includeCollection = (collectionEl&&collectionEl.value)==='yes';
+    const isFullLoad = bales >= Number(CFG.hayFullLoad||16);
+    const pricePerBalePerDay = Number(CFG.hayPricePerBalePerDay||5);
+    const deliveryFee = Number(CFG.hayDeliveryFee||20);
+    const rentalCost = bales * pricePerBalePerDay;
+    const collectionFee = includeCollection ? deliveryFee : 0;
+    const fee = deliveryFee + rentalCost + collectionFee;
+    const lines = [
+      `${bales} bales${isFullLoad?' (full load)':''} @ £${pricePerBalePerDay}/bale/day = £${rentalCost.toFixed(2)}`,
+      `Delivery within 25 miles: £${deliveryFee.toFixed(2)}`,
+    ];
+    if(includeCollection) lines.push(`Collection (same address): £${collectionFee.toFixed(2)}`);
+    lines.push(`⚠️ Bales must stay dry — if wet, you keep them (£1.50/bale charge applies)`);
+    return {fee, lines};
   }
 
   function calcAssembly(basket){
@@ -351,16 +387,17 @@ window.BHD = Object.assign({
   function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
     if(!jt){ if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return; }
-    const chargedMiles = (jt==='flatpack') ? milesObj.charged : round1(milesObj.charged||0);
+    const chargedMiles = (jt==='flatpack'||jt==='hay') ? milesObj.charged : round1(milesObj.charged||0);
     const loopMiles    = round1(milesObj.loop||0);
     const noteC=milesObj.noteCharged||'';
     const noteL=milesObj.noteLoop||'';
     const base=baseFeeFor(jt);
     const mileageCost = chargedMiles * Number(CFG.mileagePerMile||0);
-    const twoMan = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack") ? 0 : ((els.twoMan && els.twoMan.value==="yes") ? Number(CFG.twoManSurcharge||0):0);
-    const stairs = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack") ? 0 : (((+(els.stairsPickup&&els.stairsPickup.value)||0)+(+(els.stairsDrop&&els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0));
+    const twoMan = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack"||jt==="hay") ? 0 : ((els.twoMan && els.twoMan.value==="yes") ? Number(CFG.twoManSurcharge||0):0);
+    const stairs = (jt==="tip"||jt==="shop"||jt==="business"||jt==="other"||jt==="flatpack"||jt==="hay") ? 0 : (((+(els.stairsPickup&&els.stairsPickup.value)||0)+(+(els.stairsDrop&&els.stairsDrop.value)||0))*Number(CFG.stairsPerFloor||0));
     const disp = (jt==="tip") ? calcDisposal() : {fee:0,detail:""};
-    const asm = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
+    const hay  = (jt==="hay") ? calcHay()      : {fee:0,lines:[]};
+    const asm  = (jt==="ikea") ? calcAssembly(ikeaBasket) : (jt==="flatpack" ? calcAssembly(flatBasket) : {cost:0,txt:'',itemLines:[]});
     let labourCost = 0, labourLine = '', lutonLine = '', lutonCost = 0;
     if (jt==='move'){
       const beds = parseInt(els.houseMoveBedrooms && els.houseMoveBedrooms.value || '0', 10);
@@ -381,15 +418,18 @@ window.BHD = Object.assign({
         lutonLine = `Luton not required (auto)`;
       }
     }
-    let total=base + mileageCost + stairs + twoMan + disp.fee + asm.cost + labourCost + lutonCost;
+    let total = base + mileageCost + stairs + twoMan + disp.fee + asm.cost + labourCost + lutonCost + hay.fee;
     const lines=[];
-    lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL|| (jt==='flatpack'?'Home → Destination → Home':'') })`);
-    lines.push(`Charged mileage: ${Number(chargedMiles).toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC || (jt==='flatpack' ? '>15mi rule' : '')})`);
+    if(jt!=='hay'){
+      lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL||(jt==='flatpack'?'Home → Destination → Home':'')})`);
+      lines.push(`Charged mileage: ${Number(chargedMiles).toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC||(jt==='flatpack'?'>15mi rule':'')})`);
+    }
     lines.push(`Base: £${base.toFixed(2)}`);
-    lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
+    if(jt!=='hay') lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
     if(stairs) lines.push(`Stairs: £${stairs.toFixed(2)}`);
     if(twoMan) lines.push(`Two-person: £${twoMan.toFixed(2)}`);
     if(jt==="tip" && disp.fee) lines.push(disp.detail);
+    if(jt==="hay") hay.lines.forEach(l=>lines.push(l));
     if(asm.cost){
       if (asm.itemLines.length) lines.push(`Items:\n- ${asm.itemLines.join('\n- ')}`);
       lines.push(`Assembly: £${asm.cost.toFixed(2)}${asm.txt}`);
@@ -413,13 +453,14 @@ window.BHD = Object.assign({
     const lines=(els.breakdown&&els.breakdown.innerText||'').split('• ').filter(Boolean);
     const dest = (jt==="tip" ? "Destination: Waterbeach Waste Management Park"
                   : (jt==="flatpack" ? "Location: "+((els.addrDrop&&els.addrDrop.value)||"N/A")
-                  : "Delivery: "+((els.addrDrop&&els.addrDrop.value)||"N/A")));
+                  : (jt==="hay" ? "Delivery address: to be confirmed"
+                  : "Delivery: "+((els.addrDrop&&els.addrDrop.value)||"N/A"))));
     const msg=[
       "Hey Ben! I need something Humpin' & Dumpin'",
       "Quote ID: "+id,
       "Job Type: "+(jt || "N/A"),
       (jt==='flatpack' ? `Description: ${(els.jobDesc&&els.jobDesc.value)||"N/A"}` : ""),
-      "Collection: "+(jt==='flatpack' ? "N/A" : ((els.addrPickup&&els.addrPickup.value)||"N/A")),
+      (jt!=='hay' ? "Collection: "+((els.addrPickup&&els.addrPickup.value)||"N/A") : ""),
       dest,
       (lines.length ? "\nBreakdown:\n- "+lines.join("\n- ") : ""),
       (els.total&&els.total.textContent||"")
