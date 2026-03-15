@@ -69,8 +69,8 @@ ikeaAssemblyPerItem: 25
 
 (function(){
 const $=id=>document.getElementById(id);
-const show=el=>{if(!el)return; el.hidden=false; el.classList.remove(‘hidden’); el.style.display=’’;};
-const hide=el=>{if(!el)return; el.hidden=true; el.classList.add(‘hidden’); el.style.display=‘none’;};
+const show=el=>{if(!el)return; el.removeAttribute(‘hidden’); el.classList.remove(‘hidden’); el.style.display=’’;};
+const hide=el=>{if(!el)return; el.setAttribute(‘hidden’,’’); el.classList.add(‘hidden’); el.style.display=‘none’;};
 const round1=v=>Math.round(v*10)/10;
 const round5=v=>Math.round(v/5)*5;
 const rm=v=>round5(v);
