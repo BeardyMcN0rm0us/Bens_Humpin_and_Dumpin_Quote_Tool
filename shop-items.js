@@ -15,11 +15,11 @@
 window.SHOP_ITEMS = [
 
 {
-url: “https://www.amazon.co.uk/dp/B0GH1Q73V2”,
-img: “https://m.media-amazon.com/images/I/71398F2U3iL.*AC_SL1500*.jpg”,
-title: “Lay-Z-Spa Glacial Dip Tub 1-2 Persons”,
+url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
+img: "https://m.media-amazon.com/images/I/71398F2U3iL.*AC_SL1500*.jpg",
+title: "Lay-Z-Spa Glacial Dip Tub 1-2 Persons",
 price: 40,
-condition: “new”,
+condition: "new",
 sold: false
 },
   
