@@ -15,9 +15,9 @@
 window.SHOP_ITEMS = [
 
 {
-url: “https://www.amazon.co.uk/dp/B0GH1Q73V2”,
+url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
 price: 40,
-condition: “new”,
+condition: "new",
 postage: true,
 sold: false
 }
