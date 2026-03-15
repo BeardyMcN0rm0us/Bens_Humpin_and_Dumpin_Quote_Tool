@@ -50,7 +50,7 @@ padding: env(safe-area-inset-top, 0) 0 0;
 display: flex;
 align-items: center;
 gap: 12px;
-padding: 12px 16px 12px;
+padding: 12px 16px;
 }
 .header-inner img {
 width: 38px; height: 38px;
@@ -81,16 +81,14 @@ color: var(–ink2);
 text-decoration: none;
 text-transform: uppercase;
 letter-spacing: 0.07em;
-flex-shrink: 0;
 border: 1px solid var(–border);
 padding: 7px 12px;
 border-radius: var(–r-sm);
+flex-shrink: 0;
 }
-.header-link:active { opacity: 0.6; }
 
 /* ── SCROLL BODY ── */
 .scroll-body {
-padding-top: 80px;
 padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
 min-height: 100vh;
 }
@@ -154,6 +152,7 @@ font-weight: 700;
 color: var(–ink2);
 text-transform: uppercase;
 letter-spacing: 0.07em;
+min-height: 24px;
 }
 
 /* ── SHOP GRID ── */
@@ -175,10 +174,7 @@ border-radius: var(–r);
 overflow: hidden;
 display: flex;
 flex-direction: column;
-transition: border-color 0.15s, transform 0.1s;
--webkit-tap-highlight-color: transparent;
 }
-.item-card:active { transform: scale(0.97); }
 .item-img-wrap {
 position: relative;
 width: 100%;
@@ -193,6 +189,15 @@ width: 100%; height: 100%;
 object-fit: contain;
 padding: 8px;
 }
+.item-img-placeholder {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 2.5rem;
+opacity: 0.3;
+}
 .condition-badge {
 position: absolute;
 top: 8px; left: 8px;
@@ -203,10 +208,11 @@ letter-spacing: 0.07em;
 padding: 3px 7px;
 border-radius: 4px;
 line-height: 1.4;
+z-index: 1;
 }
 .condition-badge.new     { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
 .condition-badge.opened  { background: #1a1000; color: var(–brand); border: 1px solid #3a2500; }
-.condition-badge.tested  { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
+.condition-badge.used    { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
 .postage-badge {
 position: absolute;
 top: 8px; right: 8px;
@@ -218,8 +224,8 @@ line-height: 1.4;
 background: var(–surface2);
 border: 1px solid var(–border);
 color: var(–ink2);
+z-index: 1;
 }
-
 .item-body {
 padding: 10px 10px 12px;
 display: flex;
@@ -237,21 +243,16 @@ display: -webkit-box;
 -webkit-box-orient: vertical;
 overflow: hidden;
 }
-.item-desc {
-font-size: 0.7rem;
-font-weight: 600;
-color: var(–ink2);
-line-height: 1.4;
-display: -webkit-box;
--webkit-line-clamp: 2;
--webkit-box-orient: vertical;
-overflow: hidden;
+.item-title.loading {
+height: 48px;
+background: linear-gradient(90deg, var(–surface2) 25%, #252525 50%, var(–surface2) 75%);
+background-size: 200% 100%;
+animation: shimmer 1.4s infinite;
+border-radius: 4px;
 }
-.item-prices {
-display: flex;
-align-items: baseline;
-gap: 6px;
-margin-top: 2px;
+@keyframes shimmer {
+0%   { background-position: 200% 0; }
+100% { background-position: -200% 0; }
 }
 .item-price {
 font-family: ‘Bebas Neue’, sans-serif;
@@ -259,18 +260,6 @@ font-size: 1.4rem;
 color: var(–brand);
 letter-spacing: 0.03em;
 line-height: 1;
-}
-.item-rrp {
-font-size: 0.68rem;
-font-weight: 700;
-color: var(–ink2);
-text-decoration: line-through;
-}
-.item-saving {
-font-size: 0.65rem;
-font-weight: 800;
-color: #3dcc7a;
-margin-left: auto;
 }
 .btn-wa {
 margin-top: auto;
@@ -290,11 +279,26 @@ justify-content: center;
 gap: 6px;
 transition: filter 0.15s;
 -webkit-tap-highlight-color: transparent;
-letter-spacing: 0.02em;
 }
 .btn-wa:active { filter: brightness(0.9); }
+.btn-amazon {
+width: 100%;
+padding: 8px;
+border: 1.5px solid var(–border);
+border-radius: var(–r-sm);
+background: transparent;
+color: var(–ink2);
+font-family: ‘Nunito’, sans-serif;
+font-weight: 700;
+font-size: 0.72rem;
+cursor: pointer;
+text-align: center;
+text-decoration: none;
+display: block;
+-webkit-tap-highlight-color: transparent;
+}
 
-/* ── EMPTY STATE ── */
+/* ── EMPTY / ERROR STATES ── */
 .empty-state {
 grid-column: 1 / -1;
 text-align: center;
@@ -309,47 +313,35 @@ color: var(–ink);
 margin-bottom: 6px;
 }
 .empty-state p { font-size: 0.85rem; font-weight: 600; line-height: 1.5; }
-
-/* ── LOADING ── */
-.skeleton {
-background: linear-gradient(90deg, var(–surface) 25%, var(–surface2) 50%, var(–surface) 75%);
-background-size: 200% 100%;
-animation: shimmer 1.4s infinite;
-border-radius: var(–r-sm);
-}
-@keyframes shimmer {
-0%   { background-position: 200% 0; }
-100% { background-position: -200% 0; }
-}
 </style>
 
 </head>
 <body>
 
-<div class="app-header">
+<div class="app-header" id="appHeader">
   <div class="header-inner">
     <img src="icon-192.png" alt="logo">
     <div class="header-title">
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">The Shop</div>
     </div>
-    <a class="header-link" href="index.html">← Get Quote</a>
+    <a class="header-link" href="index.html">← Quotes</a>
   </div>
 </div>
 
 <div class="scroll-body" id="scrollBody">
   <div class="page-head">
     <h2>Amazon Vine Finds</h2>
-    <p>Tested by Ben — sold at a fraction of the price.<br>Tap WhatsApp to enquire about any item.</p>
+    <p>Tested by Ben — sold cheap.<br>Tap WhatsApp to enquire about any item.</p>
   </div>
 
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn is-active" data-filter="all">All</button>
     <button class="filter-btn" data-filter="new">New</button>
     <button class="filter-btn" data-filter="opened">Opened</button>
-    <button class="filter-btn" data-filter="tested">Tested</button>
-    <button class="filter-btn" data-filter="postage">Postage Available</button>
-    <button class="filter-btn" data-filter="collection">Collection Only</button>
+    <button class="filter-btn" data-filter="used">Used</button>
+    <button class="filter-btn" data-filter="postage">Postage OK</button>
+    <button class="filter-btn" data-filter="collection">Collect Only</button>
   </div>
 
   <div class="item-count" id="itemCount"></div>
@@ -360,125 +352,165 @@ border-radius: var(–r-sm);
 
 <script>
 (function(){
-  const WHATSAPP = '447717463496';
-  const grid = document.getElementById('shopGrid');
-  const countEl = document.getElementById('itemCount');
-  let activeFilter = 'all';
+  var WHATSAPP = '447717463496';
+  var activeFilter = 'all';
 
-  function imgUrl(asin){
-    return `https://images-na.ssl-images-amazon.com/images/P/${asin}.jpg`;
+  // Pull ASIN from Amazon URL
+  function asinFromUrl(url){
+    var m = url.match(/\/dp\/([A-Z0-9]{10})/i) || url.match(/\/product\/([A-Z0-9]{10})/i) || url.match(/\?.*asin=([A-Z0-9]{10})/i);
+    return m ? m[1] : null;
+  }
+
+  // Try multiple Amazon image CDN patterns
+  function imgUrls(asin){
+    if(!asin) return [];
+    return [
+      'https://m.media-amazon.com/images/P/' + asin + '.jpg',
+      'https://images-eu.ssl-images-amazon.com/images/P/' + asin + '._SL500_.jpg',
+      'https://ws-eu.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=' + asin + '&Format=_SL250_&ID=AsinImage&MarketPlace=GB&ServiceVersion=20070822&WS=1&tag=benhd-21'
+    ];
   }
 
   function conditionLabel(c){
-    if(c==='new') return 'New';
-    if(c==='opened') return 'Opened';
-    return 'Tested';
+    return c === 'new' ? 'New' : c === 'opened' ? 'Opened' : 'Used';
   }
 
-  function saving(price, rrp){
-    if(!rrp || rrp <= price) return '';
-    const pct = Math.round((1 - price/rrp)*100);
-    return pct > 0 ? `${pct}% off` : '';
-  }
-
-  function waMessage(item){
+  function waMsg(item){
+    var title = item._title || item.url;
     return encodeURIComponent(
-      `Hey Ben! I'm interested in buying:\n\n` +
-      `${item.title}\n` +
-      `Your price: £${item.price}\n` +
-      (item.postage ? `Happy to pay postage if needed.\n` : `I'll collect.\n`) +
-      `\nAmazon link: ${item.url}\n\n` +
-      `Is this still available?`
+      "Hey Ben! I'm interested in buying:\n\n" +
+      title + "\n" +
+      "Your price: £" + item.price + "\n" +
+      (item.postage ? "Can you post it?\n" : "I'll collect.\n") +
+      "\nAmazon link: " + item.url + "\n\nIs it still available?"
     );
   }
 
-  function renderCards(items){
-    if(items.length === 0){
-      grid.innerHTML = `
-        <div class="empty-state">
-          <div class="emoji">📦</div>
-          <h3>Nothing here yet</h3>
-          <p>No items match that filter right now.<br>Check back soon!</p>
-        </div>`;
-      countEl.textContent = '';
-      return;
-    }
-
-    countEl.textContent = `${items.length} item${items.length!==1?'s':''} available`;
-
-    grid.innerHTML = items.map(item => `
-      <div class="item-card">
-        <div class="item-img-wrap">
-          <img
-            src="${imgUrl(item.asin)}"
-            alt="${item.title}"
-            onerror="this.style.opacity='0.3'; this.src='icon-192.png';"
-            loading="lazy"
-          >
-          <span class="condition-badge ${item.condition}">${conditionLabel(item.condition)}</span>
-          <span class="postage-badge">${item.postage ? '📮 Post' : '🚗 Collect'}</span>
-        </div>
-        <div class="item-body">
-          <div class="item-title">${item.title}</div>
-          ${item.desc ? `<div class="item-desc">${item.desc}</div>` : ''}
-          <div class="item-prices">
-            <span class="item-price">£${item.price}</span>
-            ${item.rrp ? `<span class="item-rrp">£${item.rrp}</span>` : ''}
-            ${saving(item.price, item.rrp) ? `<span class="item-saving">${saving(item.price, item.rrp)}</span>` : ''}
-          </div>
-          <button class="btn-wa" onclick="window.open('https://wa.me/${WHATSAPP}?text=${encodeURIComponent("placeholder")}','_blank')" data-idx="${items.indexOf(item)}">
-            💬 WhatsApp Ben
-          </button>
-        </div>
-      </div>
-    `).join('');
-
-    // Attach proper WhatsApp handlers with full item data
-    grid.querySelectorAll('.btn-wa').forEach((btn, i) => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const item = items[i];
-        window.open(`https://wa.me/${WHATSAPP}?text=${waMessage(item)}`, '_blank');
-      });
-      // Remove the inline onclick
-      btn.removeAttribute('onclick');
-    });
-  }
-
-  function applyFilter(){
-    const items = (window.SHOP_ITEMS || []).filter(it => {
-      if(it.sold) return false;
-      if(activeFilter === 'all') return true;
-      if(activeFilter === 'new') return it.condition === 'new';
-      if(activeFilter === 'opened') return it.condition === 'opened';
-      if(activeFilter === 'tested') return it.condition === 'tested';
-      if(activeFilter === 'postage') return it.postage === true;
-      if(activeFilter === 'collection') return it.postage === false;
-      return true;
-    });
-    renderCards(items);
-  }
-
-  // Filter buttons
-  document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      activeFilter = btn.dataset.filter;
-      applyFilter();
-    });
-  });
-
-  // Offset scroll body for fixed header
   function setOffset(){
-    const h = document.querySelector('.app-header');
-    const b = document.getElementById('scrollBody');
+    var h = document.getElementById('appHeader');
+    var b = document.getElementById('scrollBody');
     if(h && b) b.style.paddingTop = (h.offsetHeight + 4) + 'px';
   }
   setOffset();
   window.addEventListener('resize', setOffset);
 
-  applyFilter();
+  function filteredItems(){
+    return (window.SHOP_ITEMS || []).filter(function(it){
+      if(it.sold) return false;
+      if(activeFilter === 'all') return true;
+      if(activeFilter === 'new') return it.condition === 'new';
+      if(activeFilter === 'opened') return it.condition === 'opened';
+      if(activeFilter === 'used') return it.condition === 'used';
+      if(activeFilter === 'postage') return it.postage === true;
+      if(activeFilter === 'collection') return it.postage === false;
+      return true;
+    });
+  }
+
+  function renderGrid(){
+    var grid = document.getElementById('shopGrid');
+    var countEl = document.getElementById('itemCount');
+    var items = filteredItems();
+
+    if(items.length === 0){
+      countEl.textContent = '';
+      grid.innerHTML = '<div class="empty-state"><div class="emoji">📦</div><h3>Nothing here</h3><p>No items match that filter right now.<br>Check back soon!</p></div>';
+      return;
+    }
+
+    countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' available';
+
+    // Build cards with loading state, then load images
+    grid.innerHTML = items.map(function(item, idx){
+      var asin = asinFromUrl(item.url);
+      var imgSrc = asin ? imgUrls(asin)[0] : '';
+      return '<div class="item-card" id="card-' + idx + '">' +
+        '<div class="item-img-wrap">' +
+          '<span class="condition-badge ' + item.condition + '">' + conditionLabel(item.condition) + '</span>' +
+          '<span class="postage-badge">' + (item.postage ? '📮 Post' : '🚗 Collect') + '</span>' +
+          (imgSrc
+            ? '<img src="' + imgSrc + '" alt="Product image" id="img-' + idx + '" style="opacity:0;transition:opacity 0.3s">'
+            : '<div class="item-img-placeholder">📦</div>') +
+        '</div>' +
+        '<div class="item-body">' +
+          '<div class="item-title loading" id="title-' + idx + '"></div>' +
+          '<div class="item-price">£' + item.price + '</div>' +
+          '<button class="btn-wa" id="wa-' + idx + '">💬 WhatsApp Ben</button>' +
+          '<a class="btn-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon ↗</a>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    // Wire up WhatsApp buttons and load titles
+    items.forEach(function(item, idx){
+      var waBtn = document.getElementById('wa-' + idx);
+      if(waBtn){
+        waBtn.addEventListener('click', function(){
+          window.open('https://wa.me/' + WHATSAPP + '?text=' + waMsg(item), '_blank');
+        });
+      }
+
+      // Try to load image with fallback
+      var asin = asinFromUrl(item.url);
+      if(asin){
+        var imgEl = document.getElementById('img-' + idx);
+        if(imgEl){
+          var urls = imgUrls(asin);
+          var tryIdx = 0;
+          function tryNext(){
+            if(tryIdx >= urls.length){
+              imgEl.style.display = 'none';
+              var wrap = imgEl.parentNode;
+              var ph = document.createElement('div');
+              ph.className = 'item-img-placeholder';
+              ph.textContent = '📦';
+              wrap.appendChild(ph);
+              return;
+            }
+            imgEl.onload = function(){ imgEl.style.opacity = '1'; };
+            imgEl.onerror = function(){ tryIdx++; tryNext(); };
+            imgEl.src = urls[tryIdx];
+          }
+          tryNext();
+        }
+
+        // Fetch title via allorigins CORS proxy
+        var titleEl = document.getElementById('title-' + idx);
+        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.amazon.co.uk/dp/' + asin))
+          .then(function(r){ return r.json(); })
+          .then(function(data){
+            var m = data.contents && data.contents.match(/<title[^>]*>([^<]+)<\/title>/i);
+            if(m){
+              var raw = m[1].replace(/\s*:.*Amazon.*$/i,'').replace(/Amazon\.co\.uk/gi,'').replace(/\s*[-|:]\s*$/, '').trim();
+              // Truncate to first ~80 chars at a word boundary
+              if(raw.length > 80) raw = raw.substring(0, raw.lastIndexOf(' ', 80)) + '…';
+              if(titleEl){ titleEl.textContent = raw; titleEl.classList.remove('loading'); }
+              item._title = raw;
+            } else {
+              if(titleEl){ titleEl.textContent = 'Amazon Product'; titleEl.classList.remove('loading'); }
+            }
+          })
+          .catch(function(){
+            if(titleEl){ titleEl.textContent = 'Amazon Product'; titleEl.classList.remove('loading'); }
+          });
+      } else {
+        var titleEl2 = document.getElementById('title-' + idx);
+        if(titleEl2){ titleEl2.textContent = 'Amazon Product'; titleEl2.classList.remove('loading'); }
+      }
+    });
+  }
+
+  // Filter buttons
+  document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      activeFilter = btn.dataset.filter;
+      renderGrid();
+    });
+  });
+
+  renderGrid();
 })();
 </script>
 
