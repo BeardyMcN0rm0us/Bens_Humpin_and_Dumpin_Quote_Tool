@@ -564,4 +564,86 @@ select[hidden] { display: none !important; }
   width: 100%; margin-top: 6px;
   accent-color: var(--brand);
 }
-.admin-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; /* ── SHOP WIDGET ── */
+.shop-widget {
+  margin: 24px 16px 0;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.shop-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.shop-widget-head h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  color: var(--brand);
+  letter-spacing: 0.04em;
+}
+.shop-widget-head a {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink2);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.shop-widget-scroll {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.shop-widget-scroll::-webkit-scrollbar { display: none; }
+.shop-mini-card {
+  flex-shrink: 0;
+  width: 130px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s;
+}
+.shop-mini-card:active { opacity: 0.7; }
+.shop-mini-img {
+  width: 100%;
+  height: 90px;
+  object-fit: contain;
+  background: #1a1a1a;
+  padding: 6px;
+  display: block;
+}
+.shop-mini-body { padding: 8px; }
+.shop-mini-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.shop-mini-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: var(--brand);
+}
+.shop-mini-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink2);
+}
+}
