@@ -32,7 +32,7 @@ window.SHOP_ITEMS = [
     condition: "opened",
     postage: true,
     sold: false
-  },
+  }
 {
 asin: “B0GH1Q73V2”,
 url: “https://www.amazon.co.uk/gp/aw/d/B0GH1Q73V2?psc=1&ref=ppx_pop_mob_b_asin_title”,
