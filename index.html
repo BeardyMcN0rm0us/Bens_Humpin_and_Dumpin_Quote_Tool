@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-  // Shop widget
+    // Shop widget
   (function(){
     var items = (window.SHOP_ITEMS||[]).filter(function(i){ return !i.sold; });
     var scroll = document.getElementById('shopWidgetScroll');
@@ -650,13 +650,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     scroll.innerHTML = items.map(function(item){
       return '<div class="shop-mini-card" onclick="window.location.href=\'shop.html\'">' +
-        '<img class="shop-mini-img" src="https://images-na.ssl-images-amazon.com/images/P/'+item.asin+'.jpg" alt="'+item.title+'" onerror="this.style.opacity=\'0.2\'">' +
+        (item.img
+          ? '<img class="shop-mini-img" src="'+item.img+'" alt="'+( item.title||'')+ '" onerror="this.style.opacity=\'0.2\'">'
+          : '<div class="shop-mini-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:0.3">📦</div>') +
         '<div class="shop-mini-body">' +
-          '<div class="shop-mini-title">'+item.title+'</div>' +
+          '<div class="shop-mini-title">'+(item.title||'Amazon Product')+'</div>' +
           '<div class="shop-mini-price">£'+item.price+'</div>' +
         '</div></div>';
     }).join('');
   })();
+
 
 </script>
 
