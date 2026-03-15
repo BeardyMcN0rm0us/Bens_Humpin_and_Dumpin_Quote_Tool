@@ -473,7 +473,7 @@ window.BHD = Object.assign({
     lines.push(`Base: £${base.toFixed(2)}`);
     lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
     if(stairs) lines.push(`Stairs: £${stairs.toFixed(2)}`);
-    if(twoMan) lines.push(`Two-person: £${twoMan.toFixed(2)}`);
+    if(twoMan) lines.push(`Two-person helper: £${twoMan.toFixed(2)}${jt==='move'?' ('+( (()=>{const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||'0',10);const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];return map?map.hours:0;})() )+' hrs @ £'+Number(CFG.twoManSurcharge||0)+'/hr)':' (flat fee)'}`);
     if(jt==="tip"&&disp.fee) lines.push(disp.detail);
     if(jt==="hay") hay.lines.forEach(l=>lines.push(l));
     if(asm.cost){
