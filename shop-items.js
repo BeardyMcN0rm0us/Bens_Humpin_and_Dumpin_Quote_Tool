@@ -16,11 +16,11 @@
 window.SHOP_ITEMS = [
 
 {
-url: “https://www.amazon.co.uk/dp/B0GH1Q73V2”,
-img: “”,
-title: “Your item title here”,
+url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
+img: "https://m.media-amazon.com/images/I/71398F2U3iL._AC_SL1500_.jpg",
+title: "Lay-Z-Spa Glacial Dip Tub - Ice Bath Cold Plunge Tub with Weather-Resistant Cover & Filter Pump, for Cold Water Therapy & Athlete Recovery, 1-2 Persons",
 price: 40,
-condition: “new”,
+condition: "new",
 postage: true,
 sold: false
 }
