@@ -363,7 +363,7 @@ window.BHD = Object.assign({
       `Delivery within 25 miles: £${deliveryFee.toFixed(2)}`,
     ];
     if(includeCollection) lines.push(`Collection (same address): £${collectionFee.toFixed(2)}`);
-    lines.push(`⚠️ Bales must stay dry — if wet, you keep them (£1.50/bale charge applies)`);
+    lines.push(`⚠️ Bales must stay dry and unbroken — if wet or damaged, you keep them (£2.50/bale charge applies)`);
     return {fee, lines};
   }
 
