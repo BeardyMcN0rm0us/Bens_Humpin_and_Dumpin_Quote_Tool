@@ -2,166 +2,175 @@
 
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ben's Humpin' & Dumpin' — Instant Quote</title>
-<meta name="theme-color" content="#0a0a0a" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Ben's Humpin' & Dumpin'</title>
+<meta name="theme-color" content="#0a0a0a"/>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
-<link rel="icon" sizes="512x512" href="icon-512.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=r412">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=r413">
 </head>
 <body>
 
-<div class="wrap">
+<!-- ═══ FIXED APP HEADER ═══ -->
 
-  <!-- HEADER -->
-
-  <header>
-    <img src="icon-192.png" alt="Ben's Humpin' & Dumpin' logo">
-    <div class="header-text">
+<div class="app-header">
+  <div class="header-inner">
+    <img src="icon-192.png" alt="logo">
+    <div class="header-title">
       <h1>Humpin' &amp; Dumpin'</h1>
-      <div class="sub">Instant Quote Tool</div>
+      <div class="sub">Instant Quote</div>
     </div>
-    <div class="build" id="buildTag">Build r412</div>
-  </header>
-
-  <!-- PROGRESS BAR -->
-
-  <div class="progress-steps">
-    <div class="progress-step" id="pStep1">
-      <div class="step-dot">1</div>
-      <div class="step-label">Job Type</div>
-    </div>
-    <div class="progress-line" id="pLine1"></div>
-    <div class="progress-step" id="pStep2">
-      <div class="step-dot">2</div>
-      <div class="step-label">Details</div>
-    </div>
-    <div class="progress-line" id="pLine2"></div>
-    <div class="progress-step" id="pStep3">
-      <div class="step-dot">3</div>
-      <div class="step-label">Your Quote</div>
-    </div>
+    <div class="build-tag" id="buildTag">r413</div>
   </div>
 
-  <!-- ══════════════════════════════════════
-       STEP 1 — JOB TYPE TILES
-  ══════════════════════════════════════ -->
+  <!-- Progress bar lives in the header so it's always visible -->
 
-  <div class="wiz-panel" id="wizStep1">
-    <div class="card">
-      <h2 class="step-title">What do you need?</h2>
-      <p class="step-hint">Tap to get started</p>
-      <div class="job-tiles">
-        <button class="tile" data-job="tip">
-          <span class="tile-icon">🗑️</span>
-          <span class="tile-name">Tip Run</span>
-          <span class="tile-desc">Waste to Waterbeach</span>
-        </button>
-        <button class="tile" data-job="fb">
-          <span class="tile-icon">📦</span>
-          <span class="tile-name">Marketplace Pickup</span>
-          <span class="tile-desc">Facebook / Gumtree</span>
-        </button>
-        <button class="tile" data-job="move">
-          <span class="tile-icon">🏠</span>
-          <span class="tile-name">House Move</span>
-          <span class="tile-desc">Full or part removal</span>
-        </button>
-        <button class="tile" data-job="flatpack">
-          <span class="tile-icon">🔧</span>
-          <span class="tile-name">Flat Pack Build</span>
-          <span class="tile-desc">Assembly only</span>
-        </button>
-        <button class="tile" data-job="ikea">
-          <span class="tile-icon">🛋️</span>
-          <span class="tile-name">IKEA Run</span>
-          <span class="tile-desc">Collect &amp; build</span>
-        </button>
-        <button class="tile" data-job="student">
-          <span class="tile-icon">🎓</span>
-          <span class="tile-name">Student Move</span>
-          <span class="tile-desc">To / from uni</span>
-        </button>
-        <button class="tile" data-job="shop">
-          <span class="tile-icon">🛒</span>
-          <span class="tile-name">Shop Run</span>
-          <span class="tile-desc">Emergency collection</span>
-        </button>
-        <button class="tile" data-job="hay">
-          <span class="tile-icon">🌾</span>
-          <span class="tile-name">Hay Bales</span>
-          <span class="tile-desc">Delivery &amp; collection</span>
-        </button>
-        <button class="tile" data-job="bags">
-          <span class="tile-icon">🛍️</span>
-          <span class="tile-name">Black Bags</span>
-          <span class="tile-desc">Regular pickup service</span>
-        </button>
-        <button class="tile" data-job="business">
-          <span class="tile-icon">🤝</span>
-          <span class="tile-name">Business / Barter</span>
-          <span class="tile-desc">Trade enquiries</span>
-        </button>
-        <button class="tile tile-full" data-job="other">
-          <span class="tile-icon">💬</span>
-          <span class="tile-name">Something Else — tell me what you need</span>
-        </button>
-      </div>
+  <div class="progress-bar">
+    <div class="prog-step" id="pStep1">
+      <div class="prog-dot">1</div>
+      <div class="prog-label">Job</div>
+    </div>
+    <div class="prog-line" id="pLine1"></div>
+    <div class="prog-step" id="pStep2">
+      <div class="prog-dot">2</div>
+      <div class="prog-label">Details</div>
+    </div>
+    <div class="prog-line" id="pLine2"></div>
+    <div class="prog-step" id="pStep3">
+      <div class="prog-dot">3</div>
+      <div class="prog-label">Quote</div>
     </div>
   </div>
+</div>
 
-  <!-- ══════════════════════════════════════
-       STEP 2 — JOB DETAILS
-       main.js owns the show/hide of fields inside here
-  ══════════════════════════════════════ -->
+<!-- ═══ SCROLLABLE BODY ═══ -->
 
-  <div class="wiz-panel" id="wizStep2">
-    <div class="card">
-      <button class="back-btn" id="btnBackToTiles">← Change job type</button>
-      <h2 class="step-title" id="detailsHeading">Details</h2>
+<div class="scroll-body" id="scrollBody">
+
+  <!-- ══ PANEL 1: JOB TYPE ══ -->
+
+  <div class="panel" id="panel1">
+    <div class="panel-head">
+      <h2>What do you need?</h2>
+      <p>Tap to get started</p>
+    </div>
 
 ```
-  <!-- jobType select — main.js reads this, kept hidden -->
-  <select id="jobType" style="display:none" aria-hidden="true">
-    <option value="" selected disabled hidden></option>
-    <option value="tip">Tip Run</option>
-    <option value="move">House Move</option>
-    <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
-    <option value="shop">Emergency Shop Run</option>
-    <option value="student">Student Relocation (to/from uni)</option>
-    <option value="ikea">IKEA Collect / Collect &amp; Build</option>
-    <option value="flatpack">Flat Pack Build Only</option>
-    <option value="hay">Hay Bale Rental</option>
-    <option value="bags">Black Bag Collection</option>
-    <option value="business">Business Enquiries / Barter Deals</option>
-    <option value="other">Other (Tell me what you need)</option>
-  </select>
+<!-- Hidden select — main.js reads this -->
+<select id="jobType" hidden aria-hidden="true">
+  <option value="" selected disabled hidden></option>
+  <option value="tip">Tip Run</option>
+  <option value="move">House Move</option>
+  <option value="fb">Facebook Marketplace Pickup/Drop-off</option>
+  <option value="shop">Emergency Shop Run</option>
+  <option value="student">Student Relocation (to/from uni)</option>
+  <option value="ikea">IKEA Collect / Collect &amp; Build</option>
+  <option value="flatpack">Flat Pack Build Only</option>
+  <option value="hay">Hay Bale Rental</option>
+  <option value="bags">Black Bag Collection</option>
+  <option value="business">Business Enquiries / Barter Deals</option>
+  <option value="other">Other (Tell me what you need)</option>
+</select>
 
-  <!-- House Move bedrooms -->
-  <div id="houseMoveBedroomsWrap" class="hidden" hidden>
-    <label class="field-label">How many bedrooms?</label>
-    <div class="btn-row">
-      <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="1">1</button>
-      <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="2">2</button>
-      <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="3">3</button>
-      <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="4">4</button>
-      <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="5">5+</button>
-    </div>
-    <select id="houseMoveBedrooms" style="display:none" aria-hidden="true">
-      <option value="" selected disabled hidden></option>
-      <option value="1">1</option><option value="2">2</option>
-      <option value="3">3</option><option value="4">4</option><option value="5">5+</option>
-    </select>
-    <div class="hint">Larger homes may need a Luton van — we'll work it out automatically.</div>
+<div class="tile-grid">
+  <button class="tile" data-job="tip">
+    <span class="tile-icon">🗑️</span>
+    <span class="tile-name">Tip Run</span>
+    <span class="tile-desc">Waste to Waterbeach</span>
+  </button>
+  <button class="tile" data-job="fb">
+    <span class="tile-icon">📦</span>
+    <span class="tile-name">Marketplace</span>
+    <span class="tile-desc">Facebook / Gumtree</span>
+  </button>
+  <button class="tile" data-job="move">
+    <span class="tile-icon">🏠</span>
+    <span class="tile-name">House Move</span>
+    <span class="tile-desc">Full or part removal</span>
+  </button>
+  <button class="tile" data-job="flatpack">
+    <span class="tile-icon">🔧</span>
+    <span class="tile-name">Flat Pack</span>
+    <span class="tile-desc">Assembly only</span>
+  </button>
+  <button class="tile" data-job="ikea">
+    <span class="tile-icon">🛋️</span>
+    <span class="tile-name">IKEA Run</span>
+    <span class="tile-desc">Collect &amp; build</span>
+  </button>
+  <button class="tile" data-job="student">
+    <span class="tile-icon">🎓</span>
+    <span class="tile-name">Student Move</span>
+    <span class="tile-desc">To / from uni</span>
+  </button>
+  <button class="tile" data-job="shop">
+    <span class="tile-icon">🛒</span>
+    <span class="tile-name">Shop Run</span>
+    <span class="tile-desc">Emergency collection</span>
+  </button>
+  <button class="tile" data-job="hay">
+    <span class="tile-icon">🌾</span>
+    <span class="tile-name">Hay Bales</span>
+    <span class="tile-desc">Delivery &amp; collection</span>
+  </button>
+  <button class="tile" data-job="bags">
+    <span class="tile-icon">🛍️</span>
+    <span class="tile-name">Black Bags</span>
+    <span class="tile-desc">Regular pickup</span>
+  </button>
+  <button class="tile" data-job="business">
+    <span class="tile-icon">🤝</span>
+    <span class="tile-name">Business</span>
+    <span class="tile-desc">Trade &amp; barter</span>
+  </button>
+  <button class="tile tile-span" data-job="other">
+    <span class="tile-icon">💬</span>
+    <span class="tile-name">Something else — tell me what you need</span>
+  </button>
+</div>
+```
+
   </div>
 
-  <div id="lutonWrap" class="grid2 hidden" hidden>
-    <div>
+  <!-- ══ PANEL 2: DETAILS ══ -->
+
+  <div class="panel" id="panel2">
+    <div class="back-row">
+      <button class="back-btn" id="btnBack">Change job type</button>
+    </div>
+    <div class="panel-head">
+      <h2 id="detailsHeading">Details</h2>
+    </div>
+
+```
+<div class="form-body">
+
+  <!-- House Move: bedrooms -->
+  <div id="houseMoveBedroomsWrap" class="hidden" hidden>
+    <div class="field-group">
+      <label class="field-label">Bedrooms</label>
+      <div class="opt-row">
+        <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="1">1</button>
+        <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="2">2</button>
+        <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="3">3</button>
+        <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="4">4</button>
+        <button class="opt-btn" data-sel="houseMoveBedrooms" data-val="5">5+</button>
+      </div>
+      <select id="houseMoveBedrooms" hidden aria-hidden="true">
+        <option value="" selected disabled hidden></option>
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option><option value="5">5+</option>
+      </select>
+      <div class="hint">Larger homes may need a Luton van — we'll sort it automatically.</div>
+    </div>
+  </div>
+
+  <div id="lutonWrap" class="hidden" hidden>
+    <div class="field-group">
       <label class="field-label" for="lutonNeeded">Luton van hire?</label>
       <select id="lutonNeeded">
         <option value="auto" selected>Auto (recommended)</option>
@@ -169,121 +178,137 @@
         <option value="no">No thanks</option>
       </select>
     </div>
-    <div>
+    <div class="field-group">
       <label class="field-label" for="lutonCost">Hire £/day</label>
-      <input id="lutonCost" type="number" min="0" step="1" />
+      <input id="lutonCost" type="number" min="0" step="1"/>
     </div>
-    <div class="hint span2" id="lutonHint"></div>
+    <div class="hint" id="lutonHint"></div>
   </div>
 
   <!-- IKEA -->
   <div id="ikeaModeWrap" class="hidden" hidden>
-    <label class="field-label">What do you need?</label>
-    <div class="btn-row">
-      <button class="opt-btn opt-wide active" data-sel="ikeaMode" data-val="collect">Collect Only</button>
-      <button class="opt-btn opt-wide" data-sel="ikeaMode" data-val="collectBuild">Collect &amp; Build</button>
-    </div>
-    <select id="ikeaMode" style="display:none" aria-hidden="true">
-      <option value="collect" selected>Collect Only</option>
-      <option value="collectBuild">Collect &amp; Build</option>
-    </select>
-  </div>
-  <div id="ikeaStoreWrap" class="hidden" hidden>
-    <label class="field-label" for="ikeaStore">Which IKEA store?</label>
-    <select id="ikeaStore">
-      <option value="" selected disabled>Select store…</option>
-      <option value="Geldered Close, Bletchley, Milton Keynes">IKEA Milton Keynes</option>
-      <option value="Boongate, Peterborough">IKEA Peterborough Click &amp; Collect</option>
-      <option value="Glover Dr, London N18 3HF">IKEA Tottenham</option>
-      <option value="Lakeside Retail Park, Thurrock RM20 3WJ">IKEA Lakeside</option>
-      <option value="2 Drury Way, London NW10 0TH">IKEA Wembley</option>
-      <option value="Sweet Briar Retail Park, Norwich">IKEA Norwich</option>
-      <option value="55-57 Bugsby's Way, London SE10 0QJ">IKEA Greenwich</option>
-    </select>
-    <div class="hint">Selecting a store sets the collection address automatically.</div>
-  </div>
-  <div id="ikeaItemsWrap" class="hidden" hidden>
-    <label class="field-label">Assembly items</label>
-    <div class="grid3">
-      <select id="ikeaItemSel">
-        <option value="" selected>(pick an item…)</option>
-        <option value="90|MALM Chest (6-drawer)">MALM Chest 6-drawer ~90min</option>
-        <option value="70|MALM Chest (4-drawer)">MALM Chest 4-drawer ~70min</option>
-        <option value="60|MALM Chest (3-drawer)">MALM Chest 3-drawer ~60min</option>
-        <option value="90|MALM Bed Frame (double)">MALM Bed Frame ~90min</option>
-        <option value="110|MALM Bed (double) w/ storage">MALM Bed w/ storage ~110min</option>
-        <option value="30|MALM Bedside Table">MALM Bedside Table ~30min</option>
-        <option value="120|PAX Wardrobe (2-door basic)">PAX 2-door basic ~120min</option>
-        <option value="150|PAX Wardrobe (3-door basic)">PAX 3-door basic ~150min</option>
-        <option value="140|PAX Wardrobe (2-door sliding)">PAX 2-door sliding ~140min</option>
-        <option value="160|PAX 2-door + KOMPLEMENT drawers">PAX + KOMPLEMENT ~160min</option>
-        <option value="45|BILLY Bookcase 80x202">BILLY 80x202 ~45min</option>
-        <option value="35|BILLY Bookcase 40x202">BILLY 40x202 ~35min</option>
-        <option value="60|BILLY + OXBERG doors">BILLY + OXBERG ~60min</option>
-        <option value="other|Other">Other (enter below)</option>
+    <div class="field-group">
+      <label class="field-label">Service</label>
+      <div class="opt-row">
+        <button class="opt-btn is-active" data-sel="ikeaMode" data-val="collect">Collect Only</button>
+        <button class="opt-btn" data-sel="ikeaMode" data-val="collectBuild">Collect &amp; Build</button>
+      </div>
+      <select id="ikeaMode" hidden aria-hidden="true">
+        <option value="collect" selected>Collect Only</option>
+        <option value="collectBuild">Collect &amp; Build</option>
       </select>
-      <input id="ikeaQtyAdd" type="number" min="1" step="1" value="1" />
-      <button id="ikeaAddBtn" class="btn secondary small" type="button">Add</button>
     </div>
-    <div id="ikeaOtherWrap" class="grid2 hidden" hidden>
-      <input id="ikeaOtherName" type="text" placeholder="Item name">
-      <input id="ikeaOtherMinutes" type="number" min="5" step="5" placeholder="Minutes">
+  </div>
+
+  <div id="ikeaStoreWrap" class="hidden" hidden>
+    <div class="field-group">
+      <label class="field-label" for="ikeaStore">IKEA store</label>
+      <select id="ikeaStore">
+        <option value="" selected disabled>Select store…</option>
+        <option value="Geldered Close, Bletchley, Milton Keynes">Milton Keynes</option>
+        <option value="Boongate, Peterborough">Peterborough Click &amp; Collect</option>
+        <option value="Glover Dr, London N18 3HF">Tottenham</option>
+        <option value="Lakeside Retail Park, Thurrock RM20 3WJ">Lakeside</option>
+        <option value="2 Drury Way, London NW10 0TH">Wembley</option>
+        <option value="Sweet Briar Retail Park, Norwich">Norwich</option>
+        <option value="55-57 Bugsby's Way, London SE10 0QJ">Greenwich</option>
+      </select>
+      <div class="hint">Selecting a store sets the collection address.</div>
     </div>
-    <div id="ikeaList" class="item-list"></div>
-    <div class="hint" id="ikeaTimeHint"></div>
+  </div>
+
+  <div id="ikeaItemsWrap" class="hidden" hidden>
+    <div class="field-group">
+      <label class="field-label">Assembly items</label>
+      <div class="grid3">
+        <select id="ikeaItemSel">
+          <option value="" selected>(pick item…)</option>
+          <option value="90|MALM Chest (6-drawer)">MALM Chest 6-drw ~90m</option>
+          <option value="70|MALM Chest (4-drawer)">MALM Chest 4-drw ~70m</option>
+          <option value="60|MALM Chest (3-drawer)">MALM Chest 3-drw ~60m</option>
+          <option value="90|MALM Bed Frame (double)">MALM Bed Frame ~90m</option>
+          <option value="110|MALM Bed (double) w/ storage">MALM Bed + storage ~110m</option>
+          <option value="30|MALM Bedside Table">MALM Bedside ~30m</option>
+          <option value="120|PAX Wardrobe (2-door basic)">PAX 2-door basic ~120m</option>
+          <option value="150|PAX Wardrobe (3-door basic)">PAX 3-door basic ~150m</option>
+          <option value="140|PAX Wardrobe (2-door sliding)">PAX 2-door sliding ~140m</option>
+          <option value="160|PAX 2-door + KOMPLEMENT drawers">PAX + KOMPLEMENT ~160m</option>
+          <option value="45|BILLY Bookcase 80x202">BILLY 80x202 ~45m</option>
+          <option value="35|BILLY Bookcase 40x202">BILLY 40x202 ~35m</option>
+          <option value="60|BILLY + OXBERG doors">BILLY + OXBERG ~60m</option>
+          <option value="other|Other">Other…</option>
+        </select>
+        <input id="ikeaQtyAdd" type="number" min="1" step="1" value="1"/>
+        <button id="ikeaAddBtn" class="btn btn-primary btn-sm" type="button">Add</button>
+      </div>
+      <div id="ikeaOtherWrap" class="grid2 hidden" hidden style="margin-top:8px">
+        <input id="ikeaOtherName" type="text" placeholder="Item name">
+        <input id="ikeaOtherMinutes" type="number" min="5" step="5" placeholder="Minutes">
+      </div>
+      <div id="ikeaList" class="item-list"></div>
+      <div class="hint" id="ikeaTimeHint"></div>
+    </div>
   </div>
 
   <!-- Flat Pack -->
   <div id="flatpackItemsWrap" class="hidden" hidden>
-    <label class="field-label">Items to build</label>
-    <div class="grid3">
-      <select id="flatItemSel">
-        <option value="" selected>(pick an item…)</option>
-        <option value="45|Bed (Single)">Bed Single ~45min</option>
-        <option value="60|Bed (Double)">Bed Double ~60min</option>
-        <option value="75|Bed (King/Super King)">Bed King ~75min</option>
-        <option value="90|Wardrobe (2-door)">Wardrobe 2-door ~90min</option>
-        <option value="120|Wardrobe (3-door)">Wardrobe 3-door ~120min</option>
-        <option value="45|Chest of drawers (3-drawer)">Chest 3-drawer ~45min</option>
-        <option value="60|Chest of drawers (6-drawer)">Chest 6-drawer ~60min</option>
-        <option value="30|Bedside table">Bedside table ~30min</option>
-        <option value="45|TV stand">TV stand ~45min</option>
-        <option value="90|Dining table &amp; 4 chairs">Dining table 4 chairs ~90min</option>
-        <option value="120|Dining table &amp; 6 chairs">Dining table 6 chairs ~120min</option>
-        <option value="60|Desk">Desk ~60min</option>
-        <option value="45|Bookcase">Bookcase ~45min</option>
-        <option value="30|Coffee table">Coffee table ~30min</option>
-        <option value="other|Other">Other (enter below)</option>
-      </select>
-      <input id="flatQtyAdd" type="number" min="1" step="1" value="1" />
-      <button id="flatAddBtn" class="btn secondary small" type="button">Add</button>
+    <div class="field-group">
+      <label class="field-label">Items to build</label>
+      <div class="grid3">
+        <select id="flatItemSel">
+          <option value="" selected>(pick item…)</option>
+          <option value="45|Bed (Single)">Bed Single ~45m</option>
+          <option value="60|Bed (Double)">Bed Double ~60m</option>
+          <option value="75|Bed (King/Super King)">Bed King ~75m</option>
+          <option value="90|Wardrobe (2-door)">Wardrobe 2-door ~90m</option>
+          <option value="120|Wardrobe (3-door)">Wardrobe 3-door ~120m</option>
+          <option value="45|Chest of drawers (3-drawer)">Chest 3-drw ~45m</option>
+          <option value="60|Chest of drawers (6-drawer)">Chest 6-drw ~60m</option>
+          <option value="30|Bedside table">Bedside table ~30m</option>
+          <option value="45|TV stand">TV stand ~45m</option>
+          <option value="90|Dining table &amp; 4 chairs">Dining + 4 chairs ~90m</option>
+          <option value="120|Dining table &amp; 6 chairs">Dining + 6 chairs ~120m</option>
+          <option value="60|Desk">Desk ~60m</option>
+          <option value="45|Bookcase">Bookcase ~45m</option>
+          <option value="30|Coffee table">Coffee table ~30m</option>
+          <option value="other|Other">Other…</option>
+        </select>
+        <input id="flatQtyAdd" type="number" min="1" step="1" value="1"/>
+        <button id="flatAddBtn" class="btn btn-primary btn-sm" type="button">Add</button>
+      </div>
+      <div id="flatOtherWrap" class="grid2 hidden" hidden style="margin-top:8px">
+        <input id="flatOtherName" type="text" placeholder="Item name">
+        <input id="flatOtherMinutes" type="number" min="5" step="5" placeholder="Minutes">
+      </div>
+      <div id="flatList" class="item-list"></div>
+      <div class="hint" id="flatTimeHint"></div>
     </div>
-    <div id="flatOtherWrap" class="grid2 hidden" hidden>
-      <input id="flatOtherName" type="text" placeholder="Item name">
-      <input id="flatOtherMinutes" type="number" min="5" step="5" placeholder="Minutes">
-    </div>
-    <div id="flatList" class="item-list"></div>
-    <div class="hint" id="flatTimeHint"></div>
   </div>
 
   <!-- Hay Bales -->
   <div id="hayWrap" class="hidden" hidden>
-    <label class="field-label" for="hayBales">How many bales?</label>
-    <input id="hayBales" type="number" min="1" step="1" value="10">
-    <label class="field-label" for="hayIncludeCollection" style="margin-top:14px">Include collection later?</label>
-    <select id="hayIncludeCollection">
-      <option value="no" selected>No</option>
-      <option value="yes">Yes (same address)</option>
-    </select>
-    <div class="hint" style="margin-top:8px">⚠️ Bales can't get wet — if they do, you keep them and there's a £1.50/bale charge.</div>
+    <div class="field-group">
+      <label class="field-label" for="hayBales">How many bales?</label>
+      <input id="hayBales" type="number" min="1" step="1" value="10">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="hayIncludeCollection">Include collection later?</label>
+      <select id="hayIncludeCollection">
+        <option value="no" selected>No</option>
+        <option value="yes">Yes (same address)</option>
+      </select>
+    </div>
+    <div class="hint">⚠️ Bales can't get wet — if they do, you keep them and there's a £1.50/bale charge.</div>
   </div>
 
   <!-- Black Bags -->
   <div id="bagsWrap" class="hidden" hidden>
-    <label class="field-label" for="bagsCount">How many bags?</label>
-    <input id="bagsCount" type="number" min="1" step="1" value="4">
-    <div class="grid2" style="margin-top:14px">
-      <div>
+    <div class="field-group">
+      <label class="field-label" for="bagsCount">How many bags?</label>
+      <input id="bagsCount" type="number" min="1" step="1" value="4">
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="field-group" style="margin-top:0">
         <label class="field-label" for="bagsArea">Your area</label>
         <select id="bagsArea">
           <option value="" selected disabled>Choose…</option>
@@ -292,8 +317,8 @@
           <option>Ramsey</option><option>Benwick</option>
         </select>
       </div>
-      <div>
-        <label class="field-label" for="bagsDay">Collection day</label>
+      <div class="field-group" style="margin-top:0">
+        <label class="field-label" for="bagsDay">Day</label>
         <select id="bagsDay">
           <option value="" selected disabled>Choose…</option>
           <option>Monday</option><option>Tuesday</option>
@@ -306,164 +331,185 @@
 
   <!-- Addresses -->
   <div id="pickupField" class="hidden" hidden>
-    <label class="field-label" for="addrPickup">📍 Collection address</label>
-    <input id="addrPickup" type="text" placeholder="Postcode or full address…" autocomplete="street-address">
+    <div class="field-group">
+      <label class="field-label" for="addrPickup">📍 Collection address</label>
+      <input id="addrPickup" type="text" placeholder="Postcode or full address…" autocomplete="street-address">
+    </div>
   </div>
   <div id="addrDropWrap" class="hidden" hidden>
-    <label class="field-label" for="addrDrop">📍 Delivery / destination</label>
-    <input id="addrDrop" type="text" placeholder="Postcode or full address…" autocomplete="street-address">
+    <div class="field-group">
+      <label class="field-label" for="addrDrop">📍 Delivery / destination</label>
+      <input id="addrDrop" type="text" placeholder="Postcode or full address…" autocomplete="street-address">
+    </div>
   </div>
 
   <!-- Shop time -->
   <div id="shopTimeWrap" class="hidden" hidden>
-    <label class="field-label">When is the run?</label>
-    <div class="btn-row">
-      <button class="opt-btn opt-wide active" data-sel="shopTime" data-val="before22">Before 10pm</button>
-      <button class="opt-btn opt-wide" data-sel="shopTime" data-val="after22">After 10pm (+£15)</button>
+    <div class="field-group">
+      <label class="field-label">When?</label>
+      <div class="opt-row">
+        <button class="opt-btn is-active" data-sel="shopTime" data-val="before22">Before 10pm</button>
+        <button class="opt-btn" data-sel="shopTime" data-val="after22">After 10pm (+£15)</button>
+      </div>
+      <select id="shopTime" hidden aria-hidden="true">
+        <option value="before22" selected>Before 10pm</option>
+        <option value="after22">After 10pm</option>
+      </select>
     </div>
-    <select id="shopTime" style="display:none" aria-hidden="true">
-      <option value="before22" selected>Before 10pm</option>
-      <option value="after22">After 10pm</option>
-    </select>
   </div>
 
   <!-- Two man -->
   <div id="twoManWrap" class="hidden" hidden>
-    <label class="field-label">Two-person team?</label>
-    <div class="btn-row">
-      <button class="opt-btn opt-wide active" data-sel="twoMan" data-val="no">Just Ben</button>
-      <button class="opt-btn opt-wide" data-sel="twoMan" data-val="yes">Yes please (+£20)</button>
+    <div class="field-group">
+      <label class="field-label">Team size</label>
+      <div class="opt-row">
+        <button class="opt-btn is-active" data-sel="twoMan" data-val="no">Just Ben</button>
+        <button class="opt-btn" data-sel="twoMan" data-val="yes">Ben + helper (+£20)</button>
+      </div>
+      <select id="twoMan" hidden aria-hidden="true">
+        <option value="no" selected>No</option>
+        <option value="yes">Yes</option>
+      </select>
     </div>
-    <select id="twoMan" style="display:none" aria-hidden="true">
-      <option value="no" selected>No</option>
-      <option value="yes">Yes</option>
-    </select>
   </div>
 
   <!-- Stairs -->
   <div id="stairsWrap" class="hidden" hidden>
-    <label class="field-label">Any stairs? (floors above ground — leave 0 if none)</label>
-    <div class="grid2">
-      <div>
-        <label class="field-label-sm" for="stairsPickup">At pickup</label>
-        <input id="stairsPickup" type="number" min="0" step="1" value="0">
+    <div class="field-group">
+      <label class="field-label">Stairs (floors above ground)</label>
+      <div class="grid2">
+        <div>
+          <div class="hint" style="margin-bottom:6px">At pickup</div>
+          <input id="stairsPickup" type="number" min="0" step="1" value="0">
+        </div>
+        <div>
+          <div class="hint" style="margin-bottom:6px">At drop-off</div>
+          <input id="stairsDrop" type="number" min="0" step="1" value="0">
+        </div>
       </div>
-      <div>
-        <label class="field-label-sm" for="stairsDrop">At drop-off</label>
-        <input id="stairsDrop" type="number" min="0" step="1" value="0">
-      </div>
+      <div class="hint">Leave at 0 if ground floor.</div>
     </div>
   </div>
 
   <!-- Waste type -->
   <div id="wasteWrap" class="hidden" hidden>
-    <label class="field-label" for="wasteType">What type of waste?</label>
-    <select id="wasteType"></select>
-    <div class="trust-badge">
-      ✅ Disposed at Waterbeach Waste Management Park — fully licensed, no fly-tipping, no comeback on you
+    <div class="field-group">
+      <label class="field-label" for="wasteType">Type of waste</label>
+      <select id="wasteType"></select>
+      <div class="trust-badge">
+        ✅ Disposed at Waterbeach Waste Management Park — fully licensed. No fly-tipping, no risk to you.
+      </div>
+      <div class="hint">Fee based on 25% of the published disposal rate.</div>
     </div>
-    <div class="hint" style="margin-top:6px">Fee based on 25% of the published disposal rate (minimum load).</div>
   </div>
 
   <!-- Description -->
   <div id="descWrap" class="hidden" hidden>
-    <label class="field-label" for="jobDesc">Anything else we should know?</label>
-    <textarea id="jobDesc" placeholder="e.g. parking, access issues, number of items, special requirements…"></textarea>
+    <div class="field-group">
+      <label class="field-label" for="jobDesc">Anything else to know?</label>
+      <textarea id="jobDesc" placeholder="e.g. parking, access issues, number of items…"></textarea>
+    </div>
   </div>
 
-  <div id="routeHint" class="hint route-hint"></div>
+  <div id="routeHint" class="hint route-hint" style="margin-top:12px"></div>
 
-  <button id="btnCalc" class="btn primary calc-btn" type="button">
+</div><!-- /form-body -->
+
+<!-- Sticky calculate button -->
+<div class="sticky-calc">
+  <button id="btnCalc" class="btn btn-primary" type="button">
     🧮 &nbsp;Calculate My Quote
   </button>
 </div>
 ```
 
-  </div>
+  </div><!-- /panel2 -->
 
-  <!-- ══════════════════════════════════════
-       STEP 3 — QUOTE RESULT
-  ══════════════════════════════════════ -->
+  <!-- ══ PANEL 3: QUOTE ══ -->
 
-  <div class="wiz-panel" id="wizStep3">
-    <div class="card quote-card">
-      <button class="back-btn" id="btnBackToDetails">← Edit details</button>
-      <h2 class="step-title">Your Estimate</h2>
-      <p class="step-hint">Final price confirmed after photos &amp; access check.</p>
+  <div class="panel" id="panel3">
+    <div class="back-row">
+      <button class="back-btn" id="btnBackToDetails">Edit details</button>
+    </div>
 
 ```
-  <div id="total" class="total">Estimated: £0–£0</div>
-  <div id="quoteId" class="quote-id"></div>
+<div class="quote-amount">
+  <div class="label">Your estimate</div>
+  <div class="amount" id="total">£0–£0</div>
+  <div class="quote-id" id="quoteId"></div>
+</div>
 
-  <details class="breakdown-wrap">
-    <summary>See full breakdown</summary>
-    <div id="breakdown" class="hint breakdown-body"></div>
-  </details>
+<details class="breakdown-wrap">
+  <summary>See full breakdown</summary>
+  <div id="breakdown" class="breakdown-body"></div>
+</details>
 
-  <button id="btnWhatsApp" class="btn whatsapp calc-btn hidden" hidden type="button">
+<div class="quote-cta">
+  <button id="btnWhatsApp" class="btn btn-whatsapp hidden" hidden type="button">
     💬 &nbsp;Send to Ben on WhatsApp
   </button>
-  <p class="hint" style="text-align:center;margin-top:8px">WhatsApp opens with your full quote prefilled.</p>
+  <p class="quote-note">WhatsApp opens with your full quote prefilled.<br>Ben will confirm the final price.</p>
+</div>
 
-  <button class="btn ghost calc-btn" id="btnStartOver" type="button">Start a new quote</button>
+<div class="start-over">
+  <button class="btn btn-ghost" id="btnStartOver" type="button">Start a new quote</button>
 </div>
 ```
 
-  </div>
+  </div><!-- /panel3 -->
 
-</div><!-- /wrap -->
+</div><!-- /scroll-body -->
 
 <!-- HELP FAB -->
 
-<input type="checkbox" id="helpToggle" />
-<label class="helpFab" for="helpToggle">?</label>
-<div class="helpOverlay">
-  <label class="helpClose" for="helpToggle">Close ✕</label>
-  <div class="helpPanel">
+<input type="checkbox" id="helpToggle"/>
+<label class="help-fab" for="helpToggle">?</label>
+<div class="help-overlay">
+  <label class="help-close" for="helpToggle">Close ✕</label>
+  <div class="help-panel">
     <h2>How to get a quote</h2>
     <ol>
-      <li><strong>Tap your job type</strong> on the first screen.</li>
+      <li><strong>Tap your job type</strong></li>
       <li><strong>Fill in the details</strong> — address, bedrooms, waste type etc.</li>
-      <li>Tap <strong>Calculate My Quote</strong>.</li>
-      <li>Tap <strong>Send to Ben on WhatsApp</strong> — your quote is prefilled.</li>
+      <li>Tap <strong>Calculate My Quote</strong></li>
+      <li>Tap <strong>Send to Ben on WhatsApp</strong></li>
     </ol>
-    <p class="muted">This is an estimate. Final price confirmed after photos &amp; access check.</p>
-    <hr style="border-color:#222;margin:16px 0">
+    <p class="hint" style="margin-top:8px">Estimate only — final price confirmed after photos &amp; access check.</p>
     <h3>Why choose Ben?</h3>
-    <p class="muted">All waste goes to Waterbeach Waste Management Park — fully licensed. A lot of cheaper operators dump illegally in fields, which can be traced back to <em>you</em>. We don't do that.</p>
+    <p class="hint">All waste goes to Waterbeach Waste Management Park — fully licensed. Cheaper operators often dump illegally, which can be traced back to <em>you</em>. We don't do that.</p>
   </div>
 </div>
 
 <!-- ADMIN -->
 
-<div id="adminOverlay" class="adminOverlay hidden" hidden>
-  <div class="adminPanel">
-    <div class="adminHeader">
+<div id="adminOverlay" class="admin-overlay hidden" hidden>
+  <div class="admin-panel">
+    <div class="admin-header">
       <strong>Admin</strong>
-      <button id="adminClose" class="btn small">Close</button>
+      <button id="adminClose" class="btn btn-ghost btn-sm">Close</button>
     </div>
-    <div id="adminAuth" class="adminBlock">
-      <label for="adminPin">PIN</label>
+    <div id="adminAuth" class="admin-block">
+      <label class="field-label" for="adminPin">PIN</label>
       <input id="adminPin" type="password" placeholder="Enter PIN">
       <div class="grid2" style="margin-top:10px">
-        <button id="adminSetPin" class="btn secondary small" type="button">Set/Reset PIN</button>
-        <button id="adminUnlock" class="btn primary small" type="button">Unlock</button>
+        <button id="adminSetPin" class="btn btn-primary btn-sm" type="button">Set/Reset PIN</button>
+        <button id="adminUnlock" class="btn btn-primary btn-sm" type="button">Unlock</button>
       </div>
       <div id="adminAuthMsg" class="hint"></div>
     </div>
-    <div id="adminContent" class="adminBlock hidden" hidden>
-      <h3>Manual Total Override</h3>
-      <div class="grid3">
-        <label>Total (£)<input id="adminTotalOverride" type="number" min="0" step="1" placeholder="e.g. 125"></label>
-        <label>Lock total<select id="adminLockTotal"><option value="off" selected>Off</option><option value="on">On</option></select></label>
-        <label>Adjustment<select id="adminAdjustTarget">
-          <option value="adjustment" selected>Separate line</option>
-          <option value="base">Into Base</option>
-          <option value="labour">Into Labour</option>
-          <option value="mileage">Into Mileage</option>
+    <div id="adminContent" class="admin-block hidden" hidden>
+      <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);margin-bottom:10px">Manual Total Override</div>
+      <div class="admin-grid">
+        <label class="field-label">Total (£)<input id="adminTotalOverride" type="number" min="0" step="1" placeholder="e.g. 125" style="margin-top:4px"></label>
+        <label class="field-label">Lock<select id="adminLockTotal" style="margin-top:4px"><option value="off" selected>Off</option><option value="on">On</option></select></label>
+        <label class="field-label">Target<select id="adminAdjustTarget" style="margin-top:4px">
+          <option value="adjustment" selected>Separate</option>
+          <option value="base">Base</option>
+          <option value="labour">Labour</option>
+          <option value="mileage">Mileage</option>
         </select></label>
       </div>
-      <h3>Pricing Sliders</h3>
+      <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);margin:14px 0 8px">Pricing</div>
       <div class="sliders">
         <label>£/mile: <span id="lblMile"></span><input id="sldMile" type="range" min="0.3" max="1.5" step="0.01"></label>
         <label>Labour £/hr: <span id="lblHr"></span><input id="sldHr" type="range" min="30" max="120" step="1"></label>
@@ -471,64 +517,81 @@
         <label>Base fee: <span id="lblBase"></span><input id="sldBase" type="range" min="0" max="100" step="1"></label>
       </div>
       <div class="grid2" style="margin-top:12px">
-        <button id="adminApply" class="btn secondary" type="button">Apply to Quote</button>
-        <button id="adminClear" class="btn" type="button">Clear Override</button>
+        <button id="adminApply" class="btn btn-primary btn-sm" type="button">Apply</button>
+        <button id="adminClear" class="btn btn-ghost btn-sm" type="button">Clear</button>
       </div>
       <div id="adminMsg" class="hint"></div>
     </div>
   </div>
 </div>
 
-<!-- Scripts: config first, then main.js pricing logic -->
+<!-- Scripts -->
 
-<script src="config.js?v=r412"></script>
+<script src="config.js?v=r413"></script>
 
-<script src="main.js?v=r412" defer></script>
-
-<!-- Wizard controller — runs after DOM ready, after main.js -->
+<script src="main.js?v=r413" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
-  // ── Step navigation ─────────────────────────────────
+  // ── Measure header height and push scroll body down ──────────
+  function setOffset() {
+    var h = document.querySelector('.app-header');
+    var b = document.getElementById('scrollBody');
+    if (h && b) b.style.paddingTop = h.offsetHeight + 'px';
+  }
+  setOffset();
+  window.addEventListener('resize', setOffset);
+
+  // ── Step navigation ──────────────────────────────────────────
   function goTo(n) {
-    ['wizStep1','wizStep2','wizStep3'].forEach(function(id, i) {
+    ['panel1','panel2','panel3'].forEach(function(id, i) {
       var el = document.getElementById(id);
-      if (el) el.style.display = (i + 1 === n) ? '' : 'none';
+      if (!el) return;
+      if (i + 1 === n) {
+        el.style.display = '';
+        // Trigger reflow for animation
+        void el.offsetWidth;
+        el.classList.add('is-visible');
+      } else {
+        el.style.display = 'none';
+        el.classList.remove('is-visible');
+      }
     });
+
     ['pStep1','pStep2','pStep3'].forEach(function(id, i) {
       var el = document.getElementById(id);
       if (!el) return;
-      el.classList.toggle('active', i + 1 === n);
-      el.classList.toggle('done',   i + 1 < n);
+      el.classList.toggle('is-active', i + 1 === n);
+      el.classList.toggle('is-done',   i + 1 < n);
     });
     ['pLine1','pLine2'].forEach(function(id, i) {
       var el = document.getElementById(id);
-      if (el) el.classList.toggle('active', i + 1 < n);
+      if (el) el.classList.toggle('is-active', i + 1 < n);
     });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  goTo(1); // Start on step 1
+  goTo(1);
 
-  // ── Job tile clicks ──────────────────────────────────
+  // ── Tile clicks ──────────────────────────────────────────────
   var jobLabels = {
-    tip:'🗑️ Tip Run', fb:'📦 Marketplace Pickup', move:'🏠 House Move',
-    flatpack:'🔧 Flat Pack Build', ikea:'🛋️ IKEA Run', student:'🎓 Student Move',
-    shop:'🛒 Shop Run', hay:'🌾 Hay Bales', bags:'🛍️ Black Bags',
-    business:'🤝 Business / Barter', other:'💬 Something Else'
+    tip:'🗑️  Tip Run', fb:'📦  Marketplace Pickup', move:'🏠  House Move',
+    flatpack:'🔧  Flat Pack Build', ikea:'🛋️  IKEA Run', student:'🎓  Student Move',
+    shop:'🛒  Shop Run', hay:'🌾  Hay Bales', bags:'🛍️  Black Bags',
+    business:'🤝  Business / Barter', other:'💬  Something Else'
   };
 
   document.querySelectorAll('.tile').forEach(function(tile) {
     tile.addEventListener('click', function() {
       var job = tile.dataset.job;
-      // Highlight tile
-      document.querySelectorAll('.tile').forEach(function(t){ t.classList.remove('selected'); });
-      tile.classList.add('selected');
-      // Update heading
+      document.querySelectorAll('.tile').forEach(function(t){ t.classList.remove('is-selected'); });
+      tile.classList.add('is-selected');
+
       var h = document.getElementById('detailsHeading');
       if (h) h.textContent = jobLabels[job] || 'Details';
-      // Set hidden select and fire events so main.js shows the right fields
+
       var sel = document.getElementById('jobType');
       if (sel) {
         sel.value = job;
@@ -539,12 +602,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ── opt-btn rows (bedrooms, two-man, shop time, ikea mode) ──
+  // ── opt-btn rows ─────────────────────────────────────────────
   document.querySelectorAll('.opt-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      var row = btn.closest('.btn-row');
-      if (row) row.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
+      var row = btn.closest('.opt-row');
+      if (row) row.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
       var selId = btn.dataset.sel;
       if (selId) {
         var sel = document.getElementById(selId);
@@ -557,24 +620,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ── Calculate → poll for result → go to step 3 ──────
+  // ── Calculate → poll → step 3 ───────────────────────────────
   var calcBtn = document.getElementById('btnCalc');
   if (calcBtn) {
     calcBtn.addEventListener('click', function() {
+      calcBtn.textContent = '⏳  Calculating…';
+      calcBtn.disabled = true;
       var tries = 0;
-      var timer = setInterval(function() {
+      var t = setInterval(function() {
         tries++;
         var total = document.getElementById('total');
-        if ((total && total.classList.contains('show')) || tries > 40) {
-          clearInterval(timer);
+        if ((total && total.classList.contains('show')) || tries > 50) {
+          clearInterval(t);
+          calcBtn.textContent = '🧮  Calculate My Quote';
+          calcBtn.disabled = false;
           if (total && total.classList.contains('show')) goTo(3);
         }
       }, 200);
     });
   }
 
-  // ── Back / start-over buttons ────────────────────────
-  var b1 = document.getElementById('btnBackToTiles');
+  // ── Back buttons ─────────────────────────────────────────────
+  var b1 = document.getElementById('btnBack');
   if (b1) b1.addEventListener('click', function(){ goTo(1); });
 
   var b2 = document.getElementById('btnBackToDetails');
@@ -582,13 +649,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var b3 = document.getElementById('btnStartOver');
   if (b3) b3.addEventListener('click', function() {
-    document.querySelectorAll('.tile').forEach(function(t){ t.classList.remove('selected'); });
+    document.querySelectorAll('.tile').forEach(function(t){ t.classList.remove('is-selected'); });
     var sel = document.getElementById('jobType');
     if (sel) { sel.value = ''; sel.dispatchEvent(new Event('change',{bubbles:true})); }
     var total = document.getElementById('total');
     if (total) total.classList.remove('show');
     goTo(1);
   });
+
+  // ── Sync #total → .amount visibility for step 3 ─────────────
+  // main.js adds class 'show' to #total — mirror that to .amount
+  var totalEl = document.getElementById('total');
+  if (totalEl) {
+    var obs = new MutationObserver(function() {
+      totalEl.classList.toggle('is-visible', totalEl.classList.contains('show'));
+    });
+    obs.observe(totalEl, { attributes: true, attributeFilter: ['class'] });
+  }
 
 });
 </script>
