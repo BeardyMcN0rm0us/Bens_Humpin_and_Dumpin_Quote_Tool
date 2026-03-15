@@ -9,12 +9,12 @@ window.BHD = Object.assign({
 
   // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.85,
-  twoManSurcharge: 25,
+  twoManSurcharge: 20,
   stairsPerFloor: 7.50,
 
   baseFees:{
     default:25,
-    move:50,
+    move:25,
     shopBefore22:15,
     shopAfter22:25,
     ikeaCollect:25,
