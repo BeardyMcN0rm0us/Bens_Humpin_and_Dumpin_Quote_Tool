@@ -305,7 +305,8 @@ textarea { min-height: 90px; resize: vertical; }
 }
 
 /* ── HIDDEN ELEMENTS — includes select tags used by main.js ── */
-[hidden], .hidden, select[hidden] { display: none !important; }
+.hidden { display: none !important; }
+select[hidden] { display: none !important; }
 
 /* ── TRUST BADGE ── */
 .trust-badge {
