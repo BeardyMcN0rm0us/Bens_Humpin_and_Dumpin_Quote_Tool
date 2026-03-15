@@ -144,152 +144,187 @@ body {
   letter-spacing: 0.07em;
   min-height: 24px;
 }
-.shop-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 10px 16px 0;
+
+/* ── SHOP LIST (single column, full width cards) ── */
+.shop-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+padding: 10px 16px 0;
 }
-@media (min-width: 600px) {
-  .shop-grid { grid-template-columns: repeat(3, 1fr); }
-}
+
+/* ── ITEM CARD ── */
 .item-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: border-color 0.15s, transform 0.1s;
-  -webkit-tap-highlight-color: transparent;
+background: var(–surface);
+border: 1.5px solid var(–border);
+border-radius: var(–r);
+overflow: hidden;
 }
-.item-card:active { transform: scale(0.98); }
+.item-main {
+display: flex;
+gap: 12px;
+padding: 12px;
+}
 .item-img-wrap {
-  position: relative;
-  width: 100%;
-  padding-top: 100%;
-  background: #1a1a1a;
-  overflow: hidden;
+position: relative;
+width: 100px;
+height: 100px;
+flex-shrink: 0;
+background: #1a1a1a;
+border-radius: var(–r-sm);
+overflow: hidden;
 }
 .item-img-wrap img {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: contain;
-  padding: 8px;
+width: 100%; height: 100%;
+object-fit: contain;
+padding: 6px;
 }
 .item-img-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  opacity: 0.25;
+width: 100%; height: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 2rem;
+opacity: 0.25;
 }
 .condition-badge {
-  position: absolute;
-  top: 8px; left: 8px;
-  font-size: 0.6rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 3px 7px;
-  border-radius: 4px;
-  line-height: 1.4;
-  z-index: 1;
+position: absolute;
+bottom: 4px; left: 4px;
+font-size: 0.55rem;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 0.06em;
+padding: 2px 5px;
+border-radius: 3px;
+line-height: 1.4;
 }
 .condition-badge.new    { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
-.condition-badge.opened { background: #1a1000; color: var(--brand); border: 1px solid #3a2500; }
+.condition-badge.opened { background: #1a1000; color: var(–brand); border: 1px solid #3a2500; }
 .condition-badge.used   { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
-.postage-badge {
-  position: absolute;
-  top: 8px; right: 8px;
-  font-size: 0.6rem;
-  font-weight: 900;
-  padding: 3px 7px;
-  border-radius: 4px;
-  line-height: 1.4;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--ink2);
-  z-index: 1;
-}
-.item-body {
-  padding: 10px 10px 12px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 6px;
+.item-info {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 5px;
+min-width: 0;
 }
 .item-title {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--ink);
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+font-size: 0.88rem;
+font-weight: 800;
+color: var(–ink);
+line-height: 1.3;
 }
 .item-price {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  color: var(--brand);
-  letter-spacing: 0.03em;
-  line-height: 1;
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.6rem;
+color: var(–brand);
+letter-spacing: 0.03em;
+line-height: 1;
 }
+.item-amazon {
+font-size: 0.7rem;
+font-weight: 700;
+color: var(–ink2);
+text-decoration: none;
+display: inline-block;
+}
+
+/* ── DELIVERY SECTION ── */
+.item-delivery {
+border-top: 1px solid var(–border);
+padding: 12px;
+}
+.delivery-toggle {
+display: flex;
+gap: 8px;
+margin-bottom: 10px;
+}
+.dtoggle-btn {
+flex: 1;
+padding: 10px 8px;
+border: 1.5px solid var(–border);
+border-radius: var(–r-sm);
+background: var(–surface2);
+color: var(–ink2);
+font-family: ‘Nunito’, sans-serif;
+font-weight: 800;
+font-size: 0.82rem;
+cursor: pointer;
+text-align: center;
+transition: all 0.15s;
+-webkit-tap-highlight-color: transparent;
+}
+.dtoggle-btn.is-active {
+background: var(–brand);
+border-color: var(–brand);
+color: #1a0800;
+}
+.delivery-input-wrap {
+display: none;
+flex-direction: column;
+gap: 8px;
+margin-bottom: 10px;
+}
+.delivery-input-wrap.visible { display: flex; }
+.delivery-input-wrap input {
+width: 100%;
+padding: 12px 14px;
+border-radius: var(–r-sm);
+border: 1.5px solid var(–border);
+background: var(–surface);
+color: var(–ink);
+font-family: ‘Nunito’, sans-serif;
+font-size: 1rem;
+font-weight: 600;
+outline: none;
+-webkit-appearance: none;
+}
+.delivery-input-wrap input:focus { border-color: var(–brand); }
+.delivery-cost-hint {
+font-size: 0.78rem;
+font-weight: 700;
+color: var(–ink2);
+min-height: 18px;
+line-height: 1.5;
+}
+.delivery-cost-hint.ready { color: #3dcc7a; }
+.delivery-cost-hint.error { color: var(–brand2); }
+
 .btn-wa {
-  margin-top: auto;
-  width: 100%;
-  padding: 11px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: linear-gradient(135deg, #29d980, var(--green));
-  color: #051209;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 900;
-  font-size: 0.82rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: filter 0.15s;
-  -webkit-tap-highlight-color: transparent;
+width: 100%;
+padding: 13px;
+border: none;
+border-radius: var(–r-sm);
+background: linear-gradient(135deg, #29d980, var(–green));
+color: #051209;
+font-family: ‘Nunito’, sans-serif;
+font-weight: 900;
+font-size: 0.9rem;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+transition: filter 0.15s;
+-webkit-tap-highlight-color: transparent;
 }
 .btn-wa:active { filter: brightness(0.9); }
-.btn-amazon {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--ink2);
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  font-size: 0.72rem;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-}
+
 .empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 48px 16px;
-  color: var(--ink2);
+text-align: center;
+padding: 48px 16px;
+color: var(–ink2);
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 .empty-state h3 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-  margin-bottom: 6px;
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+color: var(–ink);
+margin-bottom: 6px;
 }
 .empty-state p { font-size: 0.85rem; font-weight: 600; line-height: 1.5; }
 </style>
+
 </head>
 <body>
 
@@ -307,7 +342,7 @@ body {
 <div class="scroll-body" id="scrollBody">
   <div class="page-head">
     <h2>Amazon Vine Finds</h2>
-    <p>Tested by Ben — sold cheap.<br>Tap WhatsApp to enquire about any item.</p>
+    <p>Tested by Ben — sold cheap.<br>Collection from Doddington or delivery at £0.90/mile.</p>
   </div>
 
   <div class="filter-bar" id="filterBar">
@@ -315,33 +350,76 @@ body {
     <button class="filter-btn" data-filter="new">New</button>
     <button class="filter-btn" data-filter="opened">Opened</button>
     <button class="filter-btn" data-filter="used">Used</button>
-    <button class="filter-btn" data-filter="postage">Postage OK</button>
-    <button class="filter-btn" data-filter="collection">Collect Only</button>
   </div>
 
   <div class="item-count" id="itemCount"></div>
-  <div class="shop-grid" id="shopGrid"></div>
+  <div class="shop-list" id="shopList"></div>
 </div>
 
 <script src="shop-items.js"></script>
 
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=mapsReady"></script>
+
 <script>
 (function(){
   var WHATSAPP = '447717463496';
+  var HOME = '15 Primrose Hill, Doddington, Cambs, PE15 0SU';
+  var RATE = 0.90;
   var activeFilter = 'all';
+  var mapsLoaded = false;
+  var directionsService = null;
+  var autocompletes = {};
+
+  window.mapsReady = function(){
+    mapsLoaded = true;
+    directionsService = new google.maps.DirectionsService();
+    // Init autocompletes for any visible delivery inputs
+    document.querySelectorAll('.delivery-postcode').forEach(function(inp){
+      initAutocomplete(inp);
+    });
+  };
+
+  function initAutocomplete(inp){
+    if(!mapsLoaded || !window.google) return;
+    if(autocompletes[inp.id]) return;
+    autocompletes[inp.id] = new google.maps.places.Autocomplete(inp, {
+      fields: ['formatted_address','geometry'],
+      componentRestrictions: {country: 'gb'},
+      types: ['geocode']
+    });
+  }
+
+  function metersToMiles(m){ return m / 1609.344; }
+
+  function calcDeliveryCost(destination, hintEl, callback){
+    if(!mapsLoaded || !directionsService){
+      hintEl.textContent = 'Maps loading, try again in a moment...';
+      hintEl.className = 'delivery-cost-hint error';
+      callback(null); return;
+    }
+    hintEl.textContent = 'Calculating...';
+    hintEl.className = 'delivery-cost-hint';
+    directionsService.route({
+      origin: HOME,
+      destination: destination,
+      travelMode: 'DRIVING'
+    }, function(result, status){
+      if(status !== 'OK'){
+        hintEl.textContent = 'Could not calculate — check the postcode.';
+        hintEl.className = 'delivery-cost-hint error';
+        callback(null); return;
+      }
+      var miles = metersToMiles(result.routes[0].legs[0].distance.value);
+      var cost = Math.round(miles * RATE * 100) / 100;
+      var rounded = Math.round(cost / 5) * 5;
+      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = £' + rounded + ' (charged at £0.90/mile)';
+      hintEl.className = 'delivery-cost-hint ready';
+      callback(rounded, miles.toFixed(1));
+    });
+  }
 
   function conditionLabel(c){
     return c === 'new' ? 'New' : c === 'opened' ? 'Opened' : 'Used';
-  }
-
-  function waMsg(item){
-    return encodeURIComponent(
-      "Hey Ben! I'm interested in buying:\n\n" +
-      (item.title || 'your item') + "\n" +
-      "Your price: \u00a3" + item.price + "\n" +
-      (item.postage ? "Can you post it?\n" : "I'll collect.\n") +
-      "\nAmazon link: " + item.url + "\n\nIs it still available?"
-    );
   }
 
   function setOffset(){
@@ -359,71 +437,142 @@ body {
       if(activeFilter === 'new') return it.condition === 'new';
       if(activeFilter === 'opened') return it.condition === 'opened';
       if(activeFilter === 'used') return it.condition === 'used';
-      if(activeFilter === 'postage') return it.postage === true;
-      if(activeFilter === 'collection') return it.postage === false;
       return true;
     });
   }
 
-  function renderGrid(){
-    var grid = document.getElementById('shopGrid');
+  function renderList(){
+    var list = document.getElementById('shopList');
     var countEl = document.getElementById('itemCount');
     var items = filteredItems();
 
     if(items.length === 0){
       countEl.textContent = '';
-      grid.innerHTML =
+      list.innerHTML =
         '<div class="empty-state">' +
-          '<div class="emoji">\ud83d\udce6</div>' +
+          '<div class="emoji">📦</div>' +
           '<h3>Nothing here</h3>' +
-          '<p>No items match that filter.<br>Check back soon!</p>' +
+          '<p>No items available right now.<br>Check back soon!</p>' +
         '</div>';
       return;
     }
 
     countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' available';
 
-    grid.innerHTML = items.map(function(item, idx){
+    list.innerHTML = items.map(function(item, idx){
       var hasImg = item.img && item.img.length > 0;
-      return '<div class="item-card">' +
-        '<div class="item-img-wrap">' +
-          '<span class="condition-badge ' + (item.condition||'used') + '">' + conditionLabel(item.condition||'used') + '</span>' +
-          '<span class="postage-badge">' + (item.postage ? '\ud83d\udcee Post' : '\ud83d\ude97 Collect') + '</span>' +
-          (hasImg
-            ? '<img src="' + item.img + '" alt="' + (item.title||'Product') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
-              '<div class="item-img-placeholder" style="display:none">\ud83d\udce6</div>'
-            : '<div class="item-img-placeholder">\ud83d\udce6</div>'
-          ) +
+      return '<div class="item-card" id="card-' + idx + '">' +
+        '<div class="item-main">' +
+          '<div class="item-img-wrap">' +
+            (hasImg
+              ? '<img src="' + item.img + '" alt="' + (item.title||'') + '" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.style.display=\'none\';document.getElementById(\'ph-' + idx + '\').style.display=\'flex\'">' +
+                '<div class="item-img-placeholder" id="ph-' + idx + '" style="display:none">📦</div>'
+              : '<div class="item-img-placeholder">📦</div>') +
+            '<span class="condition-badge ' + (item.condition||'used') + '">' + conditionLabel(item.condition||'used') + '</span>' +
+          '</div>' +
+          '<div class="item-info">' +
+            '<div class="item-title">' + (item.title||'Amazon Product') + '</div>' +
+            '<div class="item-price">£' + item.price + '</div>' +
+            '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon ↗</a>' +
+          '</div>' +
         '</div>' +
-        '<div class="item-body">' +
-          '<div class="item-title">' + (item.title || 'Amazon Product') + '</div>' +
-          '<div class="item-price">\u00a3' + item.price + '</div>' +
-          '<button class="btn-wa" data-idx="' + idx + '">\ud83d\udcac WhatsApp Ben</button>' +
-          '<a class="btn-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon \u2197</a>' +
+        '<div class="item-delivery">' +
+          '<div class="delivery-toggle">' +
+            '<button class="dtoggle-btn is-active" data-idx="' + idx + '" data-mode="collect">🚗 Collection</button>' +
+            '<button class="dtoggle-btn" data-idx="' + idx + '" data-mode="delivery">🚚 Delivery</button>' +
+          '</div>' +
+          '<div class="delivery-input-wrap" id="dinput-' + idx + '">' +
+            '<input type="text" class="delivery-postcode" id="dpc-' + idx + '" placeholder="Your postcode or address...">' +
+            '<div class="delivery-cost-hint" id="dhint-' + idx + '">Enter your postcode to see delivery cost.</div>' +
+          '</div>' +
+          '<button class="btn-wa" id="wa-' + idx + '">💬 WhatsApp Ben</button>' +
         '</div>' +
       '</div>';
     }).join('');
 
-    // Wire WhatsApp buttons
-    grid.querySelectorAll('.btn-wa').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var idx = parseInt(btn.getAttribute('data-idx'));
-        var item = items[idx];
-        window.open('https://wa.me/' + WHATSAPP + '?text=' + waMsg(item), '_blank');
+    // Wire up everything per card
+    items.forEach(function(item, idx){
+      var mode = 'collect'; // default
+      var deliveryCost = null;
+      var deliveryMiles = null;
+
+      // Toggle collect/delivery
+      var toggleBtns = document.querySelectorAll('.dtoggle-btn[data-idx="' + idx + '"]');
+      var dInputWrap = document.getElementById('dinput-' + idx);
+      var dpc = document.getElementById('dpc-' + idx);
+      var dhint = document.getElementById('dhint-' + idx);
+
+      toggleBtns.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          toggleBtns.forEach(function(b){ b.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          mode = btn.getAttribute('data-mode');
+          if(mode === 'delivery'){
+            dInputWrap.classList.add('visible');
+            if(mapsLoaded) initAutocomplete(dpc);
+            dpc.focus();
+          } else {
+            dInputWrap.classList.remove('visible');
+            deliveryCost = null;
+            deliveryMiles = null;
+            dhint.textContent = 'Enter your postcode to see delivery cost.';
+            dhint.className = 'delivery-cost-hint';
+          }
+        });
       });
+
+      // Calc cost when postcode entered
+      var calcTimer = null;
+      dpc.addEventListener('input', function(){
+        clearTimeout(calcTimer);
+        deliveryCost = null;
+        if(dpc.value.length < 3) return;
+        calcTimer = setTimeout(function(){
+          calcDeliveryCost(dpc.value, dhint, function(cost, miles){
+            deliveryCost = cost;
+            deliveryMiles = miles;
+          });
+        }, 800);
+      });
+
+      // WhatsApp button
+      var waBtn = document.getElementById('wa-' + idx);
+      waBtn.addEventListener('click', function(){
+        if(mode === 'delivery' && (!dpc.value || dpc.value.length < 3)){
+          dhint.textContent = 'Please enter your postcode first.';
+          dhint.className = 'delivery-cost-hint error';
+          dpc.focus();
+          return;
+        }
+        var msg = "Hey Ben! I'm interested in buying:\n\n" +
+          (item.title || 'your item') + "\n" +
+          "Asking price: \u00a3" + item.price + "\n";
+        if(mode === 'delivery'){
+          msg += "I'd like delivery to: " + dpc.value + "\n";
+          if(deliveryCost) msg += "Delivery quote: \u00a3" + deliveryCost + " (" + deliveryMiles + " miles @ \u00a30.90/mile)\n";
+        } else {
+          msg += "I'll collect from Doddington.\n";
+        }
+        msg += "\nAmazon link: " + item.url + "\n\nIs it still available?";
+        window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank');
+      });
+
+      // Init autocomplete if maps already loaded
+      if(mapsLoaded) initAutocomplete(dpc);
     });
   }
 
+  // Filter buttons
   document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('is-active'); });
       btn.classList.add('is-active');
       activeFilter = btn.dataset.filter;
-      renderGrid();
+      renderList();
     });
   });
 
-  renderGrid();
+  renderList();
 })();
 </script>
 
