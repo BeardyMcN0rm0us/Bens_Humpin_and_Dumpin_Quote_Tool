@@ -14,7 +14,7 @@ window.BHD = Object.assign({
 
   baseFees:{
     default:25,
-    move:50,
+    move:25,
     shopBefore22:15,
     shopAfter22:25,
     ikeaCollect:25,
@@ -23,8 +23,8 @@ window.BHD = Object.assign({
     hay:0
   },
 
-  HOURLY_RATE_MOVE: 50,
-  LUTON_HIRE_COST: 200,
+  HOURLY_RATE_MOVE: 25,
+  LUTON_HIRE_COST: 225,
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
     2: { hours: 5, luton: true },
