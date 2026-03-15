@@ -22,7 +22,17 @@
 // ═══════════════════════════════════════════════════════════════
 
 window.SHOP_ITEMS = [
-
+{
+    asin: "B0CXK1EXAMPLE",
+    url: "https://www.amazon.co.uk/dp/B0CXK1EXAMPLE",
+    title: "Example Item — Replace Me",
+    desc: "This is a sample listing. Edit shop-items.js to add your real items.",
+    price: 15,
+    rrp: 35,
+    condition: "opened",
+    postage: true,
+    sold: false
+  },
 {
 asin: “B0GH1Q73V2”,
 url: “https://www.amazon.co.uk/gp/aw/d/B0GH1Q73V2?psc=1&ref=ppx_pop_mob_b_asin_title”,
