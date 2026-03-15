@@ -286,20 +286,27 @@
   </div>
 
   <!-- Hay Bales -->
-  <div id="hayWrap" class="hidden" hidden>
-    <div class="field-group">
-      <label class="field-label" for="hayBales">How many bales?</label>
-      <input id="hayBales" type="number" min="1" step="1" value="10">
+<div id="hayWrap" class="hidden" hidden>
+  <div class="field-group">
+    <label class="field-label">Rental or sale?</label>
+    <div class="opt-row">
+      <button class="opt-btn is-active" data-sel="hayType" data-val="rental">Rental</button>
+      <button class="opt-btn" data-sel="hayType" data-val="sale">Buy outright</button>
     </div>
-    <div class="field-group">
-      <label class="field-label" for="hayIncludeCollection">Include collection later?</label>
-      <select id="hayIncludeCollection">
-        <option value="no" selected>No</option>
-        <option value="yes">Yes (same address)</option>
-      </select>
-    </div>
-    <div class="hint">⚠️ Bales can't get wet — if they do, you keep them and there's a £1.50/bale charge.</div>
+    <select id="hayType" hidden aria-hidden="true">
+      <option value="rental" selected>Rental</option>
+      <option value="sale">Sale</option>
+    </select>
   </div>
+  <div class="field-group">
+    <label class="field-label" for="hayBales">How many bales?</label>
+    <input id="hayBales" type="number" min="1" step="1" value="10">
+    <div class="hint" id="hayHint">Rental: min 10 bales · Full load = 16 · Delivery &amp; collection included · £5/bale/day</div>
+  </div>
+  <!-- kept for legacy compat, no longer shown -->
+  <select id="hayIncludeCollection" hidden aria-hidden="true">
+    <option value="yes" selected>Yes</option>
+
 
   <!-- Black Bags -->
   <div id="bagsWrap" class="hidden" hidden>
