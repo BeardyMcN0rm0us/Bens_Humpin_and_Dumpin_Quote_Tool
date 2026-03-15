@@ -9,8 +9,8 @@ window.BHD = Object.assign({
 
   // ===== PRICING VARS — tweak here =====
   mileagePerMile: 0.85,
-  twoManSurcharge: 20,
-  stairsPerFloor: 7.50,
+  twoManSurcharge: 20,  // £/hr for house moves, flat fee for all other job types
+	stairsPerFloor: 7.50,
 
   baseFees:{
     default:25,
@@ -24,7 +24,7 @@ window.BHD = Object.assign({
   },
 
   HOURLY_RATE_MOVE: 50,
-  LUTON_HIRE_COST: 200,
+  LUTON_HIRE_COST: 250,
   BEDROOM_LOAD_MULTIPLIERS: {
     1: { hours: 3, luton: false },
     2: { hours: 5, luton: true },
