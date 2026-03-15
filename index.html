@@ -651,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
     scroll.innerHTML = items.map(function(item){
       return '<div class="shop-mini-card" onclick="window.location.href=\'shop.html\'">' +
         (item.img
-          ? '<img class="shop-mini-img" src="'+item.img+'" alt="'+( item.title||'')+ '" onerror="this.style.opacity=\'0.2\'">'
+          ? '<img class="shop-mini-img" src="'+item.img+'" alt="'+(item.title||'')+'" style="width:100%;height:90px;object-fit:contain;background:#1a1a1a;padding:6px;display:block;" onerror="this.style.opacity=\'0.2\'">'
           : '<div class="shop-mini-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:0.3">📦</div>') +
         '<div class="shop-mini-body">' +
           '<div class="shop-mini-title">'+(item.title||'Amazon Product')+'</div>' +
