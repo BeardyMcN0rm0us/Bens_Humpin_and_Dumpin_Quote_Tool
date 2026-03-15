@@ -23,6 +23,17 @@ price: 40,
 condition: "new",
 postage: true,
 sold: false
+},
+
+  
+{
+url: "https://www.amazon.co.uk/dp/B0GH1ZZ49F",
+img: "https://m.media-amazon.com/images/I/91Tj9pfGVOL._AC_SL1500_.jpg",
+title: "Lay-Z-Spa Glacial Dip Tub 1 Person",
+price: 30,
+condition: "new",
+postage: true,
+sold: false
 }
 
 ];
