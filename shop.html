@@ -1,1 +1,486 @@
-.
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Humpin' & Dumpin' Shop</title>
+<meta name="theme-color" content="#0a0a0a"/>
+<link rel="icon" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+:root {
+  --bg:      #0a0a0a;
+  --surface: #141414;
+  --surface2:#1c1c1c;
+  --border:  #2a2a2a;
+  --ink:     #ffffff;
+  --ink2:    #a0a0a0;
+  --brand:   #f4a261;
+  --brand2:  #e76f51;
+  --green:   #25D366;
+  --r:       14px;
+  --r-sm:    10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* ── HEADER ── */
+.app-header {
+position: fixed;
+top: 0; left: 0; right: 0;
+z-index: 100;
+background: var(–bg);
+border-bottom: 1px solid var(–border);
+padding: env(safe-area-inset-top, 0) 0 0;
+}
+.header-inner {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 16px 12px;
+}
+.header-inner img {
+width: 38px; height: 38px;
+border-radius: 10px;
+border: 1px solid var(–border);
+object-fit: cover;
+flex-shrink: 0;
+}
+.header-title { flex: 1; }
+.header-title h1 {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+letter-spacing: 0.04em;
+color: var(–brand);
+line-height: 1;
+}
+.header-title .sub {
+font-size: 0.7rem;
+font-weight: 700;
+color: var(–ink2);
+text-transform: uppercase;
+letter-spacing: 0.1em;
+}
+.header-link {
+font-size: 0.72rem;
+font-weight: 800;
+color: var(–ink2);
+text-decoration: none;
+text-transform: uppercase;
+letter-spacing: 0.07em;
+flex-shrink: 0;
+border: 1px solid var(–border);
+padding: 7px 12px;
+border-radius: var(–r-sm);
+}
+.header-link:active { opacity: 0.6; }
+
+/* ── SCROLL BODY ── */
+.scroll-body {
+padding-top: 80px;
+padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+min-height: 100vh;
+}
+
+/* ── PAGE HEAD ── */
+.page-head {
+padding: 20px 16px 4px;
+}
+.page-head h2 {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 2.2rem;
+letter-spacing: 0.04em;
+color: var(–ink);
+line-height: 1;
+}
+.page-head p {
+font-size: 0.85rem;
+color: var(–ink2);
+font-weight: 600;
+margin-top: 4px;
+line-height: 1.5;
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+display: flex;
+gap: 8px;
+padding: 12px 16px 4px;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-btn {
+flex-shrink: 0;
+background: var(–surface);
+border: 1.5px solid var(–border);
+border-radius: 20px;
+padding: 8px 16px;
+font-family: ‘Nunito’, sans-serif;
+font-weight: 800;
+font-size: 0.78rem;
+color: var(–ink2);
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 0.06em;
+transition: all 0.15s;
+-webkit-tap-highlight-color: transparent;
+}
+.filter-btn.is-active {
+background: var(–brand);
+border-color: var(–brand);
+color: #1a0800;
+}
+
+/* ── ITEM COUNT ── */
+.item-count {
+padding: 8px 16px 0;
+font-size: 0.75rem;
+font-weight: 700;
+color: var(–ink2);
+text-transform: uppercase;
+letter-spacing: 0.07em;
+}
+
+/* ── SHOP GRID ── */
+.shop-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+padding: 10px 16px 0;
+}
+@media (min-width: 600px) {
+.shop-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── ITEM CARD ── */
+.item-card {
+background: var(–surface);
+border: 1.5px solid var(–border);
+border-radius: var(–r);
+overflow: hidden;
+display: flex;
+flex-direction: column;
+transition: border-color 0.15s, transform 0.1s;
+-webkit-tap-highlight-color: transparent;
+}
+.item-card:active { transform: scale(0.97); }
+.item-img-wrap {
+position: relative;
+width: 100%;
+padding-top: 100%;
+background: #1a1a1a;
+overflow: hidden;
+}
+.item-img-wrap img {
+position: absolute;
+inset: 0;
+width: 100%; height: 100%;
+object-fit: contain;
+padding: 8px;
+}
+.condition-badge {
+position: absolute;
+top: 8px; left: 8px;
+font-size: 0.6rem;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 0.07em;
+padding: 3px 7px;
+border-radius: 4px;
+line-height: 1.4;
+}
+.condition-badge.new     { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
+.condition-badge.opened  { background: #1a1000; color: var(–brand); border: 1px solid #3a2500; }
+.condition-badge.tested  { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
+.postage-badge {
+position: absolute;
+top: 8px; right: 8px;
+font-size: 0.6rem;
+font-weight: 900;
+padding: 3px 7px;
+border-radius: 4px;
+line-height: 1.4;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–ink2);
+}
+
+.item-body {
+padding: 10px 10px 12px;
+display: flex;
+flex-direction: column;
+flex: 1;
+gap: 6px;
+}
+.item-title {
+font-size: 0.78rem;
+font-weight: 800;
+color: var(–ink);
+line-height: 1.3;
+display: -webkit-box;
+-webkit-line-clamp: 3;
+-webkit-box-orient: vertical;
+overflow: hidden;
+}
+.item-desc {
+font-size: 0.7rem;
+font-weight: 600;
+color: var(–ink2);
+line-height: 1.4;
+display: -webkit-box;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
+overflow: hidden;
+}
+.item-prices {
+display: flex;
+align-items: baseline;
+gap: 6px;
+margin-top: 2px;
+}
+.item-price {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+color: var(–brand);
+letter-spacing: 0.03em;
+line-height: 1;
+}
+.item-rrp {
+font-size: 0.68rem;
+font-weight: 700;
+color: var(–ink2);
+text-decoration: line-through;
+}
+.item-saving {
+font-size: 0.65rem;
+font-weight: 800;
+color: #3dcc7a;
+margin-left: auto;
+}
+.btn-wa {
+margin-top: auto;
+width: 100%;
+padding: 11px;
+border: none;
+border-radius: var(–r-sm);
+background: linear-gradient(135deg, #29d980, var(–green));
+color: #051209;
+font-family: ‘Nunito’, sans-serif;
+font-weight: 900;
+font-size: 0.82rem;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+transition: filter 0.15s;
+-webkit-tap-highlight-color: transparent;
+letter-spacing: 0.02em;
+}
+.btn-wa:active { filter: brightness(0.9); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+grid-column: 1 / -1;
+text-align: center;
+padding: 48px 16px;
+color: var(–ink2);
+}
+.empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+.empty-state h3 {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+color: var(–ink);
+margin-bottom: 6px;
+}
+.empty-state p { font-size: 0.85rem; font-weight: 600; line-height: 1.5; }
+
+/* ── LOADING ── */
+.skeleton {
+background: linear-gradient(90deg, var(–surface) 25%, var(–surface2) 50%, var(–surface) 75%);
+background-size: 200% 100%;
+animation: shimmer 1.4s infinite;
+border-radius: var(–r-sm);
+}
+@keyframes shimmer {
+0%   { background-position: 200% 0; }
+100% { background-position: -200% 0; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-inner">
+    <img src="icon-192.png" alt="logo">
+    <div class="header-title">
+      <h1>Humpin' &amp; Dumpin'</h1>
+      <div class="sub">The Shop</div>
+    </div>
+    <a class="header-link" href="index.html">← Get Quote</a>
+  </div>
+</div>
+
+<div class="scroll-body" id="scrollBody">
+  <div class="page-head">
+    <h2>Amazon Vine Finds</h2>
+    <p>Tested by Ben — sold at a fraction of the price.<br>Tap WhatsApp to enquire about any item.</p>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn is-active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="new">New</button>
+    <button class="filter-btn" data-filter="opened">Opened</button>
+    <button class="filter-btn" data-filter="tested">Tested</button>
+    <button class="filter-btn" data-filter="postage">Postage Available</button>
+    <button class="filter-btn" data-filter="collection">Collection Only</button>
+  </div>
+
+  <div class="item-count" id="itemCount"></div>
+  <div class="shop-grid" id="shopGrid"></div>
+</div>
+
+<script src="shop-items.js"></script>
+
+<script>
+(function(){
+  const WHATSAPP = '447717463496';
+  const grid = document.getElementById('shopGrid');
+  const countEl = document.getElementById('itemCount');
+  let activeFilter = 'all';
+
+  function imgUrl(asin){
+    return `https://images-na.ssl-images-amazon.com/images/P/${asin}.jpg`;
+  }
+
+  function conditionLabel(c){
+    if(c==='new') return 'New';
+    if(c==='opened') return 'Opened';
+    return 'Tested';
+  }
+
+  function saving(price, rrp){
+    if(!rrp || rrp <= price) return '';
+    const pct = Math.round((1 - price/rrp)*100);
+    return pct > 0 ? `${pct}% off` : '';
+  }
+
+  function waMessage(item){
+    return encodeURIComponent(
+      `Hey Ben! I'm interested in buying:\n\n` +
+      `${item.title}\n` +
+      `Your price: £${item.price}\n` +
+      (item.postage ? `Happy to pay postage if needed.\n` : `I'll collect.\n`) +
+      `\nAmazon link: ${item.url}\n\n` +
+      `Is this still available?`
+    );
+  }
+
+  function renderCards(items){
+    if(items.length === 0){
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="emoji">📦</div>
+          <h3>Nothing here yet</h3>
+          <p>No items match that filter right now.<br>Check back soon!</p>
+        </div>`;
+      countEl.textContent = '';
+      return;
+    }
+
+    countEl.textContent = `${items.length} item${items.length!==1?'s':''} available`;
+
+    grid.innerHTML = items.map(item => `
+      <div class="item-card">
+        <div class="item-img-wrap">
+          <img
+            src="${imgUrl(item.asin)}"
+            alt="${item.title}"
+            onerror="this.style.opacity='0.3'; this.src='icon-192.png';"
+            loading="lazy"
+          >
+          <span class="condition-badge ${item.condition}">${conditionLabel(item.condition)}</span>
+          <span class="postage-badge">${item.postage ? '📮 Post' : '🚗 Collect'}</span>
+        </div>
+        <div class="item-body">
+          <div class="item-title">${item.title}</div>
+          ${item.desc ? `<div class="item-desc">${item.desc}</div>` : ''}
+          <div class="item-prices">
+            <span class="item-price">£${item.price}</span>
+            ${item.rrp ? `<span class="item-rrp">£${item.rrp}</span>` : ''}
+            ${saving(item.price, item.rrp) ? `<span class="item-saving">${saving(item.price, item.rrp)}</span>` : ''}
+          </div>
+          <button class="btn-wa" onclick="window.open('https://wa.me/${WHATSAPP}?text=${encodeURIComponent("placeholder")}','_blank')" data-idx="${items.indexOf(item)}">
+            💬 WhatsApp Ben
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Attach proper WhatsApp handlers with full item data
+    grid.querySelectorAll('.btn-wa').forEach((btn, i) => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const item = items[i];
+        window.open(`https://wa.me/${WHATSAPP}?text=${waMessage(item)}`, '_blank');
+      });
+      // Remove the inline onclick
+      btn.removeAttribute('onclick');
+    });
+  }
+
+  function applyFilter(){
+    const items = (window.SHOP_ITEMS || []).filter(it => {
+      if(it.sold) return false;
+      if(activeFilter === 'all') return true;
+      if(activeFilter === 'new') return it.condition === 'new';
+      if(activeFilter === 'opened') return it.condition === 'opened';
+      if(activeFilter === 'tested') return it.condition === 'tested';
+      if(activeFilter === 'postage') return it.postage === true;
+      if(activeFilter === 'collection') return it.postage === false;
+      return true;
+    });
+    renderCards(items);
+  }
+
+  // Filter buttons
+  document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      activeFilter = btn.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  // Offset scroll body for fixed header
+  function setOffset(){
+    const h = document.querySelector('.app-header');
+    const b = document.getElementById('scrollBody');
+    if(h && b) b.style.paddingTop = (h.offsetHeight + 4) + 'px';
+  }
+  setOffset();
+  window.addEventListener('resize', setOffset);
+
+  applyFilter();
+})();
+</script>
+
+</body>
+</html>
