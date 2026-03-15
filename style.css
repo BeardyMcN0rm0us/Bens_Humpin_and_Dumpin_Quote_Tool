@@ -147,19 +147,19 @@ body {
 }
 
 /* ── STEP HEADER ── */
-.panel-head { padding: 20px 16px 4px; }
+.panel-head { padding: 16px 16px 4px; }
 .panel-head h2 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 2rem;
+  font-size: 1.8rem;
   letter-spacing: 0.04em;
   color: var(--ink);
   line-height: 1;
 }
 .panel-head p {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--ink2);
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 .back-row {
   display: flex;
@@ -186,23 +186,23 @@ body {
 .tile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px 16px;
 }
 .tile {
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--r);
-  padding: 18px 12px 16px;
+  padding: 14px 10px 12px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   text-align: center;
   transition: border-color 0.15s, background 0.15s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
-  min-height: 100px;
+  min-height: 85px;
 }
 .tile:active { transform: scale(0.95); background: #1e1008; }
 .tile.is-selected {
@@ -210,15 +210,15 @@ body {
   background: #1a0e04;
   box-shadow: 0 0 0 3px rgba(244,162,97,0.12);
 }
-.tile-icon { font-size: 2rem; line-height: 1; }
+.tile-icon { font-size: 1.6rem; line-height: 1; }
 .tile-name {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--ink);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 .tile-desc {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: var(--ink2);
   line-height: 1.2;
@@ -228,7 +228,7 @@ body {
   flex-direction: row;
   justify-content: center;
   min-height: auto;
-  padding: 14px 16px;
+  padding: 12px 16px;
   gap: 10px;
 }
 .tile-span .tile-name { font-size: 0.88rem; }
@@ -304,6 +304,9 @@ textarea { min-height: 90px; resize: vertical; }
   .grid3 { grid-template-columns: 1fr; }
 }
 
+/* ── HIDDEN ELEMENTS — includes select tags used by main.js ── */
+[hidden], .hidden, select[hidden] { display: none !important; }
+
 /* ── TRUST BADGE ── */
 .trust-badge {
   background: #071a0e;
@@ -326,7 +329,6 @@ textarea { min-height: 90px; resize: vertical; }
   margin-top: 6px;
 }
 .route-hint { min-height: 18px; }
-[hidden], .hidden { display: none !important; }
 
 /* ── ITEM LISTS ── */
 .item-list { margin-top: 8px; border-top: 1px solid var(--border); }
