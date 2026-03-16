@@ -7,19 +7,19 @@
 window.BHD = {
 
 // ── Mileage & surcharges ──────────────────────────────────────
-mileagePerMile:   0.90,   // £ per charged mile
+mileagePerMile:   0.50,   // £ per charged mile
 twoManSurcharge:  20,     // £ added if two-person team requested
 stairsPerFloor:   5,      // £ per floor at pickup + drop-off
 
 // ── Base call-out fees by job type ────────────────────────────
 baseFees: {
-default:          25,   // fallback for most job types
-move:             25,   // house moves
+default:          20,   // fallback for most job types
+move:             0,   // house moves
 shopBefore22:     10,   // emergency shop run before 10pm
 shopAfter22:      20,   // emergency shop run after 10pm
-ikeaCollect:      25,   // IKEA collect only
-ikeaCollectBuild: 25,   // IKEA collect + build
-flatpack:         25,   // flat pack build only
+ikeaCollect:      0,   // IKEA collect only
+ikeaCollectBuild: 0,   // IKEA collect + build
+flatpack:         0,   // flat pack build only
 },
 
 // ── Quote range (±% either side of calculated total) ─────────
