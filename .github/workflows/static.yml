@@ -53,7 +53,7 @@ jobs:
           # Inject Google Maps API key (safely escaped for sed)
           if [[ -n "${MAPS_KEY:-}" ]]; then
             KEY_ESCAPED=$(printf '%s' "$MAPS_KEY" | sed -e 's/[\/&]/\\&/g')
-            sed -i "s/__MAPS_API_KEY__/${KEY_ESCAPED}/g" dist/index.html || { echo "::error ::sed injection failed"; exit 2; }
+            sed -i "s/__MAPS_API_KEY__/${KEY_ESCAPED}/g" dist/index.html dist/shop.html || { echo "::error ::sed injection failed"; exit 2; }
           else
             echo "::warning ::MAPS_API_KEY not set; leaving placeholder"
           fi
