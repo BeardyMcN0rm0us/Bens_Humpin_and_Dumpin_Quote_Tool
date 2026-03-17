@@ -412,7 +412,7 @@ margin-bottom: 6px;
       var miles = metersToMiles(result.routes[0].legs[0].distance.value);
       var cost = Math.round(miles * RATE * 100) / 100;
       var rounded = Math.round(cost / 5) * 5;
-      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = £' + rounded + ' (charged at £0.90/mile)';
+      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = £' + rounded + ' (charged at £0.50/mile)';
       hintEl.className = 'delivery-cost-hint ready';
       callback(rounded, miles.toFixed(1));
     });
