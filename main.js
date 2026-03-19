@@ -40,18 +40,18 @@ window.BHD = Object.assign({
   disposalMinPct:0.25,
   disposalVat:0.20,
   disposal:{
-    general:{label:"General Waste",ratePerTonne:192.50},
-    soil:{label:"Soil/Inert",ratePerTonne:69.75},
-    hardcore:{label:"Hardcore",ratePerTonne:25.75},
-    plaster:{label:"Plasterboard",ratePerTonne:105.00},
-    wood:{label:"Mixed Wood",ratePerTonne:91.00},
-    mdf:{label:"MDF",ratePerTonne:175.00},
+    general:{label:"General Waste",ratePerTonne:196.73},
+    soil:{label:"Soil/Inert",ratePerTonne:80.25},
+    hardcore:{label:"Hardcore",ratePerTonne:25.00},
+    plaster:{label:"Plasterboard",ratePerTonne:117.50},
+    wood:{label:"Mixed Wood",ratePerTonne:100.50},
+    mdf:{label:"MDF",ratePerTonne:196.73},
     metal:{label:"Metals",ratePerTonne:27.00},
-    plastics:{label:"Rigid/Agricultural Plastics",ratePerTonne:186.23},
-    green:{label:"Green material",ratePerTonne:90.00},
+    plastics:{label:"Rigid/Agricultural Plastics",ratePerTonne:196.73},
+    green:{label:"Green material",ratePerTonne:100.50},
     cardboard:{label:"Cardboard (clean)",ratePerTonne:25.00},
-    dmr:{label:"Dry Mixed Recycling",ratePerTonne:145.00},
-    wuds:{label:"WUDs & POPs",ratePerTonne:345.00}
+    dmr:{label:"Dry Mixed Recycling",ratePerTonne:188.22},
+    wuds:{label:"WUDs & POPs",ratePerTonne:365.00}
   },
 
   bagPriceEach: 4,
