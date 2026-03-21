@@ -13,6 +13,14 @@
 // =================================================================
 
 window.SHOP_ITEMS = [
+{
+url: "https://www.amazon.co.uk/dp/B0F844VTC8",
+img: "https://www.amazon.co.uk/dp/B0F844VTC8",
+title: "HCALORY 12V Portable Diesel Heater, 2025 upgrade Toolbox 2 Plus 8KW 6L All-in-One Diesel Air Heater with APP Control Work at Altitude Max 20000 ft for Car Trucks RV and camper",
+price: 150,
+condition: "new",
+sold: false
+},
 
 {
 url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
