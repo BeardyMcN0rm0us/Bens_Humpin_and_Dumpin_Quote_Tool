@@ -167,40 +167,27 @@ body {
   background: #1a1a1a;
   border-radius: var(--r-sm);
   overflow: hidden;
-}
-.item-img-wrap img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  padding: 6px;
-}
-.item-img-placeholder {
-  width: 100%; height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  opacity: 0.25;
 }
-/* shimmer loading state */
-.item-img-loading {
-  width: 100%; height: 100%;
+.item-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+.shimmer {
   background: linear-gradient(90deg, var(--surface2) 25%, #252525 50%, var(--surface2) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+  animation: sh 1.4s infinite;
 }
-.item-title-loading {
-  height: 20px;
-  width: 80%;
-  background: linear-gradient(90deg, var(--surface2) 25%, #252525 50%, var(--surface2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 4px;
-  margin-bottom: 4px;
-}
-@keyframes shimmer {
+@keyframes sh {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+.img-shimmer { width: 100%; height: 100%; }
+.img-placeholder { font-size: 2.5rem; opacity: 0.2; }
 .condition-badge {
   position: absolute;
   bottom: 4px; left: 4px;
@@ -211,7 +198,6 @@ body {
   padding: 2px 5px;
   border-radius: 3px;
   line-height: 1.4;
-  z-index: 1;
 }
 .condition-badge.new    { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
 .condition-badge.opened { background: #1a1000; color: var(--brand); border: 1px solid #3a2500; }
@@ -220,7 +206,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
 }
 .item-title {
@@ -228,6 +214,14 @@ body {
   font-weight: 800;
   color: var(--ink);
   line-height: 1.3;
+}
+.title-shimmer { height: 42px; border-radius: 4px; width: 90%; }
+.item-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+  flex-wrap: wrap;
 }
 .item-price {
   font-family: 'Bebas Neue', sans-serif;
@@ -242,12 +236,17 @@ body {
   color: var(--ink2);
   text-decoration: line-through;
 }
+.item-saving {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #3dcc7a;
+}
 .item-amazon {
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--ink2);
   text-decoration: none;
-  display: inline-block;
+  margin-top: 2px;
 }
 .item-delivery {
   border-top: 1px solid var(--border);
@@ -278,14 +277,14 @@ body {
   border-color: var(--brand);
   color: #1a0800;
 }
-.delivery-input-wrap {
+.delivery-fields {
   display: none;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 10px;
 }
-.delivery-input-wrap.visible { display: flex; }
-.delivery-input-wrap input {
+.delivery-fields.open { display: flex; }
+.delivery-fields input {
   width: 100%;
   padding: 12px 14px;
   border-radius: var(--r-sm);
@@ -298,16 +297,16 @@ body {
   outline: none;
   -webkit-appearance: none;
 }
-.delivery-input-wrap input:focus { border-color: var(--brand); }
-.delivery-cost-hint {
+.delivery-fields input:focus { border-color: var(--brand); }
+.delivery-hint {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--ink2);
-  min-height: 18px;
   line-height: 1.5;
+  min-height: 20px;
 }
-.delivery-cost-hint.ready { color: #3dcc7a; }
-.delivery-cost-hint.error { color: var(--brand2); }
+.delivery-hint.ok  { color: #3dcc7a; }
+.delivery-hint.err { color: var(--brand2); }
 .btn-wa {
   width: 100%;
   padding: 13px;
@@ -323,14 +322,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: filter 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .btn-wa:active { filter: brightness(0.9); }
 .empty-state {
   text-align: center;
   padding: 48px 16px;
-  color: var(--ink2);
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 .empty-state h3 {
@@ -339,7 +336,12 @@ body {
   color: var(--ink);
   margin-bottom: 6px;
 }
-.empty-state p { font-size: 0.85rem; font-weight: 600; line-height: 1.5; }
+.empty-state p {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink2);
+  line-height: 1.5;
+}
 </style>
 </head>
 <body>
@@ -351,122 +353,155 @@ body {
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">The Shop</div>
     </div>
-    <a class="header-link" href="index.html">← Quotes</a>
+    <a class="header-link" href="index.html">&#8592; Quotes</a>
   </div>
 </div>
 
 <div class="scroll-body" id="scrollBody">
   <div class="page-head">
     <h2>Amazon Vine Finds</h2>
-    <p>Tested by Ben — sold cheap.<br>Collection from Doddington or delivery at £0.50/mile.</p>
+    <p>Tested by Ben &mdash; sold cheap.<br>
+    Collection from Doddington or delivery at &pound;0.50/mile.</p>
   </div>
-
   <div class="filter-bar" id="filterBar">
-    <button class="filter-btn is-active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="new">New</button>
-    <button class="filter-btn" data-filter="opened">Opened</button>
-    <button class="filter-btn" data-filter="used">Used</button>
+    <button class="filter-btn is-active" data-f="all">All</button>
+    <button class="filter-btn" data-f="new">New</button>
+    <button class="filter-btn" data-f="opened">Opened</button>
+    <button class="filter-btn" data-f="used">Used</button>
   </div>
-
   <div class="item-count" id="itemCount"></div>
-  <div class="shop-list" id="shopList"></div>
+  <div class="shop-list"  id="shopList"></div>
 </div>
 
 <script src="shop-items.js"></script>
 
 <script>
-(function(){
-  var WHATSAPP = '447717463496';
-  var HOME_PC = 'PE150SU';
-  var RATE = 0.50;
-  var activeFilter = 'all';
+// Wrapped in try/catch at the top level so any error shows a message
+// rather than a blank page
+try {
 
-  // Cache for microlink results so we don't re-fetch on filter change
-  var metaCache = {};
+var WHATSAPP = '447717463496';
+var HOME_PC  = 'PE150SU';
+var RATE     = 0.50;
+var activeFilter = 'all';
+var metaCache = {};
 
-  function conditionLabel(c){
-    return c === 'new' ? 'New' : c === 'opened' ? 'Opened' : 'Used';
-  }
-
-  function setOffset(){
+// ── Offset header ──────────────────────────────────────────────────
+function setOffset() {
+  try {
     var h = document.getElementById('appHeader');
     var b = document.getElementById('scrollBody');
-    if(h && b) b.style.paddingTop = (h.offsetHeight + 4) + 'px';
-  }
-  setOffset();
-  window.addEventListener('resize', setOffset);
+    if (h && b) b.style.paddingTop = (h.offsetHeight + 4) + 'px';
+  } catch(e) {}
+}
+setOffset();
+window.addEventListener('resize', function() { try { setOffset(); } catch(e) {} });
 
-  function filteredItems(){
-    return (window.SHOP_ITEMS || []).filter(function(it){
-      if(it.sold) return false;
-      if(activeFilter === 'all') return true;
+// ── Filter buttons ─────────────────────────────────────────────────
+document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    try {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      activeFilter = btn.getAttribute('data-f');
+      render();
+    } catch(e) {}
+  });
+});
+
+// ── Microlink fetch (image + title) ───────────────────────────────
+function fetchMeta(url, cb) {
+  try {
+    if (metaCache[url] !== undefined) { cb(metaCache[url]); return; }
+    // Set to null immediately so parallel calls don't double-fetch
+    metaCache[url] = null;
+    fetch('https://api.microlink.io/?url=' + encodeURIComponent(url) +
+          '&palette=false&audio=false&video=false&iframe=false')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        try {
+          var result = { title: null, img: null };
+          if (d && d.status === 'success' && d.data) {
+            result.title = d.data.title || null;
+            if (d.data.image && d.data.image.url) result.img = d.data.image.url;
+            // Try to get price from microlink
+            if (d.data.price) result.price = d.data.price;
+            else if (d.data.offers && d.data.offers.price) result.price = d.data.offers.price;
+          }
+          metaCache[url] = result;
+          cb(result);
+        } catch(e) { cb({ title: null, img: null }); }
+      })
+      .catch(function() { metaCache[url] = { title: null, img: null }; cb(metaCache[url]); });
+  } catch(e) { cb({ title: null, img: null }); }
+}
+
+// ── Delivery cost (postcodes.io) ───────────────────────────────────
+function calcDelivery(postcode, hintEl, cb) {
+  try {
+    hintEl.textContent = 'Calculating...';
+    hintEl.className = 'delivery-hint';
+    var pc = postcode.replace(/\s/g, '').toUpperCase();
+    Promise.all([
+      fetch('https://api.postcodes.io/postcodes/' + encodeURIComponent(pc)).then(function(r) { return r.json(); }),
+      fetch('https://api.postcodes.io/postcodes/' + HOME_PC).then(function(r) { return r.json(); })
+    ]).then(function(res) {
+      try {
+        if (res[0].status !== 200 || res[1].status !== 200) {
+          hintEl.textContent = 'Could not find that postcode \u2014 please check it.';
+          hintEl.className = 'delivery-hint err';
+          cb(null); return;
+        }
+        var lat1 = res[1].result.latitude,  lon1 = res[1].result.longitude;
+        var lat2 = res[0].result.latitude,  lon2 = res[0].result.longitude;
+        var R = 3958.8, p = Math.PI / 180;
+        var a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 +
+                Math.cos(lat1 * p) * Math.cos(lat2 * p) *
+                (1 - Math.cos((lon2 - lon1) * p)) / 2;
+        var miles = 2 * R * Math.asin(Math.sqrt(a)) * 1.2;
+        var cost  = Math.max(5, Math.round(miles * RATE / 5) * 5);
+        hintEl.textContent = 'Delivery: ~' + miles.toFixed(1) + ' miles = \u00a3' + cost + ' (\u00a30.50/mile)';
+        hintEl.className = 'delivery-hint ok';
+        cb(cost, miles.toFixed(1));
+      } catch(e) {
+        hintEl.textContent = 'Calculation error \u2014 please try again.';
+        hintEl.className = 'delivery-hint err';
+        cb(null);
+      }
+    }).catch(function() {
+      hintEl.textContent = 'Could not calculate \u2014 check the postcode.';
+      hintEl.className = 'delivery-hint err';
+      cb(null);
+    });
+  } catch(e) {
+    hintEl.textContent = 'Calculation error.';
+    hintEl.className = 'delivery-hint err';
+    cb(null);
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+function condLabel(c) {
+  return c === 'new' ? 'New' : c === 'opened' ? 'Opened' : 'Used';
+}
+function savingPct(price, rrp) {
+  if (!rrp || rrp <= price) return 0;
+  return Math.round((1 - price / rrp) * 100);
+}
+function el(id) { return document.getElementById(id); }
+
+// ── Render ─────────────────────────────────────────────────────────
+function render() {
+  try {
+    var list    = el('shopList');
+    var countEl = el('itemCount');
+    var items   = (window.SHOP_ITEMS || []).filter(function(it) {
+      if (it.sold) return false;
+      if (activeFilter === 'all') return true;
       return it.condition === activeFilter;
     });
-  }
 
-  // Fetch title + image from microlink.io
-  function fetchMeta(url, callback){
-    if(metaCache[url]){
-      callback(metaCache[url]); return;
-    }
-    fetch('https://api.microlink.io?url=' + encodeURIComponent(url) + '&palette=false&audio=false&video=false&iframe=false')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        var result = {title: null, img: null};
-        if(data && data.status === 'success' && data.data){
-          result.title = data.data.title || null;
-          result.img = (data.data.image && data.data.image.url) ? data.data.image.url : null;
-          // Try og image if main image missing
-          if(!result.img && data.data.og && data.data.og.image) result.img = data.data.og.image;
-        }
-        metaCache[url] = result;
-        callback(result);
-      })
-      .catch(function(){
-        metaCache[url] = {title: null, img: null};
-        callback(metaCache[url]);
-      });
-  }
-
-  function calcDelivery(postcode, hintEl, callback){
-    hintEl.textContent = 'Calculating...';
-    hintEl.className = 'delivery-cost-hint';
-    var pc = postcode.trim().replace(/\s+/g, '').toUpperCase();
-    Promise.all([
-      fetch('https://api.postcodes.io/postcodes/' + encodeURIComponent(pc)).then(function(r){ return r.json(); }),
-      fetch('https://api.postcodes.io/postcodes/' + HOME_PC).then(function(r){ return r.json(); })
-    ]).then(function(results){
-      if(results[0].status !== 200 || results[1].status !== 200){
-        hintEl.textContent = 'Could not find that postcode — please check it.';
-        hintEl.className = 'delivery-cost-hint error';
-        callback(null); return;
-      }
-      var lat1 = results[1].result.latitude,  lon1 = results[1].result.longitude;
-      var lat2 = results[0].result.latitude,  lon2 = results[0].result.longitude;
-      var R = 3958.8;
-      var dLat = (lat2 - lat1) * Math.PI / 180;
-      var dLon = (lon2 - lon1) * Math.PI / 180;
-      var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
-              Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-              Math.sin(dLon/2)*Math.sin(dLon/2);
-      var miles = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.2;
-      var cost = Math.max(5, Math.round(miles * RATE / 5) * 5);
-      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = \u00a3' + cost + ' (at \u00a30.50/mile)';
-      hintEl.className = 'delivery-cost-hint ready';
-      callback(cost, miles.toFixed(1));
-    }).catch(function(){
-      hintEl.textContent = 'Could not calculate — check the postcode.';
-      hintEl.className = 'delivery-cost-hint error';
-      callback(null);
-    });
-  }
-
-  function renderList(){
-    var list = document.getElementById('shopList');
-    var countEl = document.getElementById('itemCount');
-    var items = filteredItems();
-
-    if(items.length === 0){
+    if (!items.length) {
       countEl.textContent = '';
       list.innerHTML =
         '<div class="empty-state">' +
@@ -479,164 +514,203 @@ body {
 
     countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' available';
 
-    // Build cards with shimmer placeholders
-    list.innerHTML = items.map(function(item, idx){
-      var hasImg = item.img && item.img.length > 0;
-      var hasTitle = item.title && item.title.length > 0;
-      var cached = metaCache[item.url];
-      var imgSrc = item.img || (cached && cached.img) || null;
-      var titleTxt = item.title || (cached && cached.title) || null;
+    // Build all card HTML in one go
+    list.innerHTML = items.map(function(item, i) {
+      try {
+        var cond    = item.condition || 'used';
+        var cached  = metaCache[item.url];
+        var imgSrc  = item.img   || (cached && cached.img)   || null;
+        var titleTx = item.title || (cached && cached.title) || null;
+        var rrpVal  = (cached && cached.price) ? cached.price : (item.rrp ? item.rrp : null);
+        var pct     = savingPct(item.price, rrpVal);
 
-      return '<div class="item-card" id="card-' + idx + '">' +
-        '<div class="item-main">' +
-          '<div class="item-img-wrap" id="imgwrap-' + idx + '">' +
+        return '<div class="item-card" id="card' + i + '">' +
+          '<div class="item-main">' +
+
+          // image
+          '<div class="item-img-wrap" id="iw' + i + '">' +
             (imgSrc
-              ? '<img src="' + imgSrc + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.style.display=\'none\';document.getElementById(\'imgph-' + idx + '\').style.display=\'flex\'">' +
-                '<div class="item-img-placeholder" id="imgph-' + idx + '" style="display:none">\ud83d\udce6</div>'
-              : '<div class="item-img-loading" id="imgload-' + idx + '"></div>' +
-                '<div class="item-img-placeholder" id="imgph-' + idx + '" style="display:none">\ud83d\udce6</div>') +
-            '<span class="condition-badge ' + (item.condition||'used') + '">' + conditionLabel(item.condition||'used') + '</span>' +
+              ? '<img src="' + imgSrc + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'\'">' +
+                '<div class="img-placeholder" style="display:none">\ud83d\udce6</div>'
+              : '<div class="shimmer img-shimmer" id="ish' + i + '"></div>' +
+                '<div class="img-placeholder" id="iph' + i + '" style="display:none">\ud83d\udce6</div>') +
+            '<span class="condition-badge ' + cond + '">' + condLabel(cond) + '</span>' +
           '</div>' +
+
+          // info
           '<div class="item-info">' +
-            (titleTxt
-              ? '<div class="item-title" id="title-' + idx + '">' + titleTxt + '</div>'
-              : '<div class="item-title-loading" id="titleload-' + idx + '"></div>' +
-                '<div class="item-title" id="title-' + idx + '" style="display:none"></div>') +
-            '<div class="item-price">\u00a3' + item.price + '</div>' +
-            (item.rrp ? '<div class="item-rrp">Amazon: \u00a3' + item.rrp + '</div>' : '') +
+            (titleTx
+              ? '<div class="item-title">' + titleTx + '</div>'
+              : '<div class="shimmer title-shimmer" id="tsh' + i + '"></div>' +
+                '<div class="item-title" id="ttl' + i + '" style="display:none"></div>') +
+            '<div class="item-price-row" id="pr' + i + '">' +
+              '<span class="item-price">\u00a3' + item.price + '</span>' +
+              (rrpVal ? '<span class="item-rrp">\u00a3' + rrpVal + '</span>' : '') +
+              (pct > 0  ? '<span class="item-saving">' + pct + '% off</span>' : '') +
+            '</div>' +
             '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon \u2197</a>' +
-          '</div>' +
-        '</div>' +
-        '<div class="item-delivery">' +
-          '<div class="delivery-toggle">' +
-            '<button class="dtoggle-btn is-active" data-idx="' + idx + '" data-mode="collect">\ud83d\ude97 Collection</button>' +
-            '<button class="dtoggle-btn" data-idx="' + idx + '" data-mode="delivery">\ud83d\ude9a Delivery</button>' +
-          '</div>' +
-          '<div class="delivery-input-wrap" id="dinput-' + idx + '">' +
-            '<input type="text" id="dpc-' + idx + '" placeholder="Your postcode...">' +
-            '<div class="delivery-cost-hint" id="dhint-' + idx + '">Enter your postcode to see the delivery cost.</div>' +
-          '</div>' +
-          '<button class="btn-wa" id="wa-' + idx + '">\ud83d\udcac WhatsApp Ben</button>' +
-        '</div>' +
-      '</div>';
+          '</div></div>' +
+
+          // delivery
+          '<div class="item-delivery">' +
+            '<div class="delivery-toggle">' +
+              '<button class="dtoggle-btn is-active" data-i="' + i + '" data-m="collect">\ud83d\ude97 Collection</button>' +
+              '<button class="dtoggle-btn"            data-i="' + i + '" data-m="delivery">\ud83d\ude9a Delivery</button>' +
+            '</div>' +
+            '<div class="delivery-fields" id="df' + i + '">' +
+              '<input type="text" id="dpc' + i + '" placeholder="Your postcode...">' +
+              '<div class="delivery-hint" id="dh' + i + '">Enter your postcode to see the delivery cost.</div>' +
+            '</div>' +
+            '<button class="btn-wa" id="wa' + i + '">\ud83d\udcac WhatsApp Ben</button>' +
+          '</div></div>';
+      } catch(e) {
+        // If one card fails to render, show a placeholder instead of dying
+        return '<div class="item-card" style="padding:16px;color:var(--ink2);font-size:0.8rem">Item ' + (i+1) + ' could not be displayed.</div>';
+      }
     }).join('');
 
-    // Fetch meta for items that need it, and wire up interactions
-    items.forEach(function(item, idx){
-      var mode = 'collect';
-      var deliveryCost = null;
-      var deliveryMiles = null;
+    // Wire up each card independently — one card failing won't affect others
+    items.forEach(function(item, i) {
+      try {
+        var mode   = 'collect';
+        var dcost  = null;
+        var dmiles = null;
 
-      // Fetch title + image if not already present
-      var needsMeta = (!item.img || !item.title) && !metaCache[item.url];
-      if(needsMeta){
-        fetchMeta(item.url, function(meta){
-          // Update image
-          if(!item.img && meta.img){
-            var wrap = document.getElementById('imgwrap-' + idx);
-            var loader = document.getElementById('imgload-' + idx);
-            var ph = document.getElementById('imgph-' + idx);
-            if(loader) loader.style.display = 'none';
-            if(wrap){
-              var img = document.createElement('img');
-              img.src = meta.img;
-              img.style.cssText = 'width:100%;height:100%;object-fit:contain;padding:6px;position:absolute;inset:0;';
-              img.onerror = function(){ img.style.display='none'; if(ph) ph.style.display='flex'; };
-              wrap.style.position = 'relative';
-              wrap.insertBefore(img, wrap.firstChild);
-            }
-          } else if(!item.img){
-            var loader2 = document.getElementById('imgload-' + idx);
-            var ph2 = document.getElementById('imgph-' + idx);
-            if(loader2) loader2.style.display = 'none';
-            if(ph2) ph2.style.display = 'flex';
-          }
-          // Update title
-          if(!item.title && meta.title){
-            var tloader = document.getElementById('titleload-' + idx);
-            var tel = document.getElementById('title-' + idx);
-            if(tloader) tloader.style.display = 'none';
-            if(tel){ tel.textContent = meta.title; tel.style.display = ''; }
-            item._fetchedTitle = meta.title;
-          } else if(!item.title){
-            var tloader2 = document.getElementById('titleload-' + idx);
-            var tel2 = document.getElementById('title-' + idx);
-            if(tloader2) tloader2.style.display = 'none';
-            if(tel2){ tel2.textContent = 'Amazon Product'; tel2.style.display = ''; }
-          }
-        });
-      }
-
-      // Delivery toggle
-      var toggleBtns = document.querySelectorAll('.dtoggle-btn[data-idx="' + idx + '"]');
-      var dInputWrap = document.getElementById('dinput-' + idx);
-      var dpc = document.getElementById('dpc-' + idx);
-      var dhint = document.getElementById('dhint-' + idx);
-
-      toggleBtns.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          toggleBtns.forEach(function(b){ b.classList.remove('is-active'); });
-          btn.classList.add('is-active');
-          mode = btn.getAttribute('data-mode');
-          if(mode === 'delivery'){
-            dInputWrap.classList.add('visible');
-            dpc.focus();
-          } else {
-            dInputWrap.classList.remove('visible');
-            deliveryCost = null; deliveryMiles = null;
-            dhint.textContent = 'Enter your postcode to see the delivery cost.';
-            dhint.className = 'delivery-cost-hint';
-          }
-        });
-      });
-
-      // Postcode input — calc on pause
-      var calcTimer = null;
-      dpc.addEventListener('input', function(){
-        clearTimeout(calcTimer);
-        deliveryCost = null;
-        if(dpc.value.length < 3) return;
-        calcTimer = setTimeout(function(){
-          calcDelivery(dpc.value, dhint, function(cost, miles){
-            deliveryCost = cost; deliveryMiles = miles;
+        // Auto-fetch image + title if missing
+        if (!item.img || !item.title) {
+          fetchMeta(item.url, function(meta) {
+            try {
+              // Price — always use microlink's if it got one
+              if (meta && meta.price) {
+                var priceRow = el('pr' + i);
+                if (priceRow) {
+                  var pct2 = savingPct(item.price, meta.price);
+                  priceRow.innerHTML =
+                    '<span class="item-price">\u00a3' + item.price + '</span>' +
+                    '<span class="item-rrp">\u00a3' + meta.price + '</span>' +
+                    (pct2 > 0 ? '<span class="item-saving">' + pct2 + '% off</span>' : '');
+                }
+              }
+              // Image
+              if (!item.img && el('ish' + i)) {
+                el('ish' + i).remove();
+                if (meta && meta.img) {
+                  var img = document.createElement('img');
+                  img.src = meta.img;
+                  img.onerror = function() {
+                    img.remove();
+                    var ph = el('iph' + i);
+                    if (ph) ph.style.display = '';
+                  };
+                  var wrap = el('iw' + i);
+                  if (wrap) wrap.insertBefore(img, wrap.firstChild);
+                } else {
+                  var ph = el('iph' + i);
+                  if (ph) ph.style.display = '';
+                }
+              }
+              // Title
+              if (!item.title && el('tsh' + i)) {
+                el('tsh' + i).remove();
+                var ttl = el('ttl' + i);
+                if (ttl) {
+                  ttl.textContent = (meta && meta.title) ? meta.title : 'Amazon Product';
+                  ttl.style.display = '';
+                  item._title = ttl.textContent;
+                }
+              }
+            } catch(e) {}
           });
-        }, 800);
-      });
+        }
 
-      // WhatsApp button
-      document.getElementById('wa-' + idx).addEventListener('click', function(){
-        if(mode === 'delivery' && (!dpc.value || dpc.value.length < 3)){
-          dhint.textContent = 'Please enter your postcode first.';
-          dhint.className = 'delivery-cost-hint error';
-          dpc.focus(); return;
-        }
-        var title = item.title || item._fetchedTitle || 'your item';
-        var msg = "Hey Ben! I'm interested in buying:\n\n" +
-          title + "\n" +
-          "Asking price: \u00a3" + item.price + "\n";
-        if(mode === 'delivery'){
-          msg += "I'd like delivery to: " + dpc.value + "\n";
-          if(deliveryCost) msg += "Delivery quote: \u00a3" + deliveryCost + " (" + deliveryMiles + " miles @ \u00a30.50/mile)\n";
-        } else {
-          msg += "I'll collect from Doddington.\n";
-        }
-        msg += "\nAmazon link: " + item.url + "\n\nIs it still available?";
-        window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank');
-      });
+        // Delivery toggle
+        var toggleBtns = document.querySelectorAll('.dtoggle-btn[data-i="' + i + '"]');
+        var dfields = el('df' + i);
+        var dpc = el('dpc' + i);
+        var dh  = el('dh' + i);
+
+        toggleBtns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            try {
+              toggleBtns.forEach(function(b) { b.classList.remove('is-active'); });
+              btn.classList.add('is-active');
+              mode = btn.getAttribute('data-m');
+              if (mode === 'delivery') {
+                dfields.classList.add('open');
+                dpc.focus();
+              } else {
+                dfields.classList.remove('open');
+                dcost = null; dmiles = null;
+              }
+            } catch(e) {}
+          });
+        });
+
+        // Postcode input with debounce
+        var timer = null;
+        dpc.addEventListener('input', function() {
+          try {
+            clearTimeout(timer);
+            dcost = null;
+            if (dpc.value.length < 3) return;
+            timer = setTimeout(function() {
+              calcDelivery(dpc.value, dh, function(cost, miles) {
+                dcost = cost; dmiles = miles;
+              });
+            }, 800);
+          } catch(e) {}
+        });
+
+        // WhatsApp button
+        el('wa' + i).addEventListener('click', function() {
+          try {
+            if (mode === 'delivery' && dpc.value.length < 3) {
+              dh.textContent = 'Please enter your postcode first.';
+              dh.className = 'delivery-hint err';
+              dpc.focus(); return;
+            }
+            var title = item.title || item._title || 'your item';
+            var msg = "Hey Ben! I'm interested in buying:\n\n" +
+              title + "\n" +
+              "Asking price: \u00a3" + item.price + "\n";
+            if (mode === 'delivery') {
+              msg += "I'd like delivery to: " + dpc.value + "\n";
+              if (dcost) msg += "Delivery quote: \u00a3" + dcost + " (" + dmiles + " miles @ \u00a30.50/mile)\n";
+            } else {
+              msg += "I'll collect from Doddington.\n";
+            }
+            msg += "\nAmazon link: " + item.url + "\n\nIs it still available?";
+            window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank');
+          } catch(e) {}
+        });
+
+      } catch(e) {} // one card's wiring failing won't affect others
     });
+
+  } catch(e) {
+    // Render itself failed — show a friendly message
+    var list = document.getElementById('shopList');
+    if (list) list.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="emoji">\ud83d\udee0\ufe0f</div>' +
+        '<h3>Something went wrong</h3>' +
+        '<p>Couldn\'t load the shop right now.<br>Try refreshing the page.</p>' +
+      '</div>';
   }
+}
 
-  document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('is-active'); });
-      btn.classList.add('is-active');
-      activeFilter = btn.dataset.filter;
-      renderList();
-    });
-  });
+// ── Boot ───────────────────────────────────────────────────────────
+render();
 
-  renderList();
-})();
+} catch(e) {
+  // Absolute last resort — the whole script block failed
+  document.getElementById('shopList').innerHTML =
+    '<div class="empty-state">' +
+      '<div class="emoji">\ud83d\udee0\ufe0f</div>' +
+      '<h3>Something went wrong</h3>' +
+      '<p>Couldn\'t load the shop.<br>Try refreshing the page.</p>' +
+    '</div>';
+}
 </script>
 
 </body>
