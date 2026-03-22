@@ -187,162 +187,201 @@ body {
   100% { background-position: -200% 0; }
 }
 .img-shimmer { width: 100%; height: 100%; }
-.img-placeholder { font-size: 2.5rem; opacity: 0.2; }
-.condition-badge {
+.sold-overlay {
   position: absolute;
-  bottom: 4px; left: 4px;
-  font-size: 0.55rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 2px 5px;
-  border-radius: 3px;
-  line-height: 1.4;
-}
-.condition-badge.new    { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
-.condition-badge.opened { background: #1a1000; color: var(--brand); border: 1px solid #3a2500; }
-.condition-badge.used   { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
-.item-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.item-title {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: var(--ink);
-  line-height: 1.3;
-}
-.title-shimmer { height: 42px; border-radius: 4px; width: 90%; }
-.item-price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 2px;
-  flex-wrap: wrap;
-}
-.item-price {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.6rem;
-  color: var(--brand);
-  letter-spacing: 0.03em;
-  line-height: 1;
-}
-.item-rrp {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink2);
-  text-decoration: line-through;
-}
-.item-saving {
-  font-size: 0.7rem;
-  font-weight: 900;
-  color: #3dcc7a;
-}
-.item-amazon {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--ink2);
-  text-decoration: none;
-  margin-top: 2px;
-}
-.item-delivery {
-  border-top: 1px solid var(--border);
-  padding: 12px;
-}
-.delivery-toggle {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.dtoggle-btn {
-  flex: 1;
-  padding: 10px 8px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface2);
-  color: var(--ink2);
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 0.82rem;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.dtoggle-btn.is-active {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #1a0800;
-}
-.delivery-fields {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.delivery-fields.open { display: flex; }
-.delivery-fields input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: var(--r-sm);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  font-family: 'Nunito', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  outline: none;
-  -webkit-appearance: none;
-}
-.delivery-fields input:focus { border-color: var(--brand); }
-.delivery-hint {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--ink2);
-  line-height: 1.5;
-  min-height: 20px;
-}
-.delivery-hint.ok  { color: #3dcc7a; }
-.delivery-hint.err { color: var(--brand2); }
-.btn-wa {
-  width: 100%;
-  padding: 13px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: linear-gradient(135deg, #29d980, var(--green));
-  color: #051209;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 900;
-  font-size: 0.9rem;
-  cursor: pointer;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+.sold-overlay span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  color: var(--brand2);
+  letter-spacing: 0.1em;
+  border: 2px solid var(--brand2);
+  padding: 2px 10px;
+  border-radius: 4px;
+  transform: rotate(-15deg);
+  display: block;
+}
+.item-card.is-sold {
+  opacity: 0.6;
+}
+.item-card.is-sold .item-title {
+  color: var(--ink2);
+}
+.item-card.is-sold .item-price {
+  color: var(--ink2);
+  font-size: 1.1rem;
+}
+.sold-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brand2);
+  margin-top: 2px;
+}
+
+.condition-badge {
+position: absolute;
+bottom: 4px; left: 4px;
+font-size: 0.55rem;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 0.06em;
+padding: 2px 5px;
+border-radius: 3px;
+line-height: 1.4;
+}
+.condition-badge.new    { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
+.condition-badge.opened { background: #1a1000; color: var(–brand); border: 1px solid #3a2500; }
+.condition-badge.used   { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
+.item-info {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 4px;
+min-width: 0;
+}
+.item-title {
+font-size: 0.88rem;
+font-weight: 800;
+color: var(–ink);
+line-height: 1.3;
+}
+.title-shimmer { height: 42px; border-radius: 4px; width: 90%; }
+.item-price-row {
+display: flex;
+align-items: baseline;
+gap: 8px;
+margin-top: 2px;
+flex-wrap: wrap;
+}
+.item-price {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.6rem;
+color: var(–brand);
+letter-spacing: 0.03em;
+line-height: 1;
+}
+.item-rrp {
+font-size: 0.72rem;
+font-weight: 700;
+color: var(–ink2);
+text-decoration: line-through;
+}
+.item-saving {
+font-size: 0.7rem;
+font-weight: 900;
+color: #3dcc7a;
+}
+.item-amazon {
+font-size: 0.7rem;
+font-weight: 700;
+color: var(–ink2);
+text-decoration: none;
+margin-top: 2px;
+}
+.item-delivery {
+border-top: 1px solid var(–border);
+padding: 12px;
+}
+.delivery-toggle {
+display: flex;
+gap: 8px;
+margin-bottom: 10px;
+}
+.dtoggle-btn {
+flex: 1;
+padding: 10px 8px;
+border: 1.5px solid var(–border);
+border-radius: var(–r-sm);
+background: var(–surface2);
+color: var(–ink2);
+font-family: ‘Nunito’, sans-serif;
+font-weight: 800;
+font-size: 0.82rem;
+cursor: pointer;
+text-align: center;
+transition: all 0.15s;
+-webkit-tap-highlight-color: transparent;
+}
+.dtoggle-btn.is-active {
+background: var(–brand);
+border-color: var(–brand);
+color: #1a0800;
+}
+.delivery-fields {
+display: none;
+flex-direction: column;
+gap: 8px;
+margin-bottom: 10px;
+}
+.delivery-fields.open { display: flex; }
+.delivery-fields input {
+width: 100%;
+padding: 12px 14px;
+border-radius: var(–r-sm);
+border: 1.5px solid var(–border);
+background: var(–surface);
+color: var(–ink);
+font-family: ‘Nunito’, sans-serif;
+font-size: 1rem;
+font-weight: 600;
+outline: none;
+-webkit-appearance: none;
+}
+.delivery-fields input:focus { border-color: var(–brand); }
+.delivery-hint {
+font-size: 0.78rem;
+font-weight: 700;
+color: var(–ink2);
+line-height: 1.5;
+min-height: 20px;
+}
+.delivery-hint.ok  { color: #3dcc7a; }
+.delivery-hint.err { color: var(–brand2); }
+.btn-wa {
+width: 100%;
+padding: 13px;
+border: none;
+border-radius: var(–r-sm);
+background: linear-gradient(135deg, #29d980, var(–green));
+color: #051209;
+font-family: ‘Nunito’, sans-serif;
+font-weight: 900;
+font-size: 0.9rem;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+-webkit-tap-highlight-color: transparent;
 }
 .btn-wa:active { filter: brightness(0.9); }
 .empty-state {
-  text-align: center;
-  padding: 48px 16px;
+text-align: center;
+padding: 48px 16px;
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 .empty-state h3 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-  margin-bottom: 6px;
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+color: var(–ink);
+margin-bottom: 6px;
 }
 .empty-state p {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink2);
-  line-height: 1.5;
+font-size: 0.85rem;
+font-weight: 600;
+color: var(–ink2);
+line-height: 1.5;
 }
 </style>
+
 </head>
 <body>
 
@@ -495,11 +534,18 @@ function render() {
   try {
     var list    = el('shopList');
     var countEl = el('itemCount');
-    var items   = (window.SHOP_ITEMS || []).filter(function(it) {
+    var allItems = window.SHOP_ITEMS || [];
+    var available = allItems.filter(function(it) {
       if (it.sold) return false;
       if (activeFilter === 'all') return true;
       return it.condition === activeFilter;
     });
+    var sold = allItems.filter(function(it) {
+      if (!it.sold) return false;
+      if (activeFilter === 'all') return true;
+      return it.condition === activeFilter;
+    });
+    var items = available.concat(sold);
 
     if (!items.length) {
       countEl.textContent = '';
@@ -512,19 +558,20 @@ function render() {
       return;
     }
 
-    countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' available';
+    countEl.textContent = available.length + ' item' + (available.length !== 1 ? 's' : '') + ' available' + (sold.length ? ', ' + sold.length + ' sold' : '');
 
     // Build all card HTML in one go
     list.innerHTML = items.map(function(item, i) {
       try {
         var cond    = item.condition || 'used';
+        var isSold  = !!item.sold;
         var cached  = metaCache[item.url];
         var imgSrc  = item.img   || (cached && cached.img)   || null;
         var titleTx = item.title || (cached && cached.title) || null;
         var rrpVal  = (cached && cached.price) ? cached.price : (item.rrp ? item.rrp : null);
         var pct     = savingPct(item.price, rrpVal);
 
-        return '<div class="item-card" id="card' + i + '">' +
+        return '<div class="item-card' + (isSold ? ' is-sold' : '') + '" id="card' + i + '">' +
           '<div class="item-main">' +
 
           // image
@@ -535,6 +582,7 @@ function render() {
               : '<div class="shimmer img-shimmer" id="ish' + i + '"></div>' +
                 '<div class="img-placeholder" id="iph' + i + '" style="display:none">\ud83d\udce6</div>') +
             '<span class="condition-badge ' + cond + '">' + condLabel(cond) + '</span>' +
+            (isSold ? '<div class="sold-overlay"><span>SOLD</span></div>' : '') +
           '</div>' +
 
           // info
@@ -543,6 +591,7 @@ function render() {
               ? '<div class="item-title">' + titleTx + '</div>'
               : '<div class="shimmer title-shimmer" id="tsh' + i + '"></div>' +
                 '<div class="item-title" id="ttl' + i + '" style="display:none"></div>') +
+            (isSold ? '<div class="sold-label">Sold</div>' : '') +
             '<div class="item-price-row" id="pr' + i + '">' +
               '<span class="item-price">\u00a3' + item.price + '</span>' +
               (rrpVal ? '<span class="item-rrp">\u00a3' + rrpVal + '</span>' : '') +
@@ -551,18 +600,21 @@ function render() {
             '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon \u2197</a>' +
           '</div></div>' +
 
-          // delivery
-          '<div class="item-delivery">' +
-            '<div class="delivery-toggle">' +
-              '<button class="dtoggle-btn is-active" data-i="' + i + '" data-m="collect">\ud83d\ude97 Collection</button>' +
-              '<button class="dtoggle-btn"            data-i="' + i + '" data-m="delivery">\ud83d\ude9a Delivery</button>' +
-            '</div>' +
-            '<div class="delivery-fields" id="df' + i + '">' +
-              '<input type="text" id="dpc' + i + '" placeholder="Your postcode...">' +
-              '<div class="delivery-hint" id="dh' + i + '">Enter your postcode to see the delivery cost.</div>' +
-            '</div>' +
-            '<button class="btn-wa" id="wa' + i + '">\ud83d\udcac WhatsApp Ben</button>' +
-          '</div></div>';
+          // delivery — hide for sold items
+          (isSold ? '' :
+            '<div class="item-delivery">' +
+              '<div class="delivery-toggle">' +
+                '<button class="dtoggle-btn is-active" data-i="' + i + '" data-m="collect">\ud83d\ude97 Collection</button>' +
+                '<button class="dtoggle-btn"            data-i="' + i + '" data-m="delivery">\ud83d\ude9a Delivery</button>' +
+              '</div>' +
+              '<div class="delivery-fields" id="df' + i + '">' +
+                '<input type="text" id="dpc' + i + '" placeholder="Your postcode...">' +
+                '<div class="delivery-hint" id="dh' + i + '">Enter your postcode to see the delivery cost.</div>' +
+              '</div>' +
+              '<button class="btn-wa" id="wa' + i + '">\ud83d\udcac WhatsApp Ben</button>' +
+            '</div>') +
+
+          '</div>';
       } catch(e) {
         // If one card fails to render, show a placeholder instead of dying
         return '<div class="item-card" style="padding:16px;color:var(--ink2);font-size:0.8rem">Item ' + (i+1) + ' could not be displayed.</div>';
@@ -575,6 +627,42 @@ function render() {
         var mode   = 'collect';
         var dcost  = null;
         var dmiles = null;
+
+        // Skip interaction wiring for sold items
+        if (item.sold) {
+          // Still fetch meta for image/title display
+          if (!item.img || !item.title) {
+            fetchMeta(item.url, function(meta) {
+              try {
+                if (!item.img && el('ish' + i)) {
+                  el('ish' + i).remove();
+                  if (meta && meta.img) {
+                    var img = document.createElement('img');
+                    img.src = meta.img;
+                    img.onerror = function() { img.remove(); var ph = el('iph' + i); if (ph) ph.style.display = ''; };
+                    var wrap = el('iw' + i);
+                    if (wrap) wrap.insertBefore(img, wrap.firstChild);
+                  } else { var ph = el('iph' + i); if (ph) ph.style.display = ''; }
+                }
+                if (!item.title && el('tsh' + i)) {
+                  el('tsh' + i).remove();
+                  var ttl = el('ttl' + i);
+                  if (ttl) { ttl.textContent = (meta && meta.title) ? meta.title : 'Amazon Product'; ttl.style.display = ''; }
+                }
+                if (meta && meta.price) {
+                  var pr = el('pr' + i);
+                  if (pr) {
+                    var pct2 = savingPct(item.price, meta.price);
+                    pr.innerHTML = '<span class="item-price">\u00a3' + item.price + '</span>' +
+                      '<span class="item-rrp">\u00a3' + meta.price + '</span>' +
+                      (pct2 > 0 ? '<span class="item-saving">' + pct2 + '% off</span>' : '');
+                  }
+                }
+              } catch(e) {}
+            });
+          }
+          return; // no delivery/WhatsApp needed
+        }
 
         // Auto-fetch image + title if missing
         if (!item.img || !item.title) {
