@@ -236,6 +236,12 @@ body {
   letter-spacing: 0.03em;
   line-height: 1;
 }
+.item-rrp {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink2);
+  text-decoration: line-through;
+}
 .item-amazon {
   font-size: 0.7rem;
   font-weight: 700;
@@ -412,6 +418,8 @@ body {
           result.img = (data.data.image && data.data.image.url) ? data.data.image.url : null;
           // Try og image if main image missing
           if(!result.img && data.data.og && data.data.og.image) result.img = data.data.og.image;
+          // Price — microlink exposes this when available
+          if(data.data.price) result.price = data.data.price;
         }
         metaCache[url] = result;
         callback(result);
@@ -497,6 +505,7 @@ body {
               : '<div class="item-title-loading" id="titleload-' + idx + '"></div>' +
                 '<div class="item-title" id="title-' + idx + '" style="display:none"></div>') +
             '<div class="item-price">\u00a3' + item.price + '</div>' +
+            '<div class="item-rrp" id="rrp-' + idx + '" style="display:none"></div>' +
             '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon \u2197</a>' +
           '</div>' +
         '</div>' +
@@ -543,6 +552,11 @@ body {
             var ph2 = document.getElementById('imgph-' + idx);
             if(loader2) loader2.style.display = 'none';
             if(ph2) ph2.style.display = 'flex';
+          }
+          // Update Amazon price / RRP
+          if(meta.price){
+            var rrpEl = document.getElementById('rrp-' + idx);
+            if(rrpEl){ rrpEl.textContent = 'Amazon: ' + meta.price; rrpEl.style.display = ''; }
           }
           // Update title
           if(!item.title && meta.title){
