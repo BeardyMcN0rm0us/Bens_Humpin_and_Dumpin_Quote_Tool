@@ -18,6 +18,14 @@
 
 window.SHOP_ITEMS = [
 {
+url: "https://www.amazon.co.uk/dp/B0G6DT84Q3",
+price: 15,
+rrp: 28.99,
+condition: "new",
+sold: false
+},
+  
+{
 url: "https://www.amazon.co.uk/dp/B0F844VTC8",
 price: 150,
 rrp: 199.99,
