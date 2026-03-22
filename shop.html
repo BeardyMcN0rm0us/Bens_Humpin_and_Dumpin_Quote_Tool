@@ -88,9 +88,7 @@ body {
   padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   min-height: 100vh;
 }
-.page-head {
-  padding: 20px 16px 4px;
-}
+.page-head { padding: 20px 16px 4px; }
 .page-head h2 {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.2rem;
@@ -144,187 +142,199 @@ body {
   letter-spacing: 0.07em;
   min-height: 24px;
 }
-
-/* ── SHOP LIST (single column, full width cards) ── */
 .shop-list {
-display: flex;
-flex-direction: column;
-gap: 12px;
-padding: 10px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 16px 0;
 }
-
-/* ── ITEM CARD ── */
 .item-card {
-background: var(–surface);
-border: 1.5px solid var(–border);
-border-radius: var(–r);
-overflow: hidden;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
 }
 .item-main {
-display: flex;
-gap: 12px;
-padding: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
 }
 .item-img-wrap {
-position: relative;
-width: 100px;
-height: 100px;
-flex-shrink: 0;
-background: #1a1a1a;
-border-radius: var(–r-sm);
-overflow: hidden;
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  border-radius: var(--r-sm);
+  overflow: hidden;
 }
 .item-img-wrap img {
-width: 100%; height: 100%;
-object-fit: contain;
-padding: 6px;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 6px;
 }
 .item-img-placeholder {
-width: 100%; height: 100%;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 2rem;
-opacity: 0.25;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  opacity: 0.25;
+}
+/* shimmer loading state */
+.item-img-loading {
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, var(--surface2) 25%, #252525 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.item-title-loading {
+  height: 20px;
+  width: 80%;
+  background: linear-gradient(90deg, var(--surface2) 25%, #252525 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .condition-badge {
-position: absolute;
-bottom: 4px; left: 4px;
-font-size: 0.55rem;
-font-weight: 900;
-text-transform: uppercase;
-letter-spacing: 0.06em;
-padding: 2px 5px;
-border-radius: 3px;
-line-height: 1.4;
+  position: absolute;
+  bottom: 4px; left: 4px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  line-height: 1.4;
+  z-index: 1;
 }
 .condition-badge.new    { background: #0d3320; color: #3dcc7a; border: 1px solid #1a4a28; }
-.condition-badge.opened { background: #1a1000; color: var(–brand); border: 1px solid #3a2500; }
+.condition-badge.opened { background: #1a1000; color: var(--brand); border: 1px solid #3a2500; }
 .condition-badge.used   { background: #0d1433; color: #7ab3ff; border: 1px solid #1a2a50; }
 .item-info {
-flex: 1;
-display: flex;
-flex-direction: column;
-gap: 5px;
-min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
 }
 .item-title {
-font-size: 0.88rem;
-font-weight: 800;
-color: var(–ink);
-line-height: 1.3;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.3;
 }
 .item-price {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: 1.6rem;
-color: var(–brand);
-letter-spacing: 0.03em;
-line-height: 1;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  color: var(--brand);
+  letter-spacing: 0.03em;
+  line-height: 1;
 }
 .item-amazon {
-font-size: 0.7rem;
-font-weight: 700;
-color: var(–ink2);
-text-decoration: none;
-display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink2);
+  text-decoration: none;
+  display: inline-block;
 }
-
-/* ── DELIVERY SECTION ── */
 .item-delivery {
-border-top: 1px solid var(–border);
-padding: 12px;
+  border-top: 1px solid var(--border);
+  padding: 12px;
 }
 .delivery-toggle {
-display: flex;
-gap: 8px;
-margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 .dtoggle-btn {
-flex: 1;
-padding: 10px 8px;
-border: 1.5px solid var(–border);
-border-radius: var(–r-sm);
-background: var(–surface2);
-color: var(–ink2);
-font-family: ‘Nunito’, sans-serif;
-font-weight: 800;
-font-size: 0.82rem;
-cursor: pointer;
-text-align: center;
-transition: all 0.15s;
--webkit-tap-highlight-color: transparent;
+  flex: 1;
+  padding: 10px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface2);
+  color: var(--ink2);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 .dtoggle-btn.is-active {
-background: var(–brand);
-border-color: var(–brand);
-color: #1a0800;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #1a0800;
 }
 .delivery-input-wrap {
-display: none;
-flex-direction: column;
-gap: 8px;
-margin-bottom: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 .delivery-input-wrap.visible { display: flex; }
 .delivery-input-wrap input {
-width: 100%;
-padding: 12px 14px;
-border-radius: var(–r-sm);
-border: 1.5px solid var(–border);
-background: var(–surface);
-color: var(–ink);
-font-family: ‘Nunito’, sans-serif;
-font-size: 1rem;
-font-weight: 600;
-outline: none;
--webkit-appearance: none;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  -webkit-appearance: none;
 }
-.delivery-input-wrap input:focus { border-color: var(–brand); }
+.delivery-input-wrap input:focus { border-color: var(--brand); }
 .delivery-cost-hint {
-font-size: 0.78rem;
-font-weight: 700;
-color: var(–ink2);
-min-height: 18px;
-line-height: 1.5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink2);
+  min-height: 18px;
+  line-height: 1.5;
 }
 .delivery-cost-hint.ready { color: #3dcc7a; }
-.delivery-cost-hint.error { color: var(–brand2); }
-
+.delivery-cost-hint.error { color: var(--brand2); }
 .btn-wa {
-width: 100%;
-padding: 13px;
-border: none;
-border-radius: var(–r-sm);
-background: linear-gradient(135deg, #29d980, var(–green));
-color: #051209;
-font-family: ‘Nunito’, sans-serif;
-font-weight: 900;
-font-size: 0.9rem;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 6px;
-transition: filter 0.15s;
--webkit-tap-highlight-color: transparent;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: linear-gradient(135deg, #29d980, var(--green));
+  color: #051209;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: filter 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-wa:active { filter: brightness(0.9); }
-
 .empty-state {
-text-align: center;
-padding: 48px 16px;
-color: var(–ink2);
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--ink2);
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 .empty-state h3 {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: 1.4rem;
-color: var(–ink);
-margin-bottom: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 6px;
 }
 .empty-state p { font-size: 0.85rem; font-weight: 600; line-height: 1.5; }
 </style>
-
 </head>
 <body>
 
@@ -358,65 +368,15 @@ margin-bottom: 6px;
 
 <script src="shop-items.js"></script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=mapsReady"></script>
-
 <script>
 (function(){
   var WHATSAPP = '447717463496';
-  var HOME = '15 Primrose Hill, Doddington, Cambs, PE15 0SU';
+  var HOME_PC = 'PE150SU';
   var RATE = 0.50;
   var activeFilter = 'all';
-  var mapsLoaded = false;
-  var directionsService = null;
-  var autocompletes = {};
 
-  window.mapsReady = function(){
-    mapsLoaded = true;
-    directionsService = new google.maps.DirectionsService();
-    // Init autocompletes for any visible delivery inputs
-    document.querySelectorAll('.delivery-postcode').forEach(function(inp){
-      initAutocomplete(inp);
-    });
-  };
-
-  function initAutocomplete(inp){
-    if(!mapsLoaded || !window.google) return;
-    if(autocompletes[inp.id]) return;
-    autocompletes[inp.id] = new google.maps.places.Autocomplete(inp, {
-      fields: ['formatted_address','geometry'],
-      componentRestrictions: {country: 'gb'},
-      types: ['geocode']
-    });
-  }
-
-  function metersToMiles(m){ return m / 1609.344; }
-
-  function calcDeliveryCost(destination, hintEl, callback){
-    if(!mapsLoaded || !directionsService){
-      hintEl.textContent = 'Maps loading, try again in a moment...';
-      hintEl.className = 'delivery-cost-hint error';
-      callback(null); return;
-    }
-    hintEl.textContent = 'Calculating...';
-    hintEl.className = 'delivery-cost-hint';
-    directionsService.route({
-      origin: HOME,
-      destination: destination,
-      travelMode: 'DRIVING'
-    }, function(result, status){
-      if(status !== 'OK'){
-        hintEl.textContent = 'Could not calculate — check the postcode.';
-        hintEl.className = 'delivery-cost-hint error';
-        callback(null); return;
-      }
-      var miles = metersToMiles(result.routes[0].legs[0].distance.value);
-      var cost = Math.round(miles * RATE * 100) / 100;
-      var rounded = Math.round(cost / 5) * 5;
-      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = £' + rounded + ' (charged at £0.50/mile)';
-      hintEl.className = 'delivery-cost-hint ready';
-      callback(rounded, miles.toFixed(1));
-    });
-  }
+  // Cache for microlink results so we don't re-fetch on filter change
+  var metaCache = {};
 
   function conditionLabel(c){
     return c === 'new' ? 'New' : c === 'opened' ? 'Opened' : 'Used';
@@ -434,10 +394,64 @@ margin-bottom: 6px;
     return (window.SHOP_ITEMS || []).filter(function(it){
       if(it.sold) return false;
       if(activeFilter === 'all') return true;
-      if(activeFilter === 'new') return it.condition === 'new';
-      if(activeFilter === 'opened') return it.condition === 'opened';
-      if(activeFilter === 'used') return it.condition === 'used';
-      return true;
+      return it.condition === activeFilter;
+    });
+  }
+
+  // Fetch title + image from microlink.io
+  function fetchMeta(url, callback){
+    if(metaCache[url]){
+      callback(metaCache[url]); return;
+    }
+    fetch('https://api.microlink.io?url=' + encodeURIComponent(url) + '&palette=false&audio=false&video=false&iframe=false')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var result = {title: null, img: null};
+        if(data && data.status === 'success' && data.data){
+          result.title = data.data.title || null;
+          result.img = (data.data.image && data.data.image.url) ? data.data.image.url : null;
+          // Try og image if main image missing
+          if(!result.img && data.data.og && data.data.og.image) result.img = data.data.og.image;
+        }
+        metaCache[url] = result;
+        callback(result);
+      })
+      .catch(function(){
+        metaCache[url] = {title: null, img: null};
+        callback(metaCache[url]);
+      });
+  }
+
+  function calcDelivery(postcode, hintEl, callback){
+    hintEl.textContent = 'Calculating...';
+    hintEl.className = 'delivery-cost-hint';
+    var pc = postcode.trim().replace(/\s+/g, '').toUpperCase();
+    Promise.all([
+      fetch('https://api.postcodes.io/postcodes/' + encodeURIComponent(pc)).then(function(r){ return r.json(); }),
+      fetch('https://api.postcodes.io/postcodes/' + HOME_PC).then(function(r){ return r.json(); })
+    ]).then(function(results){
+      if(results[0].status !== 200 || results[1].status !== 200){
+        hintEl.textContent = 'Could not find that postcode — please check it.';
+        hintEl.className = 'delivery-cost-hint error';
+        callback(null); return;
+      }
+      var lat1 = results[1].result.latitude,  lon1 = results[1].result.longitude;
+      var lat2 = results[0].result.latitude,  lon2 = results[0].result.longitude;
+      var R = 3958.8;
+      var dLat = (lat2 - lat1) * Math.PI / 180;
+      var dLon = (lon2 - lon1) * Math.PI / 180;
+      var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+              Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+              Math.sin(dLon/2)*Math.sin(dLon/2);
+      var miles = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.2;
+      var cost = Math.max(5, Math.round(miles * RATE / 5) * 5);
+      hintEl.textContent = 'Delivery: approx ' + miles.toFixed(1) + ' miles = \u00a3' + cost + ' (at \u00a30.50/mile)';
+      hintEl.className = 'delivery-cost-hint ready';
+      callback(cost, miles.toFixed(1));
+    }).catch(function(){
+      hintEl.textContent = 'Could not calculate — check the postcode.';
+      hintEl.className = 'delivery-cost-hint error';
+      callback(null);
     });
   }
 
@@ -450,7 +464,7 @@ margin-bottom: 6px;
       countEl.textContent = '';
       list.innerHTML =
         '<div class="empty-state">' +
-          '<div class="emoji">📦</div>' +
+          '<div class="emoji">\ud83d\udce6</div>' +
           '<h3>Nothing here</h3>' +
           '<p>No items available right now.<br>Check back soon!</p>' +
         '</div>';
@@ -459,44 +473,94 @@ margin-bottom: 6px;
 
     countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' available';
 
+    // Build cards with shimmer placeholders
     list.innerHTML = items.map(function(item, idx){
       var hasImg = item.img && item.img.length > 0;
+      var hasTitle = item.title && item.title.length > 0;
+      var cached = metaCache[item.url];
+      var imgSrc = item.img || (cached && cached.img) || null;
+      var titleTxt = item.title || (cached && cached.title) || null;
+
       return '<div class="item-card" id="card-' + idx + '">' +
         '<div class="item-main">' +
-          '<div class="item-img-wrap">' +
-            (hasImg
-              ? '<img src="' + item.img + '" alt="' + (item.title||'') + '" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.style.display=\'none\';document.getElementById(\'ph-' + idx + '\').style.display=\'flex\'">' +
-                '<div class="item-img-placeholder" id="ph-' + idx + '" style="display:none">📦</div>'
-              : '<div class="item-img-placeholder">📦</div>') +
+          '<div class="item-img-wrap" id="imgwrap-' + idx + '">' +
+            (imgSrc
+              ? '<img src="' + imgSrc + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.style.display=\'none\';document.getElementById(\'imgph-' + idx + '\').style.display=\'flex\'">' +
+                '<div class="item-img-placeholder" id="imgph-' + idx + '" style="display:none">\ud83d\udce6</div>'
+              : '<div class="item-img-loading" id="imgload-' + idx + '"></div>' +
+                '<div class="item-img-placeholder" id="imgph-' + idx + '" style="display:none">\ud83d\udce6</div>') +
             '<span class="condition-badge ' + (item.condition||'used') + '">' + conditionLabel(item.condition||'used') + '</span>' +
           '</div>' +
           '<div class="item-info">' +
-            '<div class="item-title">' + (item.title||'Amazon Product') + '</div>' +
-            '<div class="item-price">£' + item.price + '</div>' +
-            '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon ↗</a>' +
+            (titleTxt
+              ? '<div class="item-title" id="title-' + idx + '">' + titleTxt + '</div>'
+              : '<div class="item-title-loading" id="titleload-' + idx + '"></div>' +
+                '<div class="item-title" id="title-' + idx + '" style="display:none"></div>') +
+            '<div class="item-price">\u00a3' + item.price + '</div>' +
+            '<a class="item-amazon" href="' + item.url + '" target="_blank" rel="noopener">View on Amazon \u2197</a>' +
           '</div>' +
         '</div>' +
         '<div class="item-delivery">' +
           '<div class="delivery-toggle">' +
-            '<button class="dtoggle-btn is-active" data-idx="' + idx + '" data-mode="collect">🚗 Collection</button>' +
-            '<button class="dtoggle-btn" data-idx="' + idx + '" data-mode="delivery">🚚 Delivery</button>' +
+            '<button class="dtoggle-btn is-active" data-idx="' + idx + '" data-mode="collect">\ud83d\ude97 Collection</button>' +
+            '<button class="dtoggle-btn" data-idx="' + idx + '" data-mode="delivery">\ud83d\ude9a Delivery</button>' +
           '</div>' +
           '<div class="delivery-input-wrap" id="dinput-' + idx + '">' +
-            '<input type="text" class="delivery-postcode" id="dpc-' + idx + '" placeholder="Your postcode or address...">' +
-            '<div class="delivery-cost-hint" id="dhint-' + idx + '">Enter your postcode to see delivery cost.</div>' +
+            '<input type="text" id="dpc-' + idx + '" placeholder="Your postcode...">' +
+            '<div class="delivery-cost-hint" id="dhint-' + idx + '">Enter your postcode to see the delivery cost.</div>' +
           '</div>' +
-          '<button class="btn-wa" id="wa-' + idx + '">💬 WhatsApp Ben</button>' +
+          '<button class="btn-wa" id="wa-' + idx + '">\ud83d\udcac WhatsApp Ben</button>' +
         '</div>' +
       '</div>';
     }).join('');
 
-    // Wire up everything per card
+    // Fetch meta for items that need it, and wire up interactions
     items.forEach(function(item, idx){
-      var mode = 'collect'; // default
+      var mode = 'collect';
       var deliveryCost = null;
       var deliveryMiles = null;
 
-      // Toggle collect/delivery
+      // Fetch title + image if not already present
+      var needsMeta = (!item.img || !item.title) && !metaCache[item.url];
+      if(needsMeta){
+        fetchMeta(item.url, function(meta){
+          // Update image
+          if(!item.img && meta.img){
+            var wrap = document.getElementById('imgwrap-' + idx);
+            var loader = document.getElementById('imgload-' + idx);
+            var ph = document.getElementById('imgph-' + idx);
+            if(loader) loader.style.display = 'none';
+            if(wrap){
+              var img = document.createElement('img');
+              img.src = meta.img;
+              img.style.cssText = 'width:100%;height:100%;object-fit:contain;padding:6px;position:absolute;inset:0;';
+              img.onerror = function(){ img.style.display='none'; if(ph) ph.style.display='flex'; };
+              wrap.style.position = 'relative';
+              wrap.insertBefore(img, wrap.firstChild);
+            }
+          } else if(!item.img){
+            var loader2 = document.getElementById('imgload-' + idx);
+            var ph2 = document.getElementById('imgph-' + idx);
+            if(loader2) loader2.style.display = 'none';
+            if(ph2) ph2.style.display = 'flex';
+          }
+          // Update title
+          if(!item.title && meta.title){
+            var tloader = document.getElementById('titleload-' + idx);
+            var tel = document.getElementById('title-' + idx);
+            if(tloader) tloader.style.display = 'none';
+            if(tel){ tel.textContent = meta.title; tel.style.display = ''; }
+            item._fetchedTitle = meta.title;
+          } else if(!item.title){
+            var tloader2 = document.getElementById('titleload-' + idx);
+            var tel2 = document.getElementById('title-' + idx);
+            if(tloader2) tloader2.style.display = 'none';
+            if(tel2){ tel2.textContent = 'Amazon Product'; tel2.style.display = ''; }
+          }
+        });
+      }
+
+      // Delivery toggle
       var toggleBtns = document.querySelectorAll('.dtoggle-btn[data-idx="' + idx + '"]');
       var dInputWrap = document.getElementById('dinput-' + idx);
       var dpc = document.getElementById('dpc-' + idx);
@@ -509,60 +573,52 @@ margin-bottom: 6px;
           mode = btn.getAttribute('data-mode');
           if(mode === 'delivery'){
             dInputWrap.classList.add('visible');
-            if(mapsLoaded) initAutocomplete(dpc);
             dpc.focus();
           } else {
             dInputWrap.classList.remove('visible');
-            deliveryCost = null;
-            deliveryMiles = null;
-            dhint.textContent = 'Enter your postcode to see delivery cost.';
+            deliveryCost = null; deliveryMiles = null;
+            dhint.textContent = 'Enter your postcode to see the delivery cost.';
             dhint.className = 'delivery-cost-hint';
           }
         });
       });
 
-      // Calc cost when postcode entered
+      // Postcode input — calc on pause
       var calcTimer = null;
       dpc.addEventListener('input', function(){
         clearTimeout(calcTimer);
         deliveryCost = null;
         if(dpc.value.length < 3) return;
         calcTimer = setTimeout(function(){
-          calcDeliveryCost(dpc.value, dhint, function(cost, miles){
-            deliveryCost = cost;
-            deliveryMiles = miles;
+          calcDelivery(dpc.value, dhint, function(cost, miles){
+            deliveryCost = cost; deliveryMiles = miles;
           });
         }, 800);
       });
 
       // WhatsApp button
-      var waBtn = document.getElementById('wa-' + idx);
-      waBtn.addEventListener('click', function(){
+      document.getElementById('wa-' + idx).addEventListener('click', function(){
         if(mode === 'delivery' && (!dpc.value || dpc.value.length < 3)){
           dhint.textContent = 'Please enter your postcode first.';
           dhint.className = 'delivery-cost-hint error';
-          dpc.focus();
-          return;
+          dpc.focus(); return;
         }
+        var title = item.title || item._fetchedTitle || 'your item';
         var msg = "Hey Ben! I'm interested in buying:\n\n" +
-          (item.title || 'your item') + "\n" +
+          title + "\n" +
           "Asking price: \u00a3" + item.price + "\n";
         if(mode === 'delivery'){
           msg += "I'd like delivery to: " + dpc.value + "\n";
-          if(deliveryCost) msg += "Delivery quote: \u00a3" + deliveryCost + " (" + deliveryMiles + " miles @ \u00a30.90/mile)\n";
+          if(deliveryCost) msg += "Delivery quote: \u00a3" + deliveryCost + " (" + deliveryMiles + " miles @ \u00a30.50/mile)\n";
         } else {
           msg += "I'll collect from Doddington.\n";
         }
         msg += "\nAmazon link: " + item.url + "\n\nIs it still available?";
         window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank');
       });
-
-      // Init autocomplete if maps already loaded
-      if(mapsLoaded) initAutocomplete(dpc);
     });
   }
 
-  // Filter buttons
   document.getElementById('filterBar').querySelectorAll('.filter-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('is-active'); });
