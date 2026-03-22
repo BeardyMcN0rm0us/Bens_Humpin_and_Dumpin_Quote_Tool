@@ -20,7 +20,7 @@ window.SHOP_ITEMS = [
 {
 url: "https://www.amazon.co.uk/dp/B0F844VTC8",
 price: 150,
-rrp: 199.99
+rrp: 199.99,
 condition: "new",
 sold: false
 },
@@ -28,7 +28,7 @@ sold: false
 {
 url: "https://www.amazon.co.uk/dp/B0GH1Q73V2",
 price: 40,
-rrp: 99.99
+rrp: 99.99,
 condition: "new",
 sold: true
 },
@@ -36,7 +36,7 @@ sold: true
 {
 url: "https://www.amazon.co.uk/dp/B0GH1ZZ49F",
 price: 30,
-rrp: 74.99
+rrp: 74.99,
 condition: "new",
 sold: false
 }
