@@ -28,7 +28,7 @@ img: "https://m.media-amazon.com/images/I/71398F2U3iL.*AC_SL1500*.jpg",
 title: "Lay-Z-Spa Glacial Dip Tub 1-2 Persons",
 price: 40,
 condition: "new",
-sold: false
+sold: true
 },
   
 {
