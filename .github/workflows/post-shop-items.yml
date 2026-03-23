@@ -1,202 +1,31 @@
-// .github/scripts/post-new-items.js
-// Runs in GitHub Actions when shop-items.js changes.
-// Finds genuinely new items (not in previous commit) and:
-//   1. Posts each one to the Facebook Page
-//   2. Posts each one to Facebook Marketplace
-//      with pre-written group post text ready to copy-paste
+name: Post New Shop Items to Facebook
 
-‘use strict’;
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'shop-items.js'
 
-const { execSync } = require(‘child_process’);
-const fetch = require(‘node-fetch’);
+jobs:
+  post-new-items:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (with history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-// ── Config from GitHub Secrets ─────────────────────────────────────
-const FB_PAGE_ID       = process.env.FB_PAGE_ID;
-const FB_PAGE_TOKEN    = process.env.FB_PAGE_TOKEN;
-const SHOP_URL         = process.env.SHOP_URL || ‘https://beardymcn0rm0us.github.io/Bens_Humpin_and_Dumpin_Quote_Tool/shop.html’;
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-// ── Parse shop-items.js safely ─────────────────────────────────────
-function parseItems(src) {
-try {
-// Strip the window.SHOP_ITEMS = assignment and eval as plain array
-const cleaned = src
-.replace(///[^\n]*/g, ‘’)           // remove line comments
-.replace(//*[\s\S]*?*//g, ‘’)     // remove block comments
-.replace(/window.SHOP_ITEMS\s*=\s*/, ‘’)
-.replace(/;\s*$/, ‘’)
-.trim();
-return JSON.parse(cleaned);
-} catch(e) {
-// JSON.parse won’t handle JS object literals without quotes on keys
-// so use a safe eval approach
-try {
-const vm = require(‘vm’);
-const ctx = { result: [] };
-vm.createContext(ctx);
-const stripped = src
-.replace(///[^\n]*/g, ‘’)
-.replace(/window.SHOP_ITEMS\s*=\s*/, ’result = ’)
-.replace(/;\s*$/, ‘’);
-vm.runInContext(stripped, ctx);
-return ctx.result;
-} catch(e2) {
-console.error(‘Failed to parse shop-items.js:’, e2.message);
-return [];
-}
-}
-}
+      - name: Install dependencies
+        run: npm install node-fetch@2
 
-// ── Get current and previous versions of shop-items.js ────────────
-const currentSrc  = require(‘fs’).readFileSync(‘shop-items.js’, ‘utf8’);
-let previousSrc = ‘’;
-try {
-previousSrc = execSync(‘git show HEAD~1:shop-items.js’, { encoding: ‘utf8’ });
-} catch(e) {
-// First commit or file didn’t exist before — treat all items as new
-console.log(‘No previous version found — treating all unsold items as new.’);
-}
-
-const currentItems  = parseItems(currentSrc);
-const previousItems = parseItems(previousSrc);
-const previousUrls  = new Set(previousItems.map(i => i.url));
-
-// New items = in current, not sold, not in previous version
-const newItems = currentItems.filter(item => !item.sold && !previousUrls.has(item.url));
-
-if (newItems.length === 0) {
-console.log(‘No new items found — nothing to post.’);
-process.exit(0);
-}
-
-console.log(`Found ${newItems.length} new item(s):`, newItems.map(i => i.url));
-
-// ── Schedule for 9am tomorrow ──────────────────────────────────────
-function nineAmTomorrow() {
-const d = new Date();
-d.setDate(d.getDate() + 1);
-d.setHours(9, 0, 0, 0);
-return Math.floor(d.getTime() / 1000); // Unix timestamp
-}
-
-// ── Build post text ────────────────────────────────────────────────
-function buildPostText(item) {
-const condMap = { new: ‘Brand new’, opened: ‘Opened but unused’, used: ‘Lightly used’ };
-const cond = condMap[item.condition] || item.condition || ‘Good condition’;
-const title = item.title || ‘Amazon Vine item’;
-const rrpLine = item.rrp ? `\nAmazon RRP: £${item.rrp}` : ‘’;
-
-return [
-`🛍️ NEW IN THE SHOP — ${title}`,
-`, `${cond}`, `Asking: £${item.price}${rrpLine}`, `,
-`Collection from Doddington, Cambs`,
-`or delivery at £0.50/mile 🚚`,
-`, `👉 Full listing + WhatsApp enquiry:`, SHOP_URL, `,
-`#HumpinAndDumpin #Doddington #Cambridgeshire #ForSale #AmazonVine`
-].join(’\n’);
-}
-
-// ── Post to Facebook Page ──────────────────────────────────────────
-async function postToPage(item) {
-const text = buildPostText(item);
-const scheduledTime = nineAmTomorrow();
-
-const body = {
-message: text,
-published: false,
-scheduled_publish_time: scheduledTime,
-access_token: FB_PAGE_TOKEN
-};
-
-// If item has an image, attach it
-if (item.img) {
-body.url = item.img;
-}
-
-const endpoint = item.img
-? `https://graph.facebook.com/v19.0/${FB_PAGE_ID}/photos`
-: `https://graph.facebook.com/v19.0/${FB_PAGE_ID}/feed`;
-
-const res = await fetch(endpoint, {
-method: ‘POST’,
-headers: { ‘Content-Type’: ‘application/json’ },
-body: JSON.stringify(body)
-});
-
-const data = await res.json();
-if (data.error) {
-console.error(‘Facebook Page post error:’, data.error.message);
-return false;
-}
-console.log(‘Facebook Page post scheduled:’, data.id || data.post_id);
-return true;
-}
-
-// ── Post to Facebook Marketplace ──────────────────────────────────
-async function postToMarketplace(item) {
-// Marketplace uses the commerce_listing endpoint
-const body = {
-name: item.title || ‘Item for sale’,
-description: buildPostText(item),
-price: item.price * 100, // price in pence
-currency: ‘GBP’,
-category: ‘MERCHANDISE’,    // general category
-condition: item.condition === ‘new’ ? ‘NEW’ : ‘USED_LIKE_NEW’,
-availability: ‘IN_STOCK’,
-access_token: FB_PAGE_TOKEN
-};
-
-if (item.img) body.image_url = item.img;
-
-const res = await fetch(
-`https://graph.facebook.com/v19.0/${FB_PAGE_ID}/commerce_listings`,
-{
-method: ‘POST’,
-headers: { ‘Content-Type’: ‘application/json’ },
-body: JSON.stringify(body)
-}
-);
-
-const data = await res.json();
-if (data.error) {
-console.error(‘Marketplace post error:’, data.error.message);
-// Marketplace API access requires additional app review
-// so this may not work without that — page post will still succeed
-return false;
-}
-console.log(‘Marketplace listing created:’, data.id);
-return true;
-}
-
-// ── Main ───────────────────────────────────────────────────────────
-async function main() {
-let pageOk = 0, marketOk = 0;
-
-for (const item of newItems) {
-console.log(`\nProcessing: ${item.url}`);
-
-```
-// Post to Page
-if (FB_PAGE_ID && FB_PAGE_TOKEN) {
-  const ok = await postToPage(item);
-  if (ok) pageOk++;
-  // Small delay between API calls
-  await new Promise(r => setTimeout(r, 1000));
-
-  // Post to Marketplace
-  const mok = await postToMarketplace(item);
-  if (mok) marketOk++;
-  await new Promise(r => setTimeout(r, 1000));
-} else {
-  console.warn('FB_PAGE_ID or FB_PAGE_TOKEN not set — skipping Facebook posts.');
-}
-```
-
-}
-
-console.log(`\nDone. Page posts: ${pageOk}/${newItems.length}, Marketplace: ${marketOk}/${newItems.length}`);
-}
-
-main().catch(err => {
-console.error(‘Fatal error:’, err);
-process.exit(1);
-});
+      - name: Find new items and post to Facebook
+        env:
+          FB_PAGE_ID:    ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          SHOP_URL:      ${{ secrets.SHOP_URL }}
+        run: node .github/Scripts/post-new-items.js
