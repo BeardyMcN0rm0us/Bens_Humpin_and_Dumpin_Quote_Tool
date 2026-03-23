@@ -31,6 +31,7 @@ jobs:
         env:
           VERSION: ${{ github.run_number }}
           MAPS_KEY: ${{ secrets.MAPS_API_KEY }}
+          WORKER_URL: ${{ secrets.CLOUDFLARE_WORKER_URL }}
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -56,6 +57,13 @@ jobs:
             sed -i "s/__MAPS_API_KEY__/${KEY_ESCAPED}/g" dist/index.html dist/shop.html || { echo "::error ::sed injection failed"; exit 2; }
           else
             echo "::warning ::MAPS_API_KEY not set; leaving placeholder"
+          fi
+
+          # Inject Cloudflare Worker URL
+          if [[ -n "${WORKER_URL:-}" ]]; then
+            sed -i "s|__WORKER_URL__|${WORKER_URL}|g" dist/index.html || true
+          else
+            echo "::warning ::CLOUDFLARE_WORKER_URL not set; AI analyser will be disabled"
           fi
 
           # Cache-bust in index.html if tokens exist
