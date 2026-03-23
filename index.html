@@ -668,38 +668,139 @@ document.addEventListener('DOMContentLoaded', function() {
         btnAnalyse.disabled=false; btnAnalyse.innerHTML='&#129302;&nbsp;&nbsp;Analyse My Waste';
       });
     });
+    // Store AI analysis result globally so main.js can use it for pricing
+    window._wasteAnalysis = null;
+
     function renderAnalysis(a) {
       if(a.error){resultEl.innerHTML='<div class="analysis-error">&#9888;&#65039; '+a.error+' &mdash; please select waste type manually.</div>';return;}
-      var selectedKey = a.dominantCategory||'general';
+
+      // Store analysis globally so main.js pricing can use weight + van loads
+      window._wasteAnalysis = a;
+
+      // Auto-select the pricing category in the hidden wasteType select
+      var selectedKey = a.pricingCategoryKey || a.dominantCategory || 'general';
       var wt = document.getElementById('wasteType');
-      if(wt){wt.value=selectedKey;wt.dispatchEvent(new Event('change',{bubbles:true}));}
+      if(wt){ wt.value = selectedKey; wt.dispatchEvent(new Event('change',{bubbles:true})); }
+
+      // Trigger a weight-aware recalculation in main.js if it supports it
+      if(window.BHD) {
+        window.BHD._aiWeightKgMin = a.totalWeightKgMin || 0;
+        window.BHD._aiWeightKgMax = a.totalWeightKgMax || 0;
+        window.BHD._aiWeightKgMid = ((a.totalWeightKgMin||0) + (a.totalWeightKgMax||0)) / 2;
+        window.BHD._aiVanLoads    = (a.van && a.van.loadsNeeded) || 1;
+        window.BHD._aiDisposalFee = a.estimatedDisposalFee || 0;
+        window.BHD._aiDisposalFeeMin = a.estimatedDisposalFeeMin || 0;
+        window.BHD._aiDisposalFeeMax = a.estimatedDisposalFeeMax || 0;
+        window.BHD._aiIsMixed     = !!a.isMixed;
+        window.BHD._aiPricingRate = a.pricingRate || 192.50;
+      }
+
       function buildHtml() {
-        var cc=a.confidence||'medium';
-        var cl={high:'&#10003; High confidence',medium:'&#9888; Medium confidence',low:'&#10007; Low confidence'};
-        var items=(a.items||[]).map(function(item){
-          var isSel=item.category===selectedKey;
+        var cc = a.confidence || 'medium';
+        var confLabel = {high:'&#10003; High confidence', medium:'&#9888; Medium confidence', low:'&#10007; Low confidence'}[cc] || 'Medium';
+
+        // Rejected items — shown first as a red warning
+        var rejHtml = '';
+        var rejected = a.rejected || a.rejectedItems || [];
+        if(rejected.length > 0){
+          rejHtml = '<div class="analysis-rejected">' +
+            '<div class="analysis-rejected-head">&#9940; Cannot be taken &mdash; ' + rejected.length + ' item' + (rejected.length!==1?'s':'') + '</div>' +
+            rejected.map(function(r){
+              return '<div class="analysis-rejected-item">&#10007; <strong>' + (r.description||r) + '</strong>' +
+                (r.reason ? '<br><span style="font-weight:600;opacity:0.8">' + r.reason + '</span>' : '') + '</div>';
+            }).join('') +
+          '</div>';
+        }
+
+        // Acceptable items list
+        var itemsHtml = (a.items||[]).map(function(item){
+          var isSel = item.category === selectedKey;
           return '<div class="analysis-item'+(isSel?' is-selected':'')+'" data-key="'+item.category+'">' +
             '<div class="analysis-item-pct">'+(item.percentage||0)+'%</div>' +
-            '<div class="analysis-item-info"><div class="analysis-item-label">'+(item.categoryLabel||item.category)+'</div><div class="analysis-item-desc">'+(item.description||'')+'</div></div>' +
+            '<div class="analysis-item-info">' +
+              '<div class="analysis-item-label">'+(item.categoryLabel||item.category)+'</div>' +
+              '<div class="analysis-item-desc">'+(item.description||'')+'</div>' +
+            '</div>' +
             '<button class="analysis-item-select" type="button">'+(isSel?'Selected &#10003;':'Use this')+'</button>' +
           '</div>';
         }).join('');
-        return '<div class="analysis-result">' +
-          '<div class="analysis-result-head">&#129302; AI Waste Analysis<span class="confidence-badge '+cc+'">'+(cl[cc]||'Medium')+'</span></div>' +
-          '<div class="analysis-items">'+items+'</div>' +
-          '<div class="analysis-weight">Estimated weight: '+(a.totalWeightKgMin||0)+'&ndash;'+(a.totalWeightKgMax||0)+' kg</div>' +
-          (a.notes?'<div class="analysis-notes">&#8505;&#65039; '+a.notes+'</div>':'')+
-          '<div class="analysis-notes" style="color:var(--brand);font-style:normal;font-weight:800">Tap any item to use it for pricing. Ben will confirm on collection.</div>' +
+
+        var mixedBadge = a.isMixed ? '<span class="mixed-badge">MIXED</span>' : '';
+
+        // Stats: weight, volume, van loads
+        var van = a.van || {};
+        var loads = van.loadsNeeded || 1;
+        var limitFactor = van.limitingFactor === 'weight' ? 'payload limited' : 'volume limited';
+        var statsHtml = '<div class="analysis-stats">' +
+          '<div class="analysis-stat">' +
+            '<div class="analysis-stat-label">Weight est.</div>' +
+            '<div class="analysis-stat-value">'+(a.totalWeightKgMin||0)+'&ndash;'+(a.totalWeightKgMax||0)+'</div>' +
+            '<div class="analysis-stat-sub">kg</div>' +
+          '</div>' +
+          '<div class="analysis-stat">' +
+            '<div class="analysis-stat-label">Volume est.</div>' +
+            '<div class="analysis-stat-value">'+(a.totalVolumeM3 ? a.totalVolumeM3.toFixed(1) : '?')+'</div>' +
+            '<div class="analysis-stat-sub">m&sup3; (van holds 5.2m&sup3;)</div>' +
+          '</div>' +
+          '<div class="analysis-stat">' +
+            '<div class="analysis-stat-label">Van loads</div>' +
+            '<div class="analysis-stat-value">'+loads+(loads===1?' load':' loads')+'</div>' +
+            '<div class="analysis-stat-sub">'+limitFactor+'</div>' +
+          '</div>' +
         '</div>';
+
+        // Van notes
+        var vanHtml = '';
+        if(van.loadsNeeded > 0){
+          var vanWarning = !van.likelyFits ? '<div class="analysis-van-warning">&#9888; Some items may be too large for the van &mdash; check before booking</div>' : '';
+          var vanNotes = a.vanNotes ? '<div class="analysis-van-detail">'+a.vanNotes+'</div>' : '';
+          vanHtml = '<div class="analysis-van">' +
+            '<div class="analysis-van-head">&#128665; 2013 SWB Renault Trafic</div>' +
+            '<div class="analysis-van-loads">'+loads+' van load'+(loads!==1?'s':'')+' estimated</div>' +
+            (loads > 1 ? '<div class="analysis-van-detail">Multiple trips &mdash; each trip charged at base fee + mileage</div>' : '') +
+            vanWarning + vanNotes +
+          '</div>';
+        }
+
+        // Disposal cost based on weight (not minimum flat charge)
+        var costHtml = '';
+        if(a.estimatedDisposalFee > 0){
+          var pricingNote = a.isMixed
+            ? 'Priced as General Waste (mixed load) &bull; ' + a.pricingCategoryLabel
+            : a.pricingCategoryLabel;
+          costHtml = '<div class="analysis-cost">' +
+            '<div class="analysis-cost-label">&#128176; Estimated disposal cost (inc. VAT)</div>' +
+            '<div class="analysis-cost-value">&pound;'+(a.estimatedDisposalFeeMin||0)+'&ndash;&pound;'+(a.estimatedDisposalFeeMax||0)+'</div>' +
+            '<div class="analysis-cost-note">Based on '+(a.totalWeightKgMin||0)+'&ndash;'+(a.totalWeightKgMax||0)+'kg &bull; '+pricingNote+'</div>' +
+          '</div>';
+        }
+
+        var noItemsHtml = (!a.items || a.items.length === 0)
+          ? '<div class="analysis-error" style="padding:12px 14px">No acceptable waste identified in these photos. Remove any rejected items and try again, or select waste type manually.</div>'
+          : '';
+
+        return rejHtml +
+          '<div class="analysis-result">' +
+            '<div class="analysis-result-head">&#129302; AI Waste Analysis'+mixedBadge+' <span class="confidence-badge '+cc+'">'+confLabel+'</span></div>' +
+            (itemsHtml ? '<div class="analysis-items">'+itemsHtml+'</div>' : noItemsHtml) +
+            statsHtml +
+            vanHtml +
+            costHtml +
+            (a.notes?'<div class="analysis-notes">&#8505;&#65039; '+a.notes+'</div>':'')+
+            '<div class="analysis-action">Tap any waste type to use it for pricing &mdash; quote updates automatically. Disposal cost is based on estimated weight. Ben will confirm on collection.</div>' +
+          '</div>';
       }
-      resultEl.innerHTML=buildHtml();
+
+      resultEl.innerHTML = buildHtml();
+
       function wire(){
         resultEl.querySelectorAll('.analysis-item').forEach(function(el){
-          el.addEventListener('click',function(){
-            selectedKey=el.getAttribute('data-key');
-            var wt2=document.getElementById('wasteType');
-            if(wt2){wt2.value=selectedKey;wt2.dispatchEvent(new Event('change',{bubbles:true}));}
-            resultEl.innerHTML=buildHtml(); wire();
+          el.addEventListener('click', function(){
+            selectedKey = el.getAttribute('data-key');
+            var wt2 = document.getElementById('wasteType');
+            if(wt2){ wt2.value = selectedKey; wt2.dispatchEvent(new Event('change',{bubbles:true})); }
+            resultEl.innerHTML = buildHtml();
+            wire();
           });
         });
       }
