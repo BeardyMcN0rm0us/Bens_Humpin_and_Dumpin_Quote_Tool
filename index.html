@@ -765,16 +765,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Disposal cost based on weight (not minimum flat charge)
         var costHtml = '';
-        if(a.estimatedDisposalFee > 0){
-          var pricingNote = a.isMixed
-            ? 'Priced as General Waste (mixed load) &bull; ' + a.pricingCategoryLabel
-            : a.pricingCategoryLabel;
-          costHtml = '<div class="analysis-cost">' +
-            '<div class="analysis-cost-label">&#128176; Estimated disposal cost (inc. VAT)</div>' +
-            '<div class="analysis-cost-value">&pound;'+(a.estimatedDisposalFeeMin||0)+'&ndash;&pound;'+(a.estimatedDisposalFeeMax||0)+'</div>' +
-            '<div class="analysis-cost-note">Based on '+(a.totalWeightKgMin||0)+'&ndash;'+(a.totalWeightKgMax||0)+'kg &bull; '+pricingNote+'</div>' +
-          '</div>';
-        }
 
         var noItemsHtml = (!a.items || a.items.length === 0)
           ? '<div class="analysis-error" style="padding:12px 14px">No acceptable waste identified in these photos. Remove any rejected items and try again, or select waste type manually.</div>'
@@ -788,7 +778,6 @@ document.addEventListener('DOMContentLoaded', function() {
             vanHtml +
             costHtml +
             (a.notes?'<div class="analysis-notes">&#8505;&#65039; '+a.notes+'</div>':'')+
-            '<div class="analysis-action">Tap any waste type to use it for pricing &mdash; quote updates automatically. Disposal cost is based on estimated weight. Ben will confirm on collection.</div>' +
           '</div>';
       }
 
