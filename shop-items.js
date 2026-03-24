@@ -20,7 +20,7 @@ window.SHOP_ITEMS = [
 {
 url: "https://www.amazon.co.uk/dp/B0F2MLYRHN",
 price: 30,
-rrp: ,
+rrp: 62.99,
 condition: "new",
 sold: false
 },
