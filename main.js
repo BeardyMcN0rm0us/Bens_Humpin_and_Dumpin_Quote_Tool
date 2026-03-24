@@ -384,15 +384,16 @@ window.BHD = Object.assign({
     const fee=exVat*(1+vatRate);
     const feeMin=exVatMin*(1+vatRate);
     const feeMax=exVatMax*(1+vatRate);
+    const minCharge=rate*0.25*(1+vatRate);
     window.BHD._aiDisposalFee=Math.round(fee);
     window.BHD._aiDisposalFeeMin=Math.round(feeMin);
     window.BHD._aiDisposalFeeMax=Math.round(feeMax);
-    return{fee:fee,detail:`Disposal: ${item.label||key} — ${aiWeightMid}kg @ £${rate.toFixed(2)}/t inc VAT = £${fee.toFixed(2)} (range £${feeMin.toFixed(0)}–£${feeMax.toFixed(0)})`};
+    return{fee:Math.max(fee,minCharge),detail:"Disposal: "+(item.label||key)+" — "+aiWeightMid+"kg @ £"+rate.toFixed(2)+"/t inc VAT = £"+Math.max(fee,minCharge).toFixed(2)+" (range £"+Math.max(feeMin,minCharge).toFixed(0)+"–£"+feeMax.toFixed(0)+")"};
   }
   const exVat=rate;
   const vat=exVat*vatRate;
-  const minFee=exVat+vat;
-  return{fee:minFee,detail:`Disposal: ${item.label||key} — min load 25% of £${rate.toFixed(2)}/t = £${exVat.toFixed(2)} + VAT £${vat.toFixed(2)}`};
+  const minFee=rate*0.25*(1+vatRate);
+return{fee:minFee,detail:"Disposal: "+(item.label||key)+" — minimum quarter tonne @ £"+rate.toFixed(2)+"/t inc VAT = £"+minFee.toFixed(2)};
 }
 
 
