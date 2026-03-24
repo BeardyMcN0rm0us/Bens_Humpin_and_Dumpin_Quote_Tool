@@ -111,11 +111,12 @@ window.BHD = Object.assign({
   if(els.lutonCost) els.lutonCost.value=Number(CFG.LUTON_HIRE_COST||0);
 
   if(els.wasteType&&els.wasteType.options.length===0){
-    Object.keys(CFG.disposal||{}).forEach(k=>{
-      const it=CFG.disposal[k],o=document.createElement('option');
-      o.value=k; o.textContent=it.label+" (£"+(Number(it.ratePerTonne||0)*1.20).toFixed(2)+"/t inc VAT)";
-    });
-  }
+  Object.keys(CFG.disposal||{}).forEach(k=>{
+    const it=CFG.disposal[k],o=document.createElement('option');
+    o.value=k; o.textContent=it.label+" (£"+(Number(it.ratePerTonne||0)*1.20).toFixed(2)+"/t inc VAT)";
+    els.wasteType.appendChild(o);
+  });
+}
 
   function toggleIkeaOther(){
     if(!els.ikeaItemSel) return;
