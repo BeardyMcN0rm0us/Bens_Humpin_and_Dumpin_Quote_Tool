@@ -685,7 +685,14 @@ if(btnLoc) {
     navigator.geolocation.getCurrentPosition(function(pos) {
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key=__MAPS_API_KEY__')
+      var mapsKey = '';
+var scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
+if(scripts.length) {
+  var match = scripts[0].src.match(/key=([^&]+)/);
+  if(match) mapsKey = match[1];
+}
+fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key='+mapsKey)
+
         .then(function(r){ return r.json(); })
         .then(function(data) {
           if(data.results && data.results[0]) {
