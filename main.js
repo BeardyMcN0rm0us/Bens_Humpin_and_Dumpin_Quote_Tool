@@ -389,7 +389,10 @@ window.BHD = Object.assign({
     window.BHD._aiDisposalFee=Math.round(fee);
     window.BHD._aiDisposalFeeMin=Math.round(feeMin);
     window.BHD._aiDisposalFeeMax=Math.round(feeMax);
-    return{fee:Math.max(fee,minCharge),detail:"Disposal: "+(item.label||key)+" — "+aiWeightMid+"kg @ £"+rate.toFixed(2)+"/t inc VAT = £"+Math.max(fee,minCharge).toFixed(2)+" (range £"+Math.max(feeMin,minCharge).toFixed(0)+"–£"+feeMax.toFixed(0)+")"};
+    //return{fee:Math.max(fee,minCharge),detail:"Disposal: "+(item.label||key)+" — "+aiWeightMid+"kg @ £"+rate.toFixed(2)+"/t inc VAT = £"+Math.max(fee,minCharge).toFixed(2)+" (range £"+Math.max(feeMin,minCharge).toFixed(0)+"–£"+feeMax.toFixed(0)+")"};
+    var rateIncVat=(rate*1.20).toFixed(2);
+    return{fee:Math.max(fee,minCharge),detail:"Disposal: "+(item.label||key)+" — "+aiWeightMid+"kg @ £"+rateIncVat+"/t = £"+Math.max(fee,minCharge).toFixed(2)+" (range £"+Math.min(Math.max(feeMin,minCharge),feeMax).toFixed(0)+"–£"+Math.max(feeMax,minCharge).toFixed(0)+")"};
+
   }
   const exVat=rate;
   const vat=exVat*vatRate;
