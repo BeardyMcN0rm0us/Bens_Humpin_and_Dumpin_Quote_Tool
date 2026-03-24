@@ -670,55 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }).finally(function(){
         btnAnalyse.disabled=false; btnAnalyse.innerHTML='&#129302;&nbsp;&nbsp;Analyse My Waste';
       });
-      // Use my location button
-var btnLoc = document.getElementById('btnUseLocation');
-var locationHint = document.getElementById('locationHint');
-if(btnLoc) {
-  btnLoc.addEventListener('click', function() {
-    if(!navigator.geolocation) {
-      locationHint.textContent = 'Location not supported on this device.';
-      return;
-    }
-    btnLoc.textContent = 'Getting location...';
-    btnLoc.disabled = true;
-    locationHint.textContent = '';
-    navigator.geolocation.getCurrentPosition(function(pos) {
-      var lat = pos.coords.latitude;
-      var lng = pos.coords.longitude;
-      var mapsKey = '';
-var scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
-if(scripts.length) {
-  var match = scripts[0].src.match(/key=([^&]+)/);
-  if(match) mapsKey = match[1];
-}
-fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key='+mapsKey)
-
-        .then(function(r){ return r.json(); })
-        .then(function(data) {
-          if(data.results && data.results[0]) {
-            var addr = data.results[0].formatted_address;
-            var pickup = document.getElementById('addrPickup');
-            if(pickup) pickup.value = addr;
-            locationHint.textContent = 'Location set.';
-          } else {
-            locationHint.textContent = 'Could not find address for your location.';
-          }
-        })
-        .catch(function() {
-          locationHint.textContent = 'Could not look up address.';
-        })
-        .finally(function() {
-          btnLoc.innerHTML = '&#127759; Use my current location';
-          btnLoc.disabled = false;
-        });
-    }, function(err) {
-      locationHint.textContent = 'Location access denied or unavailable.';
-      btnLoc.innerHTML = '&#127759; Use my current location';
-      btnLoc.disabled = false;
-    }, {timeout:10000, enableHighAccuracy:true});
-  });
-}
-
+      
     });
     // Store AI analysis result globally so main.js can use it for pricing
     window._wasteAnalysis = null;
@@ -855,7 +807,54 @@ fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&
       manualPanel.style.display=''; photoPanel.style.display='none';
     });}
   })();
+// Use my location button
+var btnLoc = document.getElementById('btnUseLocation');
+var locationHint = document.getElementById('locationHint');
+if(btnLoc) {
+  btnLoc.addEventListener('click', function() {
+    if(!navigator.geolocation) {
+      locationHint.textContent = 'Location not supported on this device.';
+      return;
+    }
+    btnLoc.textContent = 'Getting location...';
+    btnLoc.disabled = true;
+    locationHint.textContent = '';
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var mapsKey = '';
+var scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
+if(scripts.length) {
+  var match = scripts[0].src.match(/key=([^&]+)/);
+  if(match) mapsKey = match[1];
+}
+fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key='+mapsKey)
 
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          if(data.results && data.results[0]) {
+            var addr = data.results[0].formatted_address;
+            var pickup = document.getElementById('addrPickup');
+            if(pickup) pickup.value = addr;
+            locationHint.textContent = 'Location set.';
+          } else {
+            locationHint.textContent = 'Could not find address for your location.';
+          }
+        })
+        .catch(function() {
+          locationHint.textContent = 'Could not look up address.';
+        })
+        .finally(function() {
+          btnLoc.innerHTML = '&#127759; Use my current location';
+          btnLoc.disabled = false;
+        });
+    }, function(err) {
+      locationHint.textContent = 'Location access denied or unavailable.';
+      btnLoc.innerHTML = '&#127759; Use my current location';
+      btnLoc.disabled = false;
+    }, {timeout:10000, enableHighAccuracy:true});
+  });
+}
 });
 </script>
 
