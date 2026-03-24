@@ -829,12 +829,11 @@ if(btnLoc) {
       //if(match) mapsKey = match[1];
       //}
       //fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key='+mapsKey)
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key=__MAPS_API_KEY__')
-
-        .then(function(r){ return r.json(); })
-        .then(function(data) {
-          if(data.results && data.results[0]) {
-            var addr = data.results[0].formatted_address;
+      fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json')
+          .then(function(r){ return r.json(); })
+          .then(function(data) {
+          if(data && data.display_name) {
+          var addr = data.display_name;
             var pickup = document.getElementById('addrPickup');
             if(pickup) pickup.value = addr;
             locationHint.textContent = 'Location set.';
