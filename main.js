@@ -370,10 +370,10 @@ window.BHD = Object.assign({
   const rate=Number(item.ratePerTonne||0);
   const pct=Number(CFG.disposalMinPct||0.25);
   const vatRate=Number(CFG.disposalVat||0.20);
-  const ai=window.BHD;
-  const aiWeightMid=ai&&ai._aiWeightKgMid&&ai._aiWeightKgMid>0?ai._aiWeightKgMid:null;
-  const aiWeightMin=ai&&ai._aiWeightKgMin&&ai._aiWeightKgMin>0?ai._aiWeightKgMin:null;
-  const aiWeightMax=ai&&ai._aiWeightKgMax&&ai._aiWeightKgMax>0?ai._aiWeightKgMax:null;
+  const wa=window._wasteAnalysis;
+  const aiWeightMid=wa&&wa.totalWeightKgMin&&wa.totalWeightKgMax?((wa.totalWeightKgMin+wa.totalWeightKgMax)/2):null;
+  const aiWeightMin=wa&&wa.totalWeightKgMin?wa.totalWeightKgMin:null;
+  const aiWeightMax=wa&&wa.totalWeightKgMax?wa.totalWeightKgMax:null;
   if(aiWeightMid){
     const tonnes=aiWeightMid/1000;
     const tonnesMin=(aiWeightMin||aiWeightMid)/1000;
