@@ -387,7 +387,7 @@ window.BHD = Object.assign({
     window.BHD._aiDisposalFee=Math.round(fee);
     window.BHD._aiDisposalFeeMin=Math.round(feeMin);
     window.BHD._aiDisposalFeeMax=Math.round(feeMax);
-    return{fee:fee,detail:`Disposal: ${item.label||key} — ${aiWeightMid}kg estimated @ £${rate.toFixed(2)}/t x ${(pct*100).toFixed(0)}% + VAT = £${fee.toFixed(2)} (range £${feeMin.toFixed(0)}–£${feeMax.toFixed(0)})`};
+    return{fee:fee,detail:`Disposal: ${item.label||key} — ${aiWeightMid}kg @ £${rate.toFixed(2)}/t inc VAT = £${fee.toFixed(2)} (range £${feeMin.toFixed(0)}–£${feeMax.toFixed(0)})`};
   }
   const exVat=rate;
   const vat=exVat*vatRate;
