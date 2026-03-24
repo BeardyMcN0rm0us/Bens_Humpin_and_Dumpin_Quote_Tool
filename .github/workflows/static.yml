@@ -51,7 +51,7 @@ jobs:
 
           echo "== Dist before injection =="; ls -la dist
 
-          # Inject Google Maps API key (safely escaped for sed)
+          # Inject Google Maps API key
           if [[ -n "${MAPS_KEY:-}" ]]; then
             KEY_ESCAPED=$(printf '%s' "$MAPS_KEY" | sed -e 's/[\/&]/\\&/g')
             sed -i "s/__MAPS_API_KEY__/${KEY_ESCAPED}/g" dist/index.html dist/shop.html || { echo "::error ::sed injection failed"; exit 2; }
@@ -66,7 +66,10 @@ jobs:
             echo "::warning ::CLOUDFLARE_WORKER_URL not set; AI analyser will be disabled"
           fi
 
-          # Cache-bust in index.html if tokens exist
+          # Force build tag to r420
+          sed -i 's/id="buildTag">r[^<]*/id="buildTag">r420/g' dist/index.html || true
+
+          # Cache-bust script/style tags
           sed -i -E "s/\?v=[a-zA-Z0-9._-]+/?v=${VERSION}/g" dist/index.html || true
           sed -i -E "s/cbust=[a-zA-Z0-9._-]+/cbust=${VERSION}/g" dist/index.html || true
 
