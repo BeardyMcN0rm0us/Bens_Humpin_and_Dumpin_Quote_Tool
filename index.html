@@ -752,7 +752,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Van notes
         var vanHtml = '';
         if(van.loadsNeeded > 0){
-          var vanWarning = !van.likelyFits ? '<div class="analysis-van-warning">&#9888; Some items may be too large for the van &mdash; check before booking</div>' : '';
+          //var vanWarning = !van.likelyFits ? '<div class="analysis-van-warning">&#9888; Some items may be too large for the van &mdash; check before booking</div>' : '';
+          var vanWarning = '';
           var vanNotes = a.vanNotes ? '<div class="analysis-van-detail">'+a.vanNotes+'</div>' : '';
           vanHtml = '<div class="analysis-van">' +
             '<div class="analysis-van-head">&#128665; 2013 SWB Renault Trafic</div>' +
