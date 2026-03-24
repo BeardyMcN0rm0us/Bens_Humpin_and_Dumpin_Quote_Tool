@@ -77,7 +77,7 @@
     <div class="panel-head"><h2 id="detailsHeading">Details</h2></div>
     <div class="form-body">
 
-
+```
   <div id="houseMoveBedroomsWrap" class="hidden" hidden>
     <div class="field-group">
       <label class="field-label">Bedrooms</label>
@@ -353,7 +353,7 @@
 <div class="sticky-calc">
   <button id="btnCalc" class="btn btn-primary" type="button">&#129518;&nbsp;&nbsp;Calculate My Quote</button>
 </div>
-
+```
 
   </div>
 
@@ -752,8 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Van notes
         var vanHtml = '';
         if(van.loadsNeeded > 0){
-          //var vanWarning = !van.likelyFits ? '<div class="analysis-van-warning">&#9888; Some items may be too large for the van &mdash; check before booking</div>' : '';
-          var vanWarning = '';
+          var vanWarning = !van.likelyFits ? '<div class="analysis-van-warning">&#9888; Some items may be too large for the van &mdash; check before booking</div>' : '';
           var vanNotes = a.vanNotes ? '<div class="analysis-van-detail">'+a.vanNotes+'</div>' : '';
           vanHtml = '<div class="analysis-van">' +
             '<div class="analysis-van-head">&#128665; 2013 SWB Renault Trafic</div>' +
