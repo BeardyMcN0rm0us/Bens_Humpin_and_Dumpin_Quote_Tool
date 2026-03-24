@@ -75,9 +75,9 @@ const round1=v=>Math.round(v*10)/10;
 const round5=v=>Math.round(v/5)*5;
 const metersToMiles=m=>m/1609.344;
 const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
-const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,“0”);return `ID${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}-${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;};
+const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,“0”);return “ID”+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+”-”+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds());};
 const ceil0=v=>Math.ceil(v);
-const fmtMins=(mins)=>{const m=Math.max(0,Math.round(mins)); if(m<60)return `${m} min`; const h=Math.floor(m/60),r=m%60; return r?`${h}h ${r}m`:`${h}h`;};
+const fmtMins=(mins)=>{const m=Math.max(0,Math.round(mins)); if(m<60)return m+” min”; const h=Math.floor(m/60),r=m%60; return r?(h+“h “+r+“m”):(h+“h”);};
 
 const CFG=window.BHD;
 
@@ -113,7 +113,7 @@ if(els.lutonCost) els.lutonCost.value=Number(CFG.LUTON_HIRE_COST||0);
 if(els.wasteType&&els.wasteType.options.length===0){
 Object.keys(CFG.disposal||{}).forEach(k=>{
 const it=CFG.disposal[k],o=document.createElement(‘option’);
-o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t + VAT)`; els.wasteType.appendChild(o);
+o.value=k; o.textContent=it.label+” (£”+Number(it.ratePerTonne||0).toFixed(2)+”/t + VAT)”; els.wasteType.appendChild(o);
 });
 }
 
@@ -132,7 +132,7 @@ return perHour>0?(perHour/60):0.6;
 function renderList(targetEl,timeHintEl,basket){
 targetEl.innerHTML=’’;
 if(basket.length===0){
-targetEl.innerHTML=`<div class="hint">No items added yet.</div>`;
+targetEl.innerHTML=’<div class="hint">No items added yet.</div>’;
 timeHintEl.textContent=’’;
 return;
 }
@@ -141,10 +141,10 @@ basket.forEach((it,idx)=>{
 totalMin+=it.minutes*it.qty;
 const row=document.createElement(‘div’);
 row.className=‘row’;
-row.innerHTML=`<div class="meta"><strong>${it.name}</strong><br><span class="hint">${fmtMins(it.minutes)} each</span></div><div class="qty"><input type="number" min="1" step="1" value="${it.qty}" data-idx="${idx}" class="qtyInput"><button class="btn small" data-remove="${idx}" type="button">Remove</button></div>`;
+row.innerHTML=’<div class="meta"><strong>’+it.name+’</strong><br><span class="hint">’+fmtMins(it.minutes)+’ each</span></div><div class="qty"><input type="number" min="1" step="1" value="'+it.qty+'" data-idx="'+idx+'" class="qtyInput"><button class="btn small" data-remove="'+idx+'" type="button">Remove</button></div>’;
 targetEl.appendChild(row);
 });
-timeHintEl.textContent=`Est. total build time: ~${fmtMins(totalMin)}`;
+timeHintEl.textContent=“Est. total build time: ~“+fmtMins(totalMin);
 targetEl.querySelectorAll(’.qtyInput’).forEach(inp=>{
 inp.addEventListener(‘input’,e=>{
 const i=+e.target.getAttribute(‘data-idx’); const v=Math.max(1,parseInt(e.target.value||‘1’,10)||1);
@@ -253,10 +253,10 @@ function updateLutonHint(){
 if(!els.lutonHint||!els.lutonNeeded) return;
 const mode=(els.lutonNeeded.value||‘auto’);
 const auto=autoLutonFromBedrooms();
-let txt=`Auto suggests: ${auto?"Luton needed":"no Luton"}.`;
-if(mode===‘yes’) txt+=` Forced ON.`;
-if(mode===‘no’)  txt+=` Forced OFF.`;
-els.lutonHint.textContent=txt+` Hire: £${Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST).toFixed(0)}/day.`;
+var txt=“Auto suggests: “+(auto?“Luton needed”:“no Luton”)+”.”;
+if(mode===‘yes’) txt+=” Forced ON.”;
+if(mode===‘no’)  txt+=” Forced OFF.”;
+els.lutonHint.textContent=txt+” Hire: £”+Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST).toFixed(0)+”/day.”;
 }
 
 if(els.ikeaStore){
@@ -309,12 +309,12 @@ const hayType=(hayTypeEl&&hayTypeEl.value)||‘rental’;
 if(hayType===‘rental’){
 const loop=await routeP({origin:home,destination:home,waypoints:[{location:drop,stopover:true}],travelMode:‘DRIVING’});
 const loopMiles=round1(loop.miles);
-if(els.routeHint) els.routeHint.textContent=`Hay rental: ${loopMiles} miles return (delivery + collection).`;
+if(els.routeHint) els.routeHint.textContent=“Hay rental: “+loopMiles+” miles return (delivery + collection).”;
 cb({charged:loopMiles,loop:loopMiles,noteCharged:‘Home to Delivery and back (delivery + collection)’,noteLoop:‘Home to Delivery and back’});
 }else{
 const oneWay=await routeP({origin:home,destination:drop,travelMode:‘DRIVING’});
 const oneMiles=round1(oneWay.miles);
-if(els.routeHint) els.routeHint.textContent=`Hay sale: ${oneMiles} miles one-way delivery.`;
+if(els.routeHint) els.routeHint.textContent=“Hay sale: “+oneMiles+” miles one-way delivery.”;
 cb({charged:oneMiles,loop:oneMiles,noteCharged:‘Home to Delivery (one-way)’,noteLoop:‘Home to Delivery’});
 }
 return;
@@ -324,7 +324,7 @@ if(!drop){if(els.routeHint) els.routeHint.textContent=“Enter destination addre
 const oneWay=await routeP({origin:home,destination:drop,travelMode:‘DRIVING’});
 const loop=await routeP({origin:home,destination:home,waypoints:[{location:drop,stopover:true}],travelMode:‘DRIVING’});
 const charged=(oneWay.miles>15)?ceil0(oneWay.miles):0;
-if(els.routeHint) els.routeHint.textContent=`Flatpack: ${charged>0?"Charging one-way":"No mileage"} — ${charged} mi.`;
+if(els.routeHint) els.routeHint.textContent=“Flatpack: “+(charged>0?“Charging one-way”:“No mileage”)+” — “+charged+” mi.”;
 cb({charged,loop:round1(loop.miles),noteCharged:charged>0?‘Home to Destination (over 15mi)’:‘No mileage billed (under 15mi)’,noteLoop:‘Home to Destination and back’});
 return;
 }
@@ -348,7 +348,7 @@ charged=ch.miles; noteC=‘Home to Pickup to Delivery’;
 const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:‘DRIVING’});
 loop=lp.miles; noteL=‘Home to Pickup to Delivery and back’;
 }
-if(els.routeHint) els.routeHint.textContent=`Charged route: ${round1(charged)} mi — ${noteC}.`;
+if(els.routeHint) els.routeHint.textContent=“Charged route: “+round1(charged)+” mi — “+noteC+”.”;
 cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
 }
 
@@ -377,10 +377,10 @@ if(aiWeightMid){
 const fee=(aiWeightMid/1000)*rate*(1+vatRate);
 const feeMin=(aiWeightMin/1000)*rate*(1+vatRate);
 const feeMax=(aiWeightMax/1000)*rate*(1+vatRate);
-return{fee:fee,detail:`Disposal: ${item.label||key} — ${aiWeightMid}kg @ £${rate.toFixed(2)}/t inc VAT = £${fee.toFixed(2)} (range £${feeMin.toFixed(0)}–£${feeMax.toFixed(0)})`};
+return{fee:fee,detail:“Disposal: “+(item.label||key)+” — “+aiWeightMid+“kg @ £”+rate.toFixed(2)+”/t inc VAT = £”+fee.toFixed(2)+” (range £”+feeMin.toFixed(0)+”–£”+feeMax.toFixed(0)+”)”};
 }
 const minFee=rate*(1+vatRate);
-return{fee:minFee,detail:`Disposal: ${item.label||key} — min 1 tonne @ £${rate.toFixed(2)}/t inc VAT = £${minFee.toFixed(2)}`};
+return{fee:minFee,detail:“Disposal: “+(item.label||key)+” — min 1 tonne @ £”+rate.toFixed(2)+”/t inc VAT = £”+minFee.toFixed(2)};
 }
 
 function calcBags(){
@@ -389,8 +389,8 @@ const count=Math.max(1,parseInt(bagsEl&&bagsEl.value||‘1’,10)||1);
 const priceEach=Number(CFG.bagPriceEach||4);
 const bagCost=count*priceEach;
 return{fee:bagCost,lines:[
-`${count} bag${count!==1?'s':''} @ £${priceEach}/bag = £${bagCost.toFixed(2)}`,
-`Disposed at Waterbeach Waste Management Park — fully licensed`,
+(count+” bag”+(count!==1?“s”:””)+” @ £”+priceEach+”/bag = £”+bagCost.toFixed(2)),
+“Disposed at Waterbeach Waste Management Park — fully licensed”,
 ]};
 }
 
@@ -408,17 +408,17 @@ if(hayType===‘sale’){
 const bales=Math.max(1,rawBales);
 const saleCost=bales*salePerBale;
 return{fee:saleCost,lines:[
-`${bales} bales for sale @ £${salePerBale}/bale = £${saleCost.toFixed(2)}`,
-`Mileage charged separately (one-way delivery)`,
+(bales+” bales for sale @ £”+salePerBale+”/bale = £”+saleCost.toFixed(2)),
+“Mileage charged separately (one-way delivery)”,
 ]};
 }else{
 const bales=Math.max(minBales,rawBales);
 const isFullLoad=bales>=fullLoad;
 const rentalCost=bales*rentalPerBalePerDay;
 return{fee:rentalCost,lines:[
-`${bales} bales${isFullLoad?' (full load)':` (min ${minBales})`} rental @ £${rentalPerBalePerDay}/bale/day = £${rentalCost.toFixed(2)}`,
-`Mileage charged for return trip (delivery + collection)`,
-`Damaged/wet bales: £${damagedFee}/bale — if wet, you keep them`,
+(bales+” bales”+(isFullLoad?” (full load)”:” (min “+minBales+”)”)+” rental @ £”+rentalPerBalePerDay+”/bale/day = £”+rentalCost.toFixed(2)),
+“Mileage charged for return trip (delivery + collection)”,
+“Damaged/wet bales: £”+damagedFee+”/bale — if wet, you keep them”,
 ]};
 }
 }
@@ -426,16 +426,16 @@ return{fee:rentalCost,lines:[
 function calcAssembly(basket){
 let totalMinutes=0,totalItems=0,lines=[];
 if(basket.length>0){
-basket.forEach(i=>{totalMinutes+=i.minutes*i.qty; totalItems+=i.qty; lines.push(`${i.qty} x ${i.name} (${fmtMins(i.minutes)} each)`);});
+basket.forEach(i=>{totalMinutes+=i.minutes*i.qty; totalItems+=i.qty; lines.push(i.qty+” x “+i.name+” (”+fmtMins(i.minutes)+” each)”);});
 }
 let cost=0,txt=’’;
 if(CFG.useTimePricing&&totalMinutes>0){
 const perHour=Number(CFG.ikeaLaborPerHour||0)||Math.round(laborPerMinuteEffective()*60);
 const perMin=laborPerMinuteEffective();
-cost=totalMinutes*perMin; txt=` (~${fmtMins(totalMinutes)} @ £${perHour}/hour)`;
+cost=totalMinutes*perMin; txt=” (~”+fmtMins(totalMinutes)+” @ £”+perHour+”/hour)”;
 }else if(totalItems>0){
 const perItem=Number(CFG.ikeaAssemblyPerItem||15);
-cost=totalItems*perItem; txt=` (${totalItems} x £${perItem.toFixed(2)}/item)`;
+cost=totalItems*perItem; txt=” (”+totalItems+” x £”+perItem.toFixed(2)+”/item)”;
 }
 return{cost,txt,itemLines:lines};
 }
@@ -480,18 +480,18 @@ const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||‘0’,
 const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
 if(map){
 labourCost=Number(map.hours||0)*Number(CFG.HOURLY_RATE_MOVE||0);
-labourLine=`${map.hours} hrs labour @ £${Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)}/hr = £${labourCost.toFixed(2)}`;
+labourLine=map.hours+” hrs labour @ £”+Number(CFG.HOURLY_RATE_MOVE||0).toFixed(2)+”/hr = £”+labourCost.toFixed(2);
 }
 const mode=(els.lutonNeeded&&els.lutonNeeded.value)||‘auto’;
 const autoNeed=map?!!map.luton:false;
 const include=(mode===‘yes’)||(mode===‘auto’&&autoNeed);
 if(include){
 lutonCost=Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST||0);
-lutonLine=`Luton van hire: £${lutonCost.toFixed(2)} (${mode==='auto'?'auto':mode==='yes'?'forced':'overridden OFF'})`;
+lutonLine=“Luton van hire: £”+lutonCost.toFixed(2)+” (”+(mode===‘auto’?‘auto’:mode===‘yes’?‘forced’:‘overridden OFF’)+”)”;
 }else if(mode===‘no’){
-lutonLine=`Luton hire not included (overridden)`;
+lutonLine=“Luton hire not included (overridden)”;
 }else{
-lutonLine=`Luton not required (auto)`;
+lutonLine=“Luton not required (auto)”;
 }
 }
 let total=base+mileageCost+stairs+twoMan+disp.fee+asm.cost+labourCost+lutonCost+bags.fee+hay.fee;
@@ -500,35 +500,35 @@ const lines=[];
 if(jt===‘bags’){
 bags.lines.forEach(l=>lines.push(l));
 }else{
-lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL})`);
-lines.push(`Charged: ${chargedMiles.toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC})`);
-lines.push(`Base fee: £${base.toFixed(2)}`);
-lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
+lines.push(“Total journey: “+loopMiles.toFixed(1)+” miles (”+noteL+”)”);
+lines.push(“Charged: “+chargedMiles.toFixed(1)+” miles @ £”+Number(CFG.mileagePerMile).toFixed(2)+”/mile (”+noteC+”)”);
+lines.push(“Base fee: £”+base.toFixed(2));
+lines.push(“Mileage: £”+mileageCost.toFixed(2));
 }
-if(stairs) lines.push(`Stairs: £${stairs.toFixed(2)}`);
+if(stairs) lines.push(“Stairs: £”+stairs.toFixed(2));
 if(twoMan){
 const beds=parseInt(els.houseMoveBedrooms&&els.houseMoveBedrooms.value||‘0’,10);
 const map=CFG.BEDROOM_LOAD_MULTIPLIERS[beds];
-lines.push(`Two-person helper: £${twoMan.toFixed(2)}${jt==='move'&&map?` (${map.hours} hrs @ £${Number(CFG.twoManSurcharge||0)}/hr)`:' (flat fee)'}`);
+lines.push(“Two-person helper: £”+twoMan.toFixed(2)+(jt===‘move’&&map?” (”+map.hours+” hrs @ £”+Number(CFG.twoManSurcharge||0)+”/hr)”:” (flat fee)”));
 }
 if(jt===“tip”&&disp.fee) lines.push(disp.detail);
-if(jt===“tip”) lines.push(`10% margin included`);
+if(jt===“tip”) lines.push(“10% margin included”);
 if(jt===“hay”) hay.lines.forEach(l=>lines.push(l));
 if(asm.cost){
-if(asm.itemLines.length) lines.push(`Items: ${asm.itemLines.join(', ')}`);
-lines.push(`Assembly: £${asm.cost.toFixed(2)}${asm.txt}`);
+if(asm.itemLines.length) lines.push(“Items: “+asm.itemLines.join(’, ’));
+lines.push(“Assembly: £”+asm.cost.toFixed(2)+asm.txt);
 }
 if(jt===‘move’){
 if(labourLine) lines.push(labourLine);
 if(lutonLine)  lines.push(lutonLine);
 }
-if(jt===“shop”&&els.shopTime) lines.push(`Run time: ${els.shopTime.value==="after22"?"After 10pm":"Before 10pm"}`);
+if(jt===“shop”&&els.shopTime) lines.push(“Run time: “+(els.shopTime.value===“after22”?“After 10pm”:“Before 10pm”));
 const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push(“Minimum charge applied”); total=MIN;}
 const pct=pctFor(jt);
 const low=round5(total);
 const high=round5(total*(1+pct));
-if(els.breakdown) els.breakdown.innerHTML=’• ‘+lines.join(’<br>• ’);
-if(els.total){els.total.textContent=`£${low}–£${high}`; els.total.classList.add(‘show’);}
+if(els.breakdown) els.breakdown.innerHTML=’• ‘+lines.join(’<br>• ‘);
+if(els.total){els.total.textContent=‘£’+low+’–£’+high; els.total.classList.add(‘show’);}
 if(els.quoteId) els.quoteId.textContent=“Quote ID — “+quoteId();
 if(els.btnWA){els.btnWA.removeAttribute(‘hidden’); els.btnWA.classList.remove(‘hidden’);}
 }
@@ -541,7 +541,7 @@ const hayTypeEl=$(‘hayType’);
 const hayType=(hayTypeEl&&hayTypeEl.value)||‘rental’;
 const dest=(jt===“tip”)?“Destination: Waterbeach Waste Management Park”
 :jt===“flatpack”?“Location: “+((els.addrDrop&&els.addrDrop.value)||“N/A”)
-:jt===“hay”?`Delivery: ${(els.addrDrop&&els.addrDrop.value)||"N/A"} (${hayType==='rental'?'rental - collection required':'sale - no collection needed'})`
+:jt===“hay”?“Delivery: “+((els.addrDrop&&els.addrDrop.value)||“N/A”)+” (”+(hayType===‘rental’?‘rental - collection required’:‘sale - no collection needed’)+”)”
 :jt===“bags”?“Destination: Waterbeach Waste Management Park”
 :jt===“business”?“Location: “+($(‘businessLocation’)&&$(‘businessLocation’).value||“N/A”)
 :“Delivery: “+((els.addrDrop&&els.addrDrop.value)||“N/A”);
@@ -551,9 +551,9 @@ const loc=$(‘businessLocation’)&&$(‘businessLocation’).value||’’;
 const proposal=$(‘businessProposal’)&&$(‘businessProposal’).value||’’;
 const freq=$(‘businessFrequency’)&&$(‘businessFrequency’).value||‘once’;
 businessDetails=[
-loc?`Location: ${loc}`:’’,
-proposal?`Proposal: ${proposal}`:’’,
-freq&&freq!==‘once’?`Frequency: ${freq}`:‘One-off job’,
+loc?(‘Location: ‘+loc):’’,
+proposal?(‘Proposal: ‘+proposal):’’,
+freq&&freq!==‘once’?(‘Frequency: ‘+freq):‘One-off job’,
 ].filter(Boolean).join(’\n’);
 }
 const msg=[
