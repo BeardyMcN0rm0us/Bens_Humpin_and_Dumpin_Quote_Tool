@@ -113,7 +113,7 @@ window.BHD = Object.assign({
   if(els.wasteType&&els.wasteType.options.length===0){
     Object.keys(CFG.disposal||{}).forEach(k=>{
       const it=CFG.disposal[k],o=document.createElement('option');
-      o.value=k; o.textContent=`${it.label} (£${Number(it.ratePerTonne||0).toFixed(2)}/t + VAT)`; els.wasteType.appendChild(o);
+      o.value=k; o.textContent=it.label+" (£"+(Number(it.ratePerTonne||0)*1.20).toFixed(2)+"/t inc VAT)";
     });
   }
 
