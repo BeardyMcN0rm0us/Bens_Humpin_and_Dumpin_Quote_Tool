@@ -365,13 +365,36 @@ window.BHD = Object.assign({
   }
 
   function calcDisposal(){
-    if(!els.wasteType||!CFG.disposal) return{fee:0,detail:""};
-    const key=els.wasteType.value,item=CFG.disposal[key]||{};
-    const exVat=Number(item.ratePerTonne||0)*Number(CFG.disposalMinPct||0.25);
-    const vat=exVat*Number(CFG.disposalVat||0);
-    const minFee=exVat+vat;
-    return{fee:minFee,detail:`Disposal: ${item.label||key} — 25% of £${Number(item.ratePerTonne||0).toFixed(2)}/t = £${exVat.toFixed(2)} + VAT £${vat.toFixed(2)}`};
+  if(!els.wasteType||!CFG.disposal) return{fee:0,detail:""};
+  const key=els.wasteType.value,item=CFG.disposal[key]||{};
+  const rate=Number(item.ratePerTonne||0);
+  const pct=Number(CFG.disposalMinPct||0.25);
+  const vatRate=Number(CFG.disposalVat||0.20);
+  const ai=window.BHD;
+  const aiWeightMid=ai&&ai._aiWeightKgMid&&ai._aiWeightKgMid>0?ai._aiWeightKgMid:null;
+  const aiWeightMin=ai&&ai._aiWeightKgMin&&ai._aiWeightKgMin>0?ai._aiWeightKgMin:null;
+  const aiWeightMax=ai&&ai._aiWeightKgMax&&ai._aiWeightKgMax>0?ai._aiWeightKgMax:null;
+  if(aiWeightMid){
+    const tonnes=aiWeightMid/1000;
+    const tonnesMin=(aiWeightMin||aiWeightMid)/1000;
+    const tonnesMax=(aiWeightMax||aiWeightMid)/1000;
+    const exVat=tonnes*rate*pct;
+    const exVatMin=tonnesMin*rate*pct;
+    const exVatMax=tonnesMax*rate*pct;
+    const fee=exVat*(1+vatRate);
+    const feeMin=exVatMin*(1+vatRate);
+    const feeMax=exVatMax*(1+vatRate);
+    window.BHD._aiDisposalFee=Math.round(fee);
+    window.BHD._aiDisposalFeeMin=Math.round(feeMin);
+    window.BHD._aiDisposalFeeMax=Math.round(feeMax);
+    return{fee:fee,detail:`Disposal: ${item.label||key} — ${aiWeightMid}kg estimated @ £${rate.toFixed(2)}/t x ${(pct*100).toFixed(0)}% + VAT = £${fee.toFixed(2)} (range £${feeMin.toFixed(0)}–£${feeMax.toFixed(0)})`};
   }
+  const exVat=rate*pct;
+  const vat=exVat*vatRate;
+  const minFee=exVat+vat;
+  return{fee:minFee,detail:`Disposal: ${item.label||key} — min load 25% of £${rate.toFixed(2)}/t = £${exVat.toFixed(2)} + VAT £${vat.toFixed(2)}`};
+}
+
 
   function calcBags(){
     const bagsEl=$('bagsCount');
