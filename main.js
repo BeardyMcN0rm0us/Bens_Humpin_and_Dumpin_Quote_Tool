@@ -366,7 +366,7 @@ window.BHD = Object.assign({
 
   function calcDisposal(){
   if(!els.wasteType||!CFG.disposal) return{fee:0,detail:""};
-  const key=els.wasteType.value,item=CFG.disposal[key]||{};
+  const key=els.wasteType.value||'general',item=CFG.disposal[key]||CFG.disposal['general']||{};
   const rate=Number(item.ratePerTonne||0);
   const pct=Number(CFG.disposalMinPct||0.25);
   const vatRate=Number(CFG.disposalVat||0.20);
