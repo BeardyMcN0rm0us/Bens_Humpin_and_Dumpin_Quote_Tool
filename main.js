@@ -472,7 +472,10 @@ return{fee:minFee,detail:"Disposal: "+(item.label||key)+" — minimum quarter to
     const noteC=milesObj.noteCharged||'';
     const noteL=milesObj.noteLoop||'';
     const base=baseFeeFor(jt);
-    const mileageCost=chargedMiles*Number(CFG.mileagePerMile||0);
+    //const mileageCost=chargedMiles*Number(CFG.mileagePerMile||0);
+    const vanLoads=(window._wasteAnalysis&&window._wasteAnalysis.van&&window._wasteAnalysis.van.loadsNeeded>1)?window._wasteAnalysis.van.loadsNeeded:1;
+    const effectiveMiles=(jt==='tip')?chargedMiles*vanLoads:chargedMiles;
+    const mileageCost=effectiveMiles*Number(CFG.mileagePerMile||0);
     let twoMan=0;
     if(jt!=="tip"&&jt!=="shop"&&jt!=="business"&&jt!=="other"&&jt!=="flatpack"&&jt!=="hay"&&jt!=="bags"){
       if(els.twoMan&&els.twoMan.value==="yes"){
@@ -517,7 +520,7 @@ return{fee:minFee,detail:"Disposal: "+(item.label||key)+" — minimum quarter to
       bags.lines.forEach(l=>lines.push(l));
     }else{
       lines.push(`Total journey: ${loopMiles.toFixed(1)} miles (${noteL})`);
-      lines.push(`Charged: ${chargedMiles.toFixed(1)} miles @ £${Number(CFG.mileagePerMile).toFixed(2)}/mile (${noteC})`);
+      lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile ("+noteC+")");
       lines.push(`Base fee: £${base.toFixed(2)}`);
       lines.push(`Mileage: £${mileageCost.toFixed(2)}`);
     }
