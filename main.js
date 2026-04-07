@@ -335,8 +335,8 @@ window.BHD = Object.assign({
     if(jt==='tip'){
       const toPickup=await routeP({origin:home,destination:pickup,travelMode:'DRIVING'});
       if(toPickup.miles<=50){
-        const toTip=await routeP({origin:pickup,destination:tip,travelMode:'DRIVING'});
-        charged=toTip.miles; noteC='Collection to Waterbeach';
+  const toTip=await routeP({origin:home,destination:tip,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
+  charged=toTip.miles; noteC='Home to Collection to Waterbeach';
       }else{
         const thru=await routeP({origin:home,destination:tip,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
         charged=thru.miles; noteC='Home to Collection to Waterbeach';
