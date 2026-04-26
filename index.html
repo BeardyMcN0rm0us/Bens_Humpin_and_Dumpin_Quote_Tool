@@ -232,39 +232,45 @@
       </div>
 
             <div id="gardenWrap" class="hidden" hidden>
-              <div class="field-group">
-                <label class="field-label">Preferred date &amp; time</label>
-            
-                <div class="inline-fields">
-                  <input id="gardenDate" type="date">
-                  <input id="gardenTime" type="time" step="3600">
-                </div>
-              </div>
-            
-              <div class="field-group">
-                <label class="field-label">One-off or ongoing?</label>
-                <div class="opt-row">
-                  <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
-                  <button class="opt-btn" data-sel="gardenSchedule" data-val="ongoing">Ongoing</button>
-                </div>
-            
-                <select id="gardenSchedule" hidden aria-hidden="true">
-                  <option value="oneoff" selected>One-off</option>
-                  <option value="ongoing">Ongoing</option>
-                </select>
-              </div>
-            
-              <div id="gardenFrequencyWrap" class="hidden" hidden>
-                <div class="field-group">
-                  <label class="field-label" for="gardenFrequency">How often?</label>
-                  <select id="gardenFrequency">
-                    <option value="weekly">Weekly</option>
-                    <option value="fortnightly">Fortnightly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+  <div class="field-group">
+    <label class="field-label">Preferred date &amp; time</label>
+
+    <div class="inline-fields">
+      <input id="gardenDate" type="date">
+
+      <select id="gardenTime">
+        <option value="10:00">10:00</option>
+        <option value="12:00">12:00</option>
+        <option value="14:00">14:00</option>
+        <option value="16:00">16:00</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">One-off or ongoing?</label>
+    <div class="opt-row">
+      <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
+      <button class="opt-btn" data-sel="gardenSchedule" data-val="ongoing">Ongoing</button>
+    </div>
+
+    <select id="gardenSchedule" hidden aria-hidden="true">
+      <option value="oneoff" selected>One-off</option>
+      <option value="ongoing">Ongoing</option>
+    </select>
+  </div>
+
+  <div id="gardenFrequencyWrap" class="hidden" hidden>
+    <div class="field-group">
+      <label class="field-label" for="gardenFrequency">How often?</label>
+      <select id="gardenFrequency">
+        <option value="weekly">Weekly</option>
+        <option value="fortnightly">Fortnightly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+  </div>
+</div>
       
         <div class="field-group">
           <label class="field-label">Tasks</label>
@@ -816,9 +822,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const dateInput = document.getElementById("gardenDate");
-  const timeInput = document.getElementById("gardenTime");
+  const timeSelect = document.getElementById("gardenTime");
 
-  if (!dateInput || !timeInput) return;
+  if (!dateInput || !timeSelect) return;
 
   // ── FORCE MIN DATE = TOMORROW ──
   const today = new Date();
@@ -834,21 +840,17 @@ document.addEventListener("DOMContentLoaded", () => {
   dateInput.min = minDate;
   dateInput.value = minDate;
 
-  // ── FIXED 2-HOUR SLOTS ──
+  // ── FORCE VALID DEFAULT ──
   const slots = ["10:00", "12:00", "14:00", "16:00"];
 
-  // default slot
-  timeInput.value = "10:00";
+  timeSelect.value = "10:00";
 
-  // prevent invalid times
-  timeInput.addEventListener("change", () => {
-    if (!slots.includes(timeInput.value)) {
-      timeInput.value = "10:00";
+  // safety check (in case HTML changes)
+  timeSelect.addEventListener("change", () => {
+    if (!slots.includes(timeSelect.value)) {
+      timeSelect.value = "10:00";
     }
   });
-
-  // optional: force step behaviour (browser support varies)
-  timeInput.step = 7200;
 });
 </script>
 </body>
