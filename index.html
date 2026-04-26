@@ -238,7 +238,6 @@
 
     <div class="inline-fields">
       <input id="gardenDate" type="date">
-
       <select id="gardenTime">
         <option value="10:00">10:00</option>
         <option value="12:00">12:00</option>
@@ -867,6 +866,28 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => setGardenDate(false), 1000);
 
 })();
+</script>
+  <script>
+function setGardenDefaults() {
+  const dateInput = document.querySelector("#gardenDate");
+  const timeSelect = document.querySelector("#gardenTime");
+
+  if (!dateInput) return;
+
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+
+  const tomorrow = d.toISOString().split("T")[0];
+
+  dateInput.value = tomorrow;
+  dateInput.min = tomorrow;
+
+  if (timeSelect && !timeSelect.value) {
+    timeSelect.value = "10:00";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", setGardenDefaults);
 </script>
 </body>
 </html>
