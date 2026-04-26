@@ -239,10 +239,10 @@
     <div class="inline-fields">
       <input id="gardenDate" type="date">
       <select id="gardenTime">
-        <option value="10:00">10:00</option>
-        <option value="12:00">12:00</option>
-        <option value="14:00">14:00</option>
-        <option value="16:00">16:00</option>
+        <option value="09:30">09:30</option>
+        <option value="11:30">11:30</option>
+        <option value="13:30">13:30</option>
+        <option value="15:30">15:30</option>
       </select>
     </div>
   </div>
@@ -834,9 +834,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function () {
 
-  function getTomorrowISO() {
+  function getNextWorkingDayISO() {
     const d = new Date();
     d.setDate(d.getDate() + 1);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // skip Sunday
     return d.toISOString().split("T")[0];
   }
 
@@ -846,17 +847,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!dateInput) return;
 
-    const tomorrow = getTomorrowISO();
+    const nextWorkingDay = getNextWorkingDayISO();
 
-    // Set min + default value
-    dateInput.min = tomorrow;
+    dateInput.min = nextWorkingDay;
 
     if (!dateInput.value) {
-      dateInput.value = tomorrow;
+      dateInput.value = nextWorkingDay;
     }
 
     if (timeSelect && !timeSelect.value) {
-      timeSelect.value = "10:00";
+      timeSelect.value = "09:30";
     }
   }
 
