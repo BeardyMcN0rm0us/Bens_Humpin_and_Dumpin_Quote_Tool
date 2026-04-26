@@ -234,9 +234,10 @@
             <div id="gardenWrap" class="hidden" hidden>
               <div class="field-group">
                 <label class="field-label">Preferred date &amp; time</label>
+            
                 <div class="inline-fields">
                   <input id="gardenDate" type="date">
-                  <input id="gardenTime" type="time">
+                  <input id="gardenTime" type="time" step="3600">
                 </div>
               </div>
             
@@ -246,6 +247,7 @@
                   <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
                   <button class="opt-btn" data-sel="gardenSchedule" data-val="ongoing">Ongoing</button>
                 </div>
+            
                 <select id="gardenSchedule" hidden aria-hidden="true">
                   <option value="oneoff" selected>One-off</option>
                   <option value="ongoing">Ongoing</option>
@@ -811,6 +813,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=voidFunc"></script>
 <script>function voidFunc(){}</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("gardenDate");
+  const timeInput = document.getElementById("gardenTime");
 
+  if (!dateInput || !timeInput) return;
+
+  // ── FORCE MIN DATE = TOMORROW ──
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const yyyy = tomorrow.getFullYear();
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+  const dd = String(tomorrow.getDate()).padStart(2, "0");
+
+  const minDate = `${yyyy}-${mm}-${dd}`;
+
+  dateInput.min = minDate;
+  dateInput.value = minDate;
+
+  // ── FIXED 2-HOUR SLOTS ──
+  const slots = ["10:00", "12:00", "14:00", "16:00"];
+
+  // default slot
+  timeInput.value = "10:00";
+
+  // prevent invalid times
+  timeInput.addEventListener("change", () => {
+    if (!slots.includes(timeInput.value)) {
+      timeInput.value = "10:00";
+    }
+  });
+
+  // optional: force step behaviour (browser support varies)
+  timeInput.step = 7200;
+});
+</script>
 </body>
 </html>
