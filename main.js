@@ -688,6 +688,12 @@ window.BHD = Object.assign({
     calculate(miles);
   });
   if(els.btnWA) els.btnWA.addEventListener('click',sendWhatsApp);
+  document.querySelectorAll('input[name="gardenTask"][value="Garden waste removal"]').forEach(function(cb){
+    cb.addEventListener('change',function(){
+      var note=$('gardenWasteNote');
+      if(note) note.style.display=cb.checked?'':'none';
+    });
+  });
   const gardenScheduleEl=$('gardenSchedule');
   if(gardenScheduleEl){
     gardenScheduleEl.addEventListener('change',function(){
