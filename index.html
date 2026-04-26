@@ -232,31 +232,38 @@
       </div>
 
             <div id="gardenWrap" class="hidden" hidden>
-        <div class="field-group">
-          <label class="field-label" for="gardenDateTime">Preferred date &amp; time</label>
-          <input id="gardenDateTime" type="datetime-local">
-        </div>
-        <div class="field-group">
-          <label class="field-label">One-off or ongoing?</label>
-          <div class="opt-row">
-            <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
-            <button class="opt-btn" data-sel="gardenSchedule" data-val="ongoing">Ongoing</button>
-          </div>
-          <select id="gardenSchedule" hidden aria-hidden="true">
-            <option value="oneoff" selected>One-off</option>
-            <option value="ongoing">Ongoing</option>
-          </select>
-        </div>
-        <div id="gardenFrequencyWrap" class="hidden" hidden>
-          <div class="field-group">
-            <label class="field-label" for="gardenFrequency">How often?</label>
-            <select id="gardenFrequency">
-              <option value="weekly">Weekly</option>
-              <option value="fortnightly">Fortnightly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-        </div>
+              <div class="field-group">
+                <label class="field-label">Preferred date &amp; time</label>
+                <div class="inline-fields">
+                  <input id="gardenDate" type="date">
+                  <input id="gardenTime" type="time">
+                </div>
+              </div>
+            
+              <div class="field-group">
+                <label class="field-label">One-off or ongoing?</label>
+                <div class="opt-row">
+                  <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
+                  <button class="opt-btn" data-sel="gardenSchedule" data-val="ongoing">Ongoing</button>
+                </div>
+                <select id="gardenSchedule" hidden aria-hidden="true">
+                  <option value="oneoff" selected>One-off</option>
+                  <option value="ongoing">Ongoing</option>
+                </select>
+              </div>
+            
+              <div id="gardenFrequencyWrap" class="hidden" hidden>
+                <div class="field-group">
+                  <label class="field-label" for="gardenFrequency">How often?</label>
+                  <select id="gardenFrequency">
+                    <option value="weekly">Weekly</option>
+                    <option value="fortnightly">Fortnightly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+      
         <div class="field-group">
           <label class="field-label">Tasks</label>
           <div class="check-grid">
@@ -273,7 +280,7 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="gardenOther">Other / extra details</label>
-          <textarea id="gardenOther" placeholder="Anything else? e.g. size of garden, access notes, skip needed&hellip;"></textarea>
+          <textarea id="gardenOther" placeholder="Anything else? e.g. size of garden, access notes, special instructions&hellip;"></textarea>
         </div>
         <div class="field-group">
           <label class="field-label" for="gardenHours">Estimated hours</label>
