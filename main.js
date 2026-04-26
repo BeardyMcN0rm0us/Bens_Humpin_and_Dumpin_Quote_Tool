@@ -62,9 +62,9 @@ window.BHD = Object.assign({
   hayFullLoad: 16,
   hayDamagedFee: 2.50,
 
-  gardenSoloPerHour: 17.50,
-  gardenTwoPerBlock: 40,
-  gardenBlockHours: 2,
+  gardenSoloPerHour: 15,
+  gardenTwoPerHour: 25,
+  gardenMinHours: 2,
 
   useTimePricing: true,
   ikeaLaborPerHour: 25,
@@ -430,22 +430,22 @@ window.BHD = Object.assign({
   function calcGarden(){
     const hoursEl=$('gardenHours');
     const teamEl=$('gardenTeam');
-    const hours=Math.max(1,parseFloat(hoursEl&&hoursEl.value||'2')||2);
+    const minHrs=Number(CFG.gardenMinHours||2);
+    const hours=Math.max(minHrs,parseFloat(hoursEl&&hoursEl.value||'2')||2);
     const team=(teamEl&&teamEl.value)||'solo';
-    const soloRate=Number(CFG.gardenSoloPerHour||17.50);
-    const twoBlock=Number(CFG.gardenTwoPerBlock||40);
-    const blockHrs=Number(CFG.gardenBlockHours||2);
+    const soloRate=Number(CFG.gardenSoloPerHour||15);
+    const twoRate=Number(CFG.gardenTwoPerHour||25);
     if(team==='two'){
-      const blocks=Math.ceil(hours/blockHrs);
-      const cost=blocks*twoBlock;
+      const cost=hours*twoRate;
       return{fee:cost,lines:[
-        "Two-person team: "+blocks+" x "+blockHrs+"-hour block"+(blocks!==1?'s':'')+" @ £"+twoBlock+"/block = £"+cost.toFixed(2),
-        "Covers approx. "+(blocks*blockHrs)+" hours of work"
+        "Two-person: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+twoRate.toFixed(2)+"/hr = £"+cost.toFixed(2),
+        "Minimum "+minHrs+" hours"
       ]};
     }else{
       const cost=hours*soloRate;
       return{fee:cost,lines:[
-        "Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2)
+        "Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2),
+        "Minimum "+minHrs+" hours"
       ]};
     }
   }
@@ -585,9 +585,19 @@ window.BHD = Object.assign({
     }
     if(jt==="shop"&&els.shopTime) lines.push("Run time: "+(els.shopTime.value==="after22"?"After 10pm":"Before 10pm"));
     if(jt==="garden"){
-      const gardenJobEl=$('gardenJob');
-      const jobDesc=(gardenJobEl&&gardenJobEl.value||'').trim();
-      if(jobDesc) lines.push("Job: "+jobDesc);
+      const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
+      if(tasks.length) lines.push("Tasks: "+tasks.join(', '));
+      const gardenOtherEl=$('gardenOther');
+      const otherDesc=(gardenOtherEl&&gardenOtherEl.value||'').trim();
+      if(otherDesc) lines.push("Other: "+otherDesc);
+      const scheduleEl=$('gardenSchedule');
+      const schedule=(scheduleEl&&scheduleEl.value)||'oneoff';
+      const freqEl=$('gardenFrequency');
+      const freq=(freqEl&&freqEl.value)||'';
+      lines.push("Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'));
+      const dtEl=$('gardenDateTime');
+      const dt=(dtEl&&dtEl.value||'').trim();
+      if(dt) lines.push("Date/time: "+dt);
     }
     const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push("Minimum charge applied"); total=MIN;}
     const pct=pctFor(jt);
@@ -625,13 +635,20 @@ window.BHD = Object.assign({
     }
     let gardenDetails='';
     if(jt==='garden'){
-      const desc=$('gardenJob')&&$('gardenJob').value||'';
+      const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
+      const other=$('gardenOther')&&$('gardenOther').value||'';
       const hrs=$('gardenHours')&&$('gardenHours').value||'';
       const team=$('gardenTeam')&&$('gardenTeam').value||'solo';
+      const dt=$('gardenDateTime')&&$('gardenDateTime').value||'';
+      const schedule=$('gardenSchedule')&&$('gardenSchedule').value||'oneoff';
+      const freq=$('gardenFrequency')&&$('gardenFrequency').value||'';
       gardenDetails=[
-        desc?"Job description: "+desc:'',
+        dt?"Preferred date/time: "+dt:'',
+        "Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'),
+        tasks.length?"Tasks: "+tasks.join(', '):'',
+        other?"Other details: "+other:'',
         hrs?"Estimated hours: "+hrs:'',
-        "Team: "+(team==='two'?'Ben + helper':'Just Ben')
+        "Team: "+(team==='two'?'Ben + helper (£25/hr)':'Just Ben (£15/hr)')
       ].filter(Boolean).join('\n');
     }
     const msg=[
@@ -671,6 +688,15 @@ window.BHD = Object.assign({
     calculate(miles);
   });
   if(els.btnWA) els.btnWA.addEventListener('click',sendWhatsApp);
+  const gardenScheduleEl=$('gardenSchedule');
+  if(gardenScheduleEl){
+    gardenScheduleEl.addEventListener('change',function(){
+      const freqWrap=$('gardenFrequencyWrap');
+      if(freqWrap){
+        if(gardenScheduleEl.value==='ongoing'){show(freqWrap);}else{hide(freqWrap);}
+      }
+    });
+  }
   hideAll(); setUI();
   renderList($('ikeaList'),$('ikeaTimeHint'),[]);
   renderList($('flatList'),$('flatTimeHint'),[]);

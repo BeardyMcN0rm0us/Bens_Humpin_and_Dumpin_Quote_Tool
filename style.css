@@ -196,7 +196,7 @@ body {
 .opt-btn.is-active { background: var(--brand); border-color: var(--brand); color: #1a0800; }
 
 /* ── INPUTS ── */
-input[type=text], input[type=number], select, textarea {
+input[type=text], input[type=number], input[type=datetime-local], select, textarea {
   width: 100%; padding: 15px 14px; border-radius: var(--r-sm);
   border: 1.5px solid var(--border); background: var(--surface);
   color: var(--ink); font-family: 'Nunito', sans-serif; font-size: 1rem;
@@ -519,3 +519,39 @@ select[hidden] { display: none !important; }
 
 /* ── Error ── */
 .analysis-error { padding: 16px 14px; font-size: 0.82rem; font-weight: 700; color: var(--brand2); line-height: 1.5; }
+
+/* ── GARDEN TASK CHECKBOXES ── */
+.check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-label input[type=checkbox] {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--brand);
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+.check-label:has(input:checked) {
+  border-color: var(--brand);
+  color: var(--ink);
+  background: #1a0e04;
+}
