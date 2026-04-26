@@ -232,6 +232,7 @@
       </div>
 
             <div id="gardenWrap" class="hidden" hidden>
+
   <div class="field-group">
     <label class="field-label">Preferred date &amp; time</label>
 
@@ -270,43 +271,55 @@
       </select>
     </div>
   </div>
+
+  <!-- ✅ FIXED: these were OUTSIDE gardenWrap before -->
+
+  <div class="field-group">
+    <label class="field-label">Tasks</label>
+    <div class="check-grid">
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Mowing"> Mowing</label>
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Weeding"> Weeding</label>
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Weed killing"> Weed killing</label>
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Hedge cutting"> Hedge cutting</label>
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Digging"> Digging</label>
+      <label class="check-label"><input type="checkbox" name="gardenTask" value="Labouring"> Labouring</label>
+      <label class="check-label check-label--tip">
+        <input type="checkbox" name="gardenTask" value="Garden waste removal">
+        Garden waste removal
+      </label>
+    </div>
+
+    <div class="hint check-tip-note" id="gardenWasteNote" style="display:none">
+      &#9432; Garden waste removal is taken to Waterbeach tip — priced separately.
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label" for="gardenOther">Other / extra details</label>
+    <textarea id="gardenOther"
+      placeholder="Anything else? e.g. size of garden, access notes, special instructions…"></textarea>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label" for="gardenHours">Estimated hours</label>
+    <input id="gardenHours" type="number" min="2" step="0.5" value="2">
+    <div class="hint">Solo: £17.50/hr · Two-person: £25/hr · Minimum 2 hours</div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">Team size</label>
+    <div class="opt-row">
+      <button class="opt-btn is-active" data-sel="gardenTeam" data-val="solo">Just Ben (£17.50/hr)</button>
+      <button class="opt-btn" data-sel="gardenTeam" data-val="two">Ben + Sid (£25/hr)</button>
+    </div>
+
+    <select id="gardenTeam" hidden aria-hidden="true">
+      <option value="solo" selected>Solo</option>
+      <option value="two">Two-person</option>
+    </select>
+  </div>
+
 </div>
-      
-        <div class="field-group">
-          <label class="field-label">Tasks</label>
-          <div class="check-grid">
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Mowing"> Mowing</label>
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Weeding"> Weeding</label>
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Weed killing"> Weed killing</label>
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Hedge cutting"> Hedge cutting</label>
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Digging"> Digging</label>
-            <!--<label class="check-label"><input type="checkbox" name="gardenTask" value="Clearance"> Clearance</label>-->
-            <label class="check-label"><input type="checkbox" name="gardenTask" value="Labouring"> Labouring</label>
-            <label class="check-label check-label--tip"><input type="checkbox" name="gardenTask" value="Garden waste removal"> Garden waste removal</label>
-          </div>
-          <div class="hint check-tip-note" id="gardenWasteNote" style="display:none">&#9432; Garden waste removal is taken to Waterbeach tip &mdash; priced separately as a tip run (disposal + mileage), not included in the hourly rate.</div>
-        </div>
-        <div class="field-group">
-          <label class="field-label" for="gardenOther">Other / extra details</label>
-          <textarea id="gardenOther" placeholder="Anything else? e.g. size of garden, access notes, special instructions&hellip;"></textarea>
-        </div>
-        <div class="field-group">
-          <label class="field-label" for="gardenHours">Estimated hours</label>
-          <input id="gardenHours" type="number" min="2" step="0.5" value="2">
-          <div class="hint">Solo: &pound;17.50/hr &middot; Two-person: &pound;25/hr &middot; Minimum 2 hours</div>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Team size</label>
-          <div class="opt-row">
-            <button class="opt-btn is-active" data-sel="gardenTeam" data-val="solo">Just Ben (&pound;17.50/hr)</button>
-            <button class="opt-btn" data-sel="gardenTeam" data-val="two">Ben + Sid (&pound;25/hr)</button>
-          </div>
-          <select id="gardenTeam" hidden aria-hidden="true">
-            <option value="solo" selected>Solo</option>
-            <option value="two">Two-person</option>
-          </select>
-        </div>
-      </div>
 
       <div id="businessWrap" class="hidden" hidden>
         <div class="field-group">
