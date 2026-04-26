@@ -833,41 +833,48 @@ document.addEventListener('DOMContentLoaded', function() {
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=voidFunc"></script>
 <script>function voidFunc(){}</script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("gardenDate");
-  const timeSelect = document.getElementById("gardenTime");
+(function () {
 
-  if (!dateInput) return;
+  function setGardenDate() {
+    const dateInput = document.getElementById("gardenDate");
+    const timeSelect = document.getElementById("gardenTime");
 
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
+    if (!dateInput) return false;
 
-  const yyyy = tomorrow.getFullYear();
-  const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-  const dd = String(tomorrow.getDate()).padStart(2, "0");
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
 
-  const minDate = `${yyyy}-${mm}-${dd}`;
+    const yyyy = tomorrow.getFullYear();
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+    const dd = String(tomorrow.getDate()).padStart(2, "0");
 
-  // IMPORTANT: set both min AND value safely
-  dateInput.min = minDate;
+    const minDate = `${yyyy}-${mm}-${dd}`;
 
-  // force value only if empty
-  if (!dateInput.value) {
-    dateInput.value = minDate;
-  }
+    dateInput.min = minDate;
 
-  // optional safety fallback
-  dateInput.addEventListener("focus", () => {
-    if (!dateInput.value) {
+    // ONLY set if empty OR invalid
+    if (!dateInput.value || isNaN(new Date(dateInput.value).getTime())) {
       dateInput.value = minDate;
     }
-  });
 
-  if (timeSelect) {
-    timeSelect.value = "10:00";
+    if (timeSelect && !timeSelect.value) {
+      timeSelect.value = "10:00";
+    }
+
+    return true;
   }
-});
+
+  // Run immediately
+  setGardenDate();
+
+  // Run again after everything loads (important for your setup)
+  window.addEventListener("load", setGardenDate);
+
+  // Run again after 1 second (fixes late overwrites from other scripts)
+  setTimeout(setGardenDate, 1000);
+
+})();
 </script>
 </body>
 </html>
