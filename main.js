@@ -62,8 +62,8 @@ window.BHD = Object.assign({
   hayFullLoad: 16,
   hayDamagedFee: 2.50,
 
-  gardenSoloPerHour: 15,
-  gardenTwoPerHour: 25,
+  gardenSoloPerHour: 17.50,
+  gardenTwoPerHour: 25.00,
   gardenMinHours: 2,
 
   useTimePricing: true,
@@ -248,7 +248,7 @@ window.BHD = Object.assign({
     }else if(v==='garden'){
       show(els.pickupField);
       const gardenWrap=$('gardenWrap'); if(gardenWrap) show(gardenWrap);
-      if(els.routeHint) els.routeHint.textContent="Mileage: Home to Garden and back.";
+      if(els.routeHint) els.routeHint.textContent="Mileage: Included.";
     }else{
       show(els.pickupField); show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
@@ -314,11 +314,13 @@ window.BHD = Object.assign({
       cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return;
     }
     if(jt==='garden'){
-      if(!pickup){if(els.routeHint) els.routeHint.textContent="Enter the garden address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return;}
-      const loop=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
-      const loopMiles=round1(loop.miles);
-      if(els.routeHint) els.routeHint.textContent="Garden job: "+loopMiles+" miles return (Home to Garden and back).";
-      cb({charged:loopMiles,loop:loopMiles,noteCharged:'Home to Garden and back',noteLoop:'Home to Garden and back'});
+      if(!pickup){
+        if(els.routeHint) els.routeHint.textContent="Enter the garden address.";
+        cb({charged:0,loop:0,noteCharged:'',noteLoop:''});
+        return;
+      }
+      // no mileage used for pricing
+      cb({charged:0,loop:0,noteCharged:'',noteLoop:''});
       return;
     }
     if(jt==='hay'){
@@ -553,13 +555,17 @@ window.BHD = Object.assign({
         lutonLine="Luton not required (auto)";
       }
     }
-    let total=base+mileageCost+stairs+twoMan+disp.fee+asm.cost+labourCost+lutonCost+bags.fee+hay.fee+garden.fee;
+    let total=base+stairs+twoMan+disp.fee+asm.cost+labourCost+lutonCost+bags.fee+hay.fee+garden.fee;
+
+    // remove mileage for garden jobs
+    if(jt !== "garden"){
+      total += mileageCost;
+    }
     const lines=[];
     if(jt==='bags'){
       bags.lines.forEach(l=>lines.push(l));
     }else if(jt==='garden'){
-      lines.push("Total journey: "+loopMiles.toFixed(1)+" miles ("+noteL+")");
-      lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile = £"+mileageCost.toFixed(2));
+      lines.push("Travel included in hourly rate");
       garden.lines.forEach(l=>lines.push(l));
     }else{
       lines.push("Total journey: "+loopMiles.toFixed(1)+" miles ("+noteL+")");
