@@ -561,7 +561,7 @@ select[hidden] { display: none !important; }
   grid-column: 1 / -1;
 }
 .check-label--tip::after {
-  content: 'separate charge';
+  content: 'separate charge - £50 minimum';
   margin-left: auto;
   font-size: 0.65rem;
   font-weight: 900;
