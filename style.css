@@ -555,3 +555,24 @@ select[hidden] { display: none !important; }
   color: var(--ink);
   background: #1a0e04;
 }
+.check-label--tip {
+  border-color: #3a2000;
+  color: var(--ink2);
+  grid-column: 1 / -1;
+}
+.check-label--tip::after {
+  content: 'separate charge';
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.check-label--tip:has(input:checked) {
+  border-color: var(--brand2);
+  background: #1a0800;
+  color: var(--ink);
+}
