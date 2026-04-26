@@ -617,7 +617,7 @@ window.BHD = Object.assign({
       lines.push("Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'));
       const dtEl = $('gardenDateTime');
       const dtVal = dtEl && dtEl.value ? dtEl.value : '';
-      if (dtVal) lines.push("Date & time: " + (dtEl.options[dtEl.selectedIndex] && dtEl.options[dtEl.selectedIndex].text || dtVal));
+      if (dtVal) lines.push("Date & time: " + dtVal);
     }
     const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push("Minimum charge applied"); total=MIN;}
     const pct=pctFor(jt);

@@ -801,19 +801,3 @@ select[hidden] { display: none !important; }
   background: #1a0800;
   color: var(--ink);
 }
-/* ── INLINE DATE + TIME ── */
-.inline-fields {
-  display: flex;
-  gap: 10px;
-}
-
-.inline-fields input {
-  flex: 1;
-}
-
-/* stack on mobile */
-@media (max-width: 400px) {
-  .inline-fields {
-    flex-direction: column;
-  }
-}

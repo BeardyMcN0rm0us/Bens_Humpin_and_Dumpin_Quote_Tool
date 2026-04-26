@@ -235,7 +235,16 @@
 
   <div class="field-group">
     <label class="field-label">Preferred date &amp; time</label>
-    <select id="gardenDateTime"></select>
+    <input type="hidden" id="gardenDateTime">
+    <div class="inline-fields">
+      <input type="date" id="gardenDate">
+      <select id="gardenTime">
+        <option value="09:30">09:30</option>
+        <option value="11:30">11:30</option>
+        <option value="13:30">13:30</option>
+        <option value="15:30">15:30</option>
+      </select>
+    </div>
   </div>
 
   <div class="field-group">
@@ -825,43 +834,53 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function () {
 
-  var GARDEN_SLOTS = ['09:30','11:30','13:30','15:30'];
-  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  function populateGardenDateTime() {
-    var sel = document.querySelector('#gardenDateTime');
-    if (!sel || sel.options.length > 0) return;
-
+  function nextWorkingDayISO() {
     var d = new Date();
     d.setHours(0, 0, 0, 0);
     d.setDate(d.getDate() + 1);
     if (d.getDay() === 0) d.setDate(d.getDate() + 1);
-
-    for (var week = 0; week < 4; week++) {
-      for (var dayOff = 0; dayOff < 7; dayOff++) {
-        var cur = new Date(d);
-        cur.setDate(d.getDate() + week * 7 + dayOff);
-        if (cur.getDay() === 0) continue;
-        var iso = cur.getFullYear() + '-' +
-          String(cur.getMonth() + 1).padStart(2, '0') + '-' +
-          String(cur.getDate()).padStart(2, '0');
-        var label = DAYS[cur.getDay()] + ' ' + cur.getDate() + ' ' + MONTHS[cur.getMonth()];
-        GARDEN_SLOTS.forEach(function(t) {
-          var opt = document.createElement('option');
-          opt.value = iso + ' ' + t;
-          opt.textContent = label + ' at ' + t;
-          sel.appendChild(opt);
-        });
-      }
-    }
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
   }
 
-  populateGardenDateTime();
-  document.addEventListener("DOMContentLoaded", populateGardenDateTime);
+  function syncGardenDateTime() {
+    var dateEl = document.getElementById('gardenDate');
+    var timeEl = document.getElementById('gardenTime');
+    var hidden = document.getElementById('gardenDateTime');
+    if (!dateEl || !timeEl || !hidden) return;
+    hidden.value = dateEl.value && timeEl.value ? dateEl.value + ' ' + timeEl.value : '';
+  }
 
-  var observer = new MutationObserver(populateGardenDateTime);
-  observer.observe(document.body, { childList: true, subtree: true });
+  function initGardenPicker() {
+    var dateEl = document.getElementById('gardenDate');
+    var timeEl = document.getElementById('gardenTime');
+    if (!dateEl || dateEl.dataset.init) return;
+    dateEl.dataset.init = '1';
+
+    var nwd = nextWorkingDayISO();
+    dateEl.min   = nwd;
+    dateEl.value = nwd;
+    timeEl.value = '09:30';
+
+    dateEl.addEventListener('change', function() {
+      var d = new Date(dateEl.value + 'T00:00:00');
+      if (d.getDay() === 0) {
+        d.setDate(d.getDate() + 1);
+        dateEl.value = d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0');
+      }
+      syncGardenDateTime();
+    });
+
+    timeEl.addEventListener('change', syncGardenDateTime);
+    syncGardenDateTime();
+  }
+
+  initGardenPicker();
+  document.addEventListener('DOMContentLoaded', initGardenPicker);
+  new MutationObserver(initGardenPicker).observe(document.body, { childList: true, subtree: true });
 
 })();
 </script>
