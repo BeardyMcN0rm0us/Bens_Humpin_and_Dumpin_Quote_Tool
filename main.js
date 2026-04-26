@@ -65,6 +65,7 @@ window.BHD = Object.assign({
   gardenSoloPerHour: 17.50,
   gardenTwoPerHour: 25.00,
   gardenMinHours: 2,
+  gardenWasteRemovalFee: 50,
 
   useTimePricing: true,
   ikeaLaborPerHour: 25,
@@ -430,28 +431,40 @@ window.BHD = Object.assign({
   }
 
   function calcGarden(){
-    const hoursEl=$('gardenHours');
-    const teamEl=$('gardenTeam');
-    const minHrs=Number(CFG.gardenMinHours||2);
-    const hours=Math.max(minHrs,parseFloat(hoursEl&&hoursEl.value||'2')||2);
-    const team=(teamEl&&teamEl.value)||'solo';
-    const soloRate=Number(CFG.gardenSoloPerHour||15);
-    const twoRate=Number(CFG.gardenTwoPerHour||25);
-    if(team==='two'){
-      const cost=hours*twoRate;
-      return{fee:cost,lines:[
-        "Two-person: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+twoRate.toFixed(2)+"/hr = £"+cost.toFixed(2),
-        "Minimum "+minHrs+" hours"
-      ]};
-    }else{
-      const cost=hours*soloRate;
-      return{fee:cost,lines:[
-        "Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2),
-        "Minimum "+minHrs+" hours"
-      ]};
-    }
+  const hoursEl=$('gardenHours');
+  const teamEl=$('gardenTeam');
+  const minHrs=Number(CFG.gardenMinHours||2);
+  const hours=Math.max(minHrs,parseFloat(hoursEl&&hoursEl.value||'2')||2);
+  const team=(teamEl&&teamEl.value)||'solo';
+
+  const soloRate=Number(CFG.gardenSoloPerHour||15);
+  const twoRate=Number(CFG.gardenTwoPerHour||25);
+  const wasteFee=Number(CFG.gardenWasteRemovalFee||50);
+
+  const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
+  const hasWasteRemoval=tasks.includes("Garden waste removal");
+
+  let cost=0;
+  let lines=[];
+
+  if(team==='two'){
+    cost=hours*twoRate;
+    lines.push("Two-person: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+twoRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
+  }else{
+    cost=hours*soloRate;
+    lines.push("Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
   }
 
+  lines.push("Minimum "+minHrs+" hours");
+
+  // ✅ ADD WASTE REMOVAL
+  if(hasWasteRemoval){
+    cost += wasteFee;
+    lines.push("Garden waste removal: Minimum £"+wasteFee.toFixed(2));
+  }
+
+  return{fee:cost,lines};
+}
   function calcHay(){
     const balesEl=$('hayBales');
     const hayTypeEl=$('hayType');
@@ -652,6 +665,7 @@ window.BHD = Object.assign({
         dt?"Preferred date/time: "+dt:'',
         "Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'),
         tasks.length?"Tasks: "+tasks.join(', '):'',
+        tasks.includes("Garden waste removal")?"Includes garden waste removal (+£"+CFG.gardenWasteRemovalFee+")":'',
         other?"Other details: "+other:'',
         hrs?"Estimated hours: "+hrs:'',
         "Team: "+(team==='two'?'Ben + helper (£25/hr)':'Just Ben (£15/hr)')
