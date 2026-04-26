@@ -835,44 +835,36 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function () {
 
-  function setGardenDate() {
+  function getTomorrowISO() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  }
+
+  function setGardenDate(force = false) {
     const dateInput = document.getElementById("gardenDate");
     const timeSelect = document.getElementById("gardenTime");
+    if (!dateInput) return;
 
-    if (!dateInput) return false;
+    const tomorrow = getTomorrowISO();
 
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+    dateInput.min = tomorrow;
 
-    const yyyy = tomorrow.getFullYear();
-    const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-    const dd = String(tomorrow.getDate()).padStart(2, "0");
-
-    const minDate = `${yyyy}-${mm}-${dd}`;
-
-    dateInput.min = minDate;
-
-    // ONLY set if empty OR invalid
-    if (!dateInput.value || isNaN(new Date(dateInput.value).getTime())) {
-      dateInput.value = minDate;
+    // Only overwrite if empty OR forced
+    if (force || !dateInput.value) {
+      dateInput.value = tomorrow;
     }
 
     if (timeSelect && !timeSelect.value) {
       timeSelect.value = "10:00";
     }
-
-    return true;
   }
 
-  // Run immediately
-  setGardenDate();
+  document.addEventListener("DOMContentLoaded", () => setGardenDate(true));
+  window.addEventListener("load", () => setGardenDate(true));
 
-  // Run again after everything loads (important for your setup)
-  window.addEventListener("load", setGardenDate);
-
-  // Run again after 1 second (fixes late overwrites from other scripts)
-  setTimeout(setGardenDate, 1000);
+  // optional safety net for late frameworks
+  setTimeout(() => setGardenDate(false), 1000);
 
 })();
 </script>
