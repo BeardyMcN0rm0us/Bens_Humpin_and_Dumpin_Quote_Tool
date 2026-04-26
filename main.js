@@ -748,6 +748,7 @@ window.BHD = Object.assign({
     });
   }
   hideAll(); setUI();
+  setDefaultGardenDateTime();
   renderList($('ikeaList'),$('ikeaTimeHint'),[]);
   renderList($('flatList'),$('flatTimeHint'),[]);
 })();
