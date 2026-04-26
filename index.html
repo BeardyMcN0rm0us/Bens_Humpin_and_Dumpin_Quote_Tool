@@ -840,17 +840,18 @@ document.addEventListener('DOMContentLoaded', function() {
     return d.toISOString().split("T")[0];
   }
 
-  function setGardenDate(force = false) {
-    const dateInput = document.getElementById("gardenDate");
-    const timeSelect = document.getElementById("gardenTime");
+  function applyGardenDefaults() {
+    const dateInput = document.querySelector("#gardenDate");
+    const timeSelect = document.querySelector("#gardenTime");
+
     if (!dateInput) return;
 
     const tomorrow = getTomorrowISO();
 
+    // Set min + default value
     dateInput.min = tomorrow;
 
-    // Only overwrite if empty OR forced
-    if (force || !dateInput.value) {
+    if (!dateInput.value) {
       dateInput.value = tomorrow;
     }
 
@@ -859,35 +860,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => setGardenDate(true));
-  window.addEventListener("load", () => setGardenDate(true));
+  // Run immediately
+  applyGardenDefaults();
 
-  // optional safety net for late frameworks
-  setTimeout(() => setGardenDate(false), 1000);
+  // Run again when DOM is fully ready
+  document.addEventListener("DOMContentLoaded", applyGardenDefaults);
+
+  // Safety net for late-loaded UI (your app uses dynamic panels)
+  const observer = new MutationObserver(() => {
+    applyGardenDefaults();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 
 })();
-</script>
-  <script>
-function setGardenDefaults() {
-  const dateInput = document.querySelector("#gardenDate");
-  const timeSelect = document.querySelector("#gardenTime");
-
-  if (!dateInput) return;
-
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-
-  const tomorrow = d.toISOString().split("T")[0];
-
-  dateInput.value = tomorrow;
-  dateInput.min = tomorrow;
-
-  if (timeSelect && !timeSelect.value) {
-    timeSelect.value = "10:00";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", setGardenDefaults);
 </script>
 </body>
 </html>
