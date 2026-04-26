@@ -837,9 +837,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dateInput = document.getElementById("gardenDate");
   const timeSelect = document.getElementById("gardenTime");
 
-  if (!dateInput || !timeSelect) return;
+  if (!dateInput) return;
 
-  // ── FORCE MIN DATE = TOMORROW ──
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
@@ -850,20 +849,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const minDate = `${yyyy}-${mm}-${dd}`;
 
+  // IMPORTANT: set both min AND value safely
   dateInput.min = minDate;
-  dateInput.value = minDate;
 
-  // ── FORCE VALID DEFAULT ──
-  const slots = ["10:00", "12:00", "14:00", "16:00"];
+  // force value only if empty
+  if (!dateInput.value) {
+    dateInput.value = minDate;
+  }
 
-  timeSelect.value = "10:00";
-
-  // safety check (in case HTML changes)
-  timeSelect.addEventListener("change", () => {
-    if (!slots.includes(timeSelect.value)) {
-      timeSelect.value = "10:00";
+  // optional safety fallback
+  dateInput.addEventListener("focus", () => {
+    if (!dateInput.value) {
+      dateInput.value = minDate;
     }
   });
+
+  if (timeSelect) {
+    timeSelect.value = "10:00";
+  }
 });
 </script>
 </body>
