@@ -651,7 +651,13 @@ window.BHD = Object.assign({
     const pct=pctFor(jt);
     const low=round5(total);
     const high=round5(total*(1+pct));
-    if(els.breakdown) els.breakdown.innerHTML='• '+lines.join('<br>• ');
+    if(els.breakdown){
+      els.breakdown.textContent='';
+      lines.forEach((line, idx)=>{
+        if(idx>0) els.breakdown.appendChild(document.createElement('br'));
+        els.breakdown.appendChild(document.createTextNode('• '+line));
+      });
+    }
     if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
     if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
