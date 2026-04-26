@@ -825,35 +825,29 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function () {
 
-  var GARDEN_SLOTS = ['09:30','11:30','13:30','15:30'];
-  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function getNextWorkingDayISO() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // skip Sunday
+    return d.toISOString().split("T")[0];
+  }
 
   function populateGardenDateTime() {
     var sel = document.querySelector('#gardenDateTime');
     if (!sel || sel.options.length > 0) return;
 
-    var d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    if (!dateInput) return;
 
-    for (var week = 0; week < 4; week++) {
-      for (var dayOff = 0; dayOff < 7; dayOff++) {
-        var cur = new Date(d);
-        cur.setDate(d.getDate() + week * 7 + dayOff);
-        if (cur.getDay() === 0) continue;
-        var iso = cur.getFullYear() + '-' +
-          String(cur.getMonth() + 1).padStart(2, '0') + '-' +
-          String(cur.getDate()).padStart(2, '0');
-        var label = DAYS[cur.getDay()] + ' ' + cur.getDate() + ' ' + MONTHS[cur.getMonth()];
-        GARDEN_SLOTS.forEach(function(t) {
-          var opt = document.createElement('option');
-          opt.value = iso + ' ' + t;
-          opt.textContent = label + ' at ' + t;
-          sel.appendChild(opt);
-        });
-      }
+    const nextWorkingDay = getNextWorkingDayISO();
+
+    dateInput.min = nextWorkingDay;
+
+    if (!dateInput.value) {
+      dateInput.value = nextWorkingDay;
+    }
+
+    if (timeSelect && !timeSelect.value) {
+      timeSelect.value = "09:30";
     }
   }
 

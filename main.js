@@ -511,6 +511,27 @@ window.BHD = Object.assign({
     return{cost,txt,itemLines:lines};
   }
 
+  function setDefaultGardenDateTime() {
+    const dateEl = $('gardenDate');
+    const timeEl = $('gardenTime');
+
+    if (!dateEl || !timeEl) return;
+
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // skip Sunday
+
+    const pad = n => String(n).padStart(2, '0');
+
+    dateEl.value =
+      d.getFullYear() + '-' +
+      pad(d.getMonth() + 1) + '-' +
+      pad(d.getDate());
+
+    if (!timeEl.value) {
+      timeEl.value = "09:30";
+    }
+  }
   
   function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
@@ -659,8 +680,9 @@ window.BHD = Object.assign({
       const other=$('gardenOther')&&$('gardenOther').value||'';
       const hrs=$('gardenHours')&&$('gardenHours').value||'';
       const team=$('gardenTeam')&&$('gardenTeam').value||'solo';
-      const dtEl=$('gardenDateTime');
-      const dt=dtEl&&dtEl.value?(dtEl.options[dtEl.selectedIndex]&&dtEl.options[dtEl.selectedIndex].text||dtEl.value):'';
+      const gDate=$('gardenDate')&&$('gardenDate').value||'';
+      const gTime=$('gardenTime')&&$('gardenTime').value||'';
+      const dt=gDate&&gTime?gDate+' at '+gTime:gDate||gTime||'';
       const schedule=$('gardenSchedule')&&$('gardenSchedule').value||'oneoff';
       const freq=$('gardenFrequency')&&$('gardenFrequency').value||'';
       gardenDetails=[
