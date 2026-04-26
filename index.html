@@ -235,15 +235,16 @@
 
   <div class="field-group">
     <label class="field-label">Preferred date &amp; time</label>
-
-    <div class="inline-fields">
-      <input id="gardenDate" type="date">
-      <select id="gardenTime">
-        <option value="09:30">09:30</option>
-        <option value="11:30">11:30</option>
-        <option value="13:30">13:30</option>
-        <option value="15:30">15:30</option>
-      </select>
+    <input type="hidden" id="gardenDateTime">
+    <div class="garden-cal" id="gardenCal">
+      <div class="garden-cal__nav">
+        <button type="button" class="garden-cal__arrow" id="gardenCalPrev">&#8249;</button>
+        <span class="garden-cal__month" id="gardenCalTitle"></span>
+        <button type="button" class="garden-cal__arrow" id="gardenCalNext">&#8250;</button>
+      </div>
+      <div class="garden-cal__grid" id="gardenCalGrid"></div>
+      <div class="garden-cal__slots" id="gardenCalSlots"></div>
+      <div class="garden-cal__selected" id="gardenCalSelected"></div>
     </div>
   </div>
 
@@ -834,47 +835,141 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function () {
 
-  function getNextWorkingDayISO() {
-    const d = new Date();
+  var SLOTS   = ['09:30','11:30','13:30','15:30'];
+  var DAYS    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONTHS  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var calYear, calMonth, selDate, selTime;
+
+  function nextWorkingDay() {
+    var d = new Date();
+    d.setHours(0,0,0,0);
     d.setDate(d.getDate() + 1);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // skip Sunday
-    return d.toISOString().split("T")[0];
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    return d;
   }
 
-  function applyGardenDefaults() {
-    const dateInput = document.querySelector("#gardenDate");
-    const timeSelect = document.querySelector("#gardenTime");
-
-    if (!dateInput) return;
-
-    const nextWorkingDay = getNextWorkingDayISO();
-
-    dateInput.min = nextWorkingDay;
-
-    if (!dateInput.value) {
-      dateInput.value = nextWorkingDay;
-    }
-
-    if (timeSelect && !timeSelect.value) {
-      timeSelect.value = "09:30";
-    }
+  function isoDate(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
   }
 
-  // Run immediately
-  applyGardenDefaults();
+  function initCal() {
+    var grid  = document.getElementById('gardenCalGrid');
+    var title = document.getElementById('gardenCalTitle');
+    var slots = document.getElementById('gardenCalSlots');
+    var label = document.getElementById('gardenCalSelected');
+    var input = document.getElementById('gardenDateTime');
+    var prev  = document.getElementById('gardenCalPrev');
+    var next  = document.getElementById('gardenCalNext');
+    if (!grid || grid.dataset.init) return;
+    grid.dataset.init = '1';
 
-  // Run again when DOM is fully ready
-  document.addEventListener("DOMContentLoaded", applyGardenDefaults);
+    var nwd = nextWorkingDay();
+    calYear  = nwd.getFullYear();
+    calMonth = nwd.getMonth();
+    selDate  = isoDate(nwd);
+    selTime  = SLOTS[0];
 
-  // Safety net for late-loaded UI (your app uses dynamic panels)
-  const observer = new MutationObserver(() => {
-    applyGardenDefaults();
-  });
+    function renderMonth() {
+      title.textContent = MONTHS[calMonth] + ' ' + calYear;
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
+      var minDate = nextWorkingDay();
+
+      grid.innerHTML = '';
+
+      ['M','T','W','T','F','S','S'].forEach(function(d) {
+        var h = document.createElement('div');
+        h.className = 'garden-cal__dow';
+        h.textContent = d;
+        grid.appendChild(h);
+      });
+
+      var first = new Date(calYear, calMonth, 1).getDay();
+      var offset = (first === 0) ? 6 : first - 1;
+      for (var i = 0; i < offset; i++) {
+        var blank = document.createElement('div');
+        blank.className = 'garden-cal__day garden-cal__day--blank';
+        grid.appendChild(blank);
+      }
+
+      var days = new Date(calYear, calMonth + 1, 0).getDate();
+      for (var d = 1; d <= days; d++) {
+        var dt = new Date(calYear, calMonth, d);
+        var iso = isoDate(dt);
+        var isSun = dt.getDay() === 0;
+        var isPast = dt < minDate;
+        var cell = document.createElement('button');
+        cell.type = 'button';
+        cell.textContent = d;
+        cell.className = 'garden-cal__day' +
+          (isSun || isPast ? ' garden-cal__day--off' : '') +
+          (iso === selDate ? ' garden-cal__day--sel' : '');
+        if (!isSun && !isPast) {
+          cell.addEventListener('click', function(iso) {
+            return function() { pickDate(iso); };
+          }(iso));
+        } else {
+          cell.disabled = true;
+        }
+        grid.appendChild(cell);
+      }
+
+      renderSlots();
+    }
+
+    function renderSlots() {
+      slots.innerHTML = '';
+      SLOTS.forEach(function(t) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = t;
+        btn.className = 'garden-cal__slot' + (t === selTime ? ' garden-cal__slot--sel' : '');
+        btn.addEventListener('click', function() { pickTime(t); });
+        slots.appendChild(btn);
+      });
+      updateLabel();
+    }
+
+    function pickDate(iso) {
+      selDate = iso;
+      renderMonth();
+    }
+
+    function pickTime(t) {
+      selTime = t;
+      renderSlots();
+    }
+
+    function updateLabel() {
+      if (!selDate || !selTime) { label.textContent = ''; input.value = ''; return; }
+      var p = selDate.split('-');
+      var d = new Date(+p[0], +p[1]-1, +p[2]);
+      var pretty = DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + SHORT_MONTHS[d.getMonth()] + ' at ' + selTime;
+      label.textContent = pretty;
+      input.value = selDate + ' ' + selTime;
+    }
+
+    prev.addEventListener('click', function() {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderMonth();
+    });
+    next.addEventListener('click', function() {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderMonth();
+    });
+
+    renderMonth();
+    updateLabel();
+  }
+
+  initCal();
+  document.addEventListener('DOMContentLoaded', initCal);
+  new MutationObserver(initCal).observe(document.body, { childList: true, subtree: true });
 
 })();
 </script>
