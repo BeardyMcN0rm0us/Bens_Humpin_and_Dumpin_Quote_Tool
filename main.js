@@ -633,6 +633,9 @@ window.BHD = Object.assign({
     if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
     if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
+    if (typeof goTo === 'function') {
+  goTo(3);
+}
   }
 
   function sendWhatsApp(){
