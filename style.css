@@ -239,16 +239,44 @@ textarea { min-height: 90px; resize: vertical; }
   .grid3 { grid-template-columns: 1fr; }
 }
 
-/* ── INLINE DATE + TIME ── */
+/* ── INLINE DATE + TIME (IMPROVED) ── */
 .inline-fields {
   display: flex;
   gap: 10px;
 }
 
-.inline-fields input {
-  flex: 1;
+.inline-fields input,
+.inline-fields select {
+  height: 52px;
+  padding: 0 14px;
+  font-size: 1rem;
 }
 
+/* make date wider than time */
+.inline-fields input[type="date"] {
+  flex: 2;
+  min-width: 0;
+}
+
+.inline-fields select {
+  flex: 1;
+  min-width: 0;
+}
+
+/* improve iOS / Safari appearance */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+}
+
+/* optional: make calendar icon clickable area nicer */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+/* stack on small screens */
 @media (max-width: 400px) {
   .inline-fields {
     flex-direction: column;
