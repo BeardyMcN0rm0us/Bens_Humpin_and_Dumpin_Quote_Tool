@@ -712,12 +712,24 @@ window.BHD = Object.assign({
   });
   if(els.lutonNeeded) els.lutonNeeded.addEventListener('change',updateLutonHint);
   if(els.lutonCost) els.lutonCost.addEventListener('input',updateLutonHint);
-  if(els.btnCalc) els.btnCalc.addEventListener('click',async()=>{
-    if(els.routeHint) els.routeHint.textContent="Calculating...";
+  if (els.btnCalc) {
+  els.btnCalc.addEventListener('click', async () => {
+
+    // ✅ HARD FIX: ensure jobType is set
+    if (!els.jobType.value) {
+      const selectedTile = document.querySelector('.tile.is-selected');
+      if (selectedTile) {
+        els.jobType.value = selectedTile.dataset.job;
+      }
+    }
+
+    if (els.routeHint) els.routeHint.textContent = "Calculating...";
     initMaps();
-    const miles=await new Promise(resolve=>getMilesBoth(resolve));
+
+    const miles = await new Promise(resolve => getMilesBoth(resolve));
     calculate(miles);
   });
+}
   if(els.btnWA) els.btnWA.addEventListener('click',sendWhatsApp);
   const gardenScheduleEl=$('gardenSchedule');
   if(gardenScheduleEl){
