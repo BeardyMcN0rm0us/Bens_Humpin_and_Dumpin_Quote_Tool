@@ -65,7 +65,7 @@ window.BHD = Object.assign({
   gardenSoloPerHour: 17.50,
   gardenTwoPerHour: 25.00,
   gardenMinHours: 2,
-  gardenWasteRemovalFee: 50,
+  gardenWasteRemovalFee: 0,
 
   useTimePricing: true,
   ikeaLaborPerHour: 25,
@@ -439,7 +439,7 @@ window.BHD = Object.assign({
 
   const soloRate=Number(CFG.gardenSoloPerHour||15);
   const twoRate=Number(CFG.gardenTwoPerHour||25);
-  const wasteFee=Number(CFG.gardenWasteRemovalFee||50);
+  const wasteFee=Number(CFG.gardenWasteRemovalFee||0);
 
   const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
   const hasWasteRemoval=tasks.includes("Garden waste removal");
@@ -460,7 +460,7 @@ window.BHD = Object.assign({
   // ✅ ADD WASTE REMOVAL
   if(hasWasteRemoval){
     cost += wasteFee;
-    lines.push("Garden waste removal: Minimum £"+wasteFee.toFixed(2));
+    lines.push("Garden waste removal: Separate Charge");
   }
 
   return{fee:cost,lines};
