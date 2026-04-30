@@ -111,11 +111,37 @@ window.BHD = Object.assign({
     btnCalc:$('btnCalc'), routeHint:$('routeHint'),
     breakdown:$('breakdown'), total:$('total'),
     quoteId:$('quoteId'), btnWA:$('btnWhatsApp'),
-    buildTag:$('buildTag')
+    buildTag:$('buildTag'),
+    // Garden
+    gardenWrap:$('gardenWrap'),
+    gardenHours:$('gardenHours'), gardenRateHint:$('gardenRateHint'),
+    gardenTeam:$('gardenTeam'), gardenSoloBtn:$('gardenSoloBtn'), gardenTwoBtn:$('gardenTwoBtn'),
+    gardenSchedule:$('gardenSchedule'), gardenFrequencyWrap:$('gardenFrequencyWrap'),
+    gardenDiscountType:$('gardenDiscountType'), gardenDiscountWarning:$('gardenDiscountWarning'),
+    gardenNeighbourWrap:$('gardenNeighbourWrap'),
+    gardenNeighbour1:$('gardenNeighbour1'), gardenNeighbour2:$('gardenNeighbour2'),
+    gardenNeighbourHint:$('gardenNeighbourHint'),
+    gardenOngoingDiscountNote:$('gardenOngoingDiscountNote'),
+    gardenOngoingDiscountPct:$('gardenOngoingDiscountPct')
   };
 
   if(els.buildTag) els.buildTag.textContent='Build '+(CFG.version||'');
   if(els.lutonCost) els.lutonCost.value=Number(CFG.LUTON_HIRE_COST||0);
+
+  // Populate garden team size button labels from config (not hardcoded in HTML)
+  if(els.gardenSoloBtn) els.gardenSoloBtn.textContent='Solo — £'+(CFG.gardenSoloPerHour||17.50)+'/hr';
+  if(els.gardenTwoBtn)  els.gardenTwoBtn.textContent='2-Person — £'+(CFG.gardenTwoPerHour||25)+'/hr';
+
+  // Populate ongoing discount % label from config
+  if(els.gardenOngoingDiscountPct) els.gardenOngoingDiscountPct.textContent=Number(CFG.gardenOngoingDiscountPct||10);
+
+  // Populate bag price hint from config
+  const bagsHintEl=$('bagsHint');
+  if(bagsHintEl) bagsHintEl.textContent='£'+(CFG.bagPriceEach||4)+'/bag — all bags disposed at Waterbeach Waste Management Park. Fully licensed.';
+
+  // Populate hay hint from config
+  const hayHintEl=$('hayHint');
+  if(hayHintEl) hayHintEl.textContent='Rental: min '+(CFG.hayMinBales||10)+' bales · Full load = '+(CFG.hayFullLoad||16)+' · £'+(CFG.hayDamagedFee||2.50)+'/bale if damaged or wet · If wet, you keep them';
 
   if(els.wasteType&&els.wasteType.options.length===0){
     Object.keys(CFG.disposal||{}).forEach(k=>{
@@ -232,6 +258,48 @@ window.BHD = Object.assign({
     const gardenWrap=$('gardenWrap'); if(gardenWrap) hide(gardenWrap);
   }
 
+  function updateGardenUI(){
+    const team=(els.gardenTeam&&els.gardenTeam.value)||'solo';
+    const hours=parseFloat((els.gardenHours&&els.gardenHours.value)||2)||2;
+    const schedule=(els.gardenSchedule&&els.gardenSchedule.value)||'oneoff';
+    const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
+
+    // Live rate hint
+    if(els.gardenRateHint){
+      const rate = team==='two' ? (CFG.gardenTwoPerHour||25) : (CFG.gardenSoloPerHour||17.50);
+      const raw = rate * hours;
+      els.gardenRateHint.textContent = '£'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+'  =  £'+raw.toFixed(2)+' before any discounts';
+    }
+
+    // Show/hide ongoing frequency selector
+    if(els.gardenFrequencyWrap){
+      if(schedule==='ongoing'){ show(els.gardenFrequencyWrap); } else { hide(els.gardenFrequencyWrap); }
+    }
+
+    // Show ongoing discount note
+    if(els.gardenOngoingDiscountNote){
+      els.gardenOngoingDiscountNote.style.display = schedule==='ongoing' ? '' : 'none';
+    }
+
+    // Show/hide neighbour address fields
+    if(els.gardenNeighbourWrap){
+      if(discountType==='neighbour'){ show(els.gardenNeighbourWrap); } else { hide(els.gardenNeighbourWrap); }
+    }
+
+    // Update neighbour hint text from config (not hardcoded)
+    if(els.gardenNeighbourHint){
+      const ratePerAddr = team==='two'
+        ? (CFG.gardenNeighbourDiscountTwoMan||10)
+        : (CFG.gardenNeighbourDiscountSolo||5);
+      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s address ('+(team==='two'?'2-person team':'solo')+', up to 2 addresses = £'+(ratePerAddr*2)+' off).';
+    }
+
+    // Show stacking warning when any discount is active
+    if(els.gardenDiscountWarning){
+      els.gardenDiscountWarning.style.display = discountType!=='none' ? '' : 'none';
+    }
+  }
+
   function setUI(){
     const v=els.jobType?els.jobType.value:'';
 
@@ -286,6 +354,7 @@ window.BHD = Object.assign({
       show(els.pickupField);
       const gardenWrap=$('gardenWrap'); if(gardenWrap) show(gardenWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Included.";
+      updateGardenUI();
     }else{
       show(els.pickupField); show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
@@ -302,14 +371,117 @@ window.BHD = Object.assign({
     els.lutonHint.textContent=txt+' Hire: £'+Number((els.lutonCost&&els.lutonCost.value)||CFG.LUTON_HIRE_COST).toFixed(0)+'/day.';
   }
 
+  // Wire garden UI change listeners
+  ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType'].forEach(id=>{
+    const el=$(id);
+    if(el) el.addEventListener('change', updateGardenUI);
+  });
+
+  function calcGardenQuote(){
+    const team=(els.gardenTeam&&els.gardenTeam.value)||'solo';
+    const hours=parseFloat((els.gardenHours&&els.gardenHours.value)||2)||2;
+    const schedule=(els.gardenSchedule&&els.gardenSchedule.value)||'oneoff';
+    const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
+    const neighbour1=((els.gardenNeighbour1&&els.gardenNeighbour1.value)||'').trim();
+    const neighbour2=((els.gardenNeighbour2&&els.gardenNeighbour2.value)||'').trim();
+
+    const rate = team==='two' ? Number(CFG.gardenTwoPerHour||25) : Number(CFG.gardenSoloPerHour||17.50);
+    const baseAmount = rate * hours;
+
+    const lines=[];
+    lines.push('Labour: £'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+baseAmount.toFixed(2));
+
+    // Apply chosen discount — only ONE customer discount applies
+    let discountAmount=0;
+    let discountLabel='';
+
+    const pensionerPct = Number(CFG.gardenPensionerDiscountPct||10);
+    const neighbourRatePerAddr = team==='two'
+      ? Number(CFG.gardenNeighbourDiscountTwoMan||10)
+      : Number(CFG.gardenNeighbourDiscountSolo||5);
+    const ongoingPct = Number(CFG.gardenOngoingDiscountPct||10);
+
+    if(discountType==='pensioner'){
+      discountAmount = baseAmount * (pensionerPct/100);
+      discountLabel = 'Pensioner discount ('+pensionerPct+'% off)';
+    } else if(discountType==='neighbour'){
+      const addrCount = (neighbour1?1:0) + (neighbour2?1:0);
+      discountAmount = neighbourRatePerAddr * addrCount;
+      discountLabel = 'Neighbour discount ('+addrCount+' address'+(addrCount!==1?'es':'')+' × £'+neighbourRatePerAddr+')';
+    }
+
+    // Ongoing loyalty discount — separate from customer discounts
+    let ongoingDiscountAmount=0;
+    if(schedule==='ongoing'){
+      ongoingDiscountAmount = baseAmount * (ongoingPct/100);
+    }
+
+    // Cannot stack: if both a customer discount AND ongoing are active, apply the greater saving only
+    let appliedDiscount=0;
+    let appliedLabel='';
+    let stackNote='';
+    if(discountAmount>0 && ongoingDiscountAmount>0){
+      if(discountAmount >= ongoingDiscountAmount){
+        appliedDiscount=discountAmount;
+        appliedLabel=discountLabel;
+        stackNote='(Ongoing loyalty discount not stacked — '+discountLabel+' gives the greater saving)';
+      } else {
+        appliedDiscount=ongoingDiscountAmount;
+        appliedLabel='Ongoing loyalty discount ('+ongoingPct+'% off)';
+        stackNote='('+discountLabel+' not stacked — ongoing loyalty gives the greater saving)';
+      }
+    } else if(discountAmount>0){
+      appliedDiscount=discountAmount;
+      appliedLabel=discountLabel;
+    } else if(ongoingDiscountAmount>0){
+      appliedDiscount=ongoingDiscountAmount;
+      appliedLabel='Ongoing loyalty discount ('+ongoingPct+'% off)';
+    }
+
+    let subtotal=baseAmount - appliedDiscount;
+    if(subtotal<0) subtotal=0;
+
+    if(appliedDiscount>0) lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
+    if(stackNote) lines.push('&#9432; '+stackNote);
+
+    const rangePct=Number((CFG.rangePct&&CFG.rangePct.garden)||0.10);
+    const lo=Math.round(subtotal*(1-rangePct));
+    const hi=Math.round(subtotal*(1+rangePct));
+
+    return { lo, hi, subtotal, lines, appliedLabel, appliedDiscount, team, hours, rate, schedule, neighbour1, neighbour2 };
+  }
+
   async function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
-    const base=0;
-    let total=base;
 
-    if(els.total){
-      els.total.textContent="£"+total;
+    if(jt==='garden'){
+      const q=calcGardenQuote();
+      if(els.total) els.total.textContent='£'+q.lo+'–£'+q.hi;
+      if(els.breakdown){
+        els.breakdown.innerHTML = q.lines.map(l=>'<div class="breakdown-line">'+l+'</div>').join('');
+      }
+      if(els.quoteId) els.quoteId.textContent=quoteId();
+      if(els.btnWA){
+        els.btnWA.removeAttribute('hidden');
+        els.btnWA.classList.remove('hidden');
+      }
+      if(window.goTo) window.goTo(3);
+      return;
     }
+
+    // Stub for other job types
+    if(els.total) els.total.textContent='£0';
+  }
+
+  if(els.btnCalc){
+    els.btnCalc.addEventListener('click', function(){
+      els.btnCalc.textContent='Calculating…';
+      els.btnCalc.disabled=true;
+      calculate(null).finally(function(){
+        els.btnCalc.innerHTML='&#129518;&nbsp;&nbsp;Calculate My Quote';
+        els.btnCalc.disabled=false;
+      });
+    });
   }
 
 })();

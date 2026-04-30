@@ -219,7 +219,7 @@
         <div class="field-group">
           <label class="field-label" for="hayBales">How many bales?</label>
           <input id="hayBales" type="number" min="1" step="1" value="10">
-          <div class="hint">Rental: min 10 bales &middot; Full load = 16 &middot; &pound;2.50/bale if damaged or wet &middot; If wet, you keep them</div>
+          <div class="hint" id="hayHint">Rental: min 10 bales &middot; Full load = 16 &middot; If damaged or wet: see pricing &middot; If wet, you keep them</div>
         </div>
       </div>
 
@@ -227,7 +227,7 @@
         <div class="field-group">
           <label class="field-label" for="bagsCount">How many bags?</label>
           <input id="bagsCount" type="number" min="1" step="1" value="4">
-          <div class="hint">&pound;4/bag &mdash; all bags disposed at Waterbeach Waste Management Park. Fully licensed.</div>
+          <div class="hint" id="bagsHint">All bags disposed at Waterbeach Waste Management Park. Fully licensed.</div>
         </div>
       </div>
 
@@ -312,6 +312,36 @@
       <option value="solo" selected>Solo</option>
       <option value="two">Two-person</option>
     </select>
+
+  <div class="field-group">
+    <label class="field-label">Discount</label>
+    <select id="gardenDiscountType">
+      <option value="none">No discount</option>
+      <option value="pensioner">Pensioner Discount (10% off)</option>
+      <option value="neighbour">Neighbour Discount</option>
+    </select>
+    <div class="hint discount-stack-warning" id="gardenDiscountWarning" style="display:none">
+      &#9888;&#65039; <strong>Discounts cannot be stacked</strong> &mdash; only one discount applies per booking. Select the one that benefits you most.
+    </div>
+  </div>
+
+  <div id="gardenNeighbourWrap" class="hidden" hidden>
+    <div class="field-group">
+      <label class="field-label" for="gardenNeighbour1">&#128205; Neighbour 1 address</label>
+      <input id="gardenNeighbour1" type="text" placeholder="Address or postcode&hellip;">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="gardenNeighbour2">&#128205; Neighbour 2 address (optional)</label>
+      <input id="gardenNeighbour2" type="text" placeholder="Address or postcode&hellip;">
+    </div>
+    <div class="hint" id="gardenNeighbourHint"></div>
+  </div>
+
+  <div id="gardenOngoingDiscountNote" class="hint" style="display:none">
+    &#10003; <strong>Ongoing loyalty discount</strong> applied automatically &mdash; <span id="gardenOngoingDiscountPct"></span>% off.
+    <br><span style="opacity:0.7">Note: Discounts cannot be stacked. If an Ongoing booking and another discount are both selected, only the greater saving applies.</span>
+  </div>
+
   </div>
 
 </div>
