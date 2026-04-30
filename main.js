@@ -1,7 +1,7 @@
-// r420
+// r421
 
 window.BHD = Object.assign({
-  version: "r420",
+  version: "r421",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -683,10 +683,10 @@ window.BHD = Object.assign({
         dt?"Preferred date/time: "+dt:'',
         "Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'),
         tasks.length?"Tasks: "+tasks.join(', '):'',
-        tasks.includes("Garden waste removal")?"Includes garden waste removal (+£"+CFG.gardenWasteRemovalFee+")":'',
+        tasks.includes("Garden waste removal")?"Garden waste removal: Charged Separately":'',
         other?"Other details: "+other:'',
         hrs?"Estimated hours: "+hrs:'',
-        "Team: "+(team==='two'?'Ben + helper (£25/hr)':'Just Ben (£15/hr)')
+        "Team: "+(team==='two'?'Ben + Helper (£'+Number(CFG.gardenTwoPerHour||25).toFixed(2)+'/hr)':'Just Ben (£'+Number(CFG.gardenSoloPerHour||17.50).toFixed(2)+'/hr)')
       ].filter(Boolean).join('\n');
     }
     const msg=[
