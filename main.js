@@ -377,6 +377,11 @@ window.BHD = Object.assign({
     if(el) el.addEventListener('change', updateGardenUI);
   });
 
+  // Wire job-type selector so sections show/hide when a tile is tapped
+  if(els.jobType) els.jobType.addEventListener('change', setUI);
+  if(els.jobType) els.jobType.addEventListener('input',  setUI);
+  setUI();
+
   function calcGardenQuote(){
     const team=(els.gardenTeam&&els.gardenTeam.value)||'solo';
     const hours=parseFloat((els.gardenHours&&els.gardenHours.value)||2)||2;
@@ -477,7 +482,9 @@ window.BHD = Object.assign({
     els.btnCalc.addEventListener('click', function(){
       els.btnCalc.textContent='Calculating…';
       els.btnCalc.disabled=true;
-      calculate(null).finally(function(){
+      calculate(null).catch(function(err){
+        if(els.routeHint) els.routeHint.textContent='Error: '+(err&&err.message?err.message:String(err));
+      }).finally(function(){
         els.btnCalc.innerHTML='&#129518;&nbsp;&nbsp;Calculate My Quote';
         els.btnCalc.disabled=false;
       });
