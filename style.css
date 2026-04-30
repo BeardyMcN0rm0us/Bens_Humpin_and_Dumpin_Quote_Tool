@@ -845,3 +845,16 @@ select[hidden] { display: none !important; }
     flex-direction: column;
   }
 }
+
+/* ── GARDENING DISCOUNT WARNING ── */
+.discount-stack-warning {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #1a0f00;
+  border: 1.5px solid #a0540020;
+  border-left: 3px solid var(--brand2);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}

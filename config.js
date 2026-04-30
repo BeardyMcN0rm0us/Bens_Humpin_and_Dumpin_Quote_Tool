@@ -85,6 +85,14 @@ gardenSoloPerHour:    15.00,  // £/hr — Ben solo
 gardenTwoPerBlock:    50.00,  // £ per 2-hour block — Ben + Helper
 gardenBlockHours:     2,      // hours per block (two-person pricing)
 
+// ── Gardening discounts ───────────────────────────────────────
+// Pensioner or Neighbour discount — only ONE may apply per booking.
+// Ongoing loyalty discount is separate and automatic.
+gardenPensionerDiscountPct:    10,   // % off for pensioner discount
+gardenNeighbourDiscountTwoMan: 10,   // £ off per address — 2-man team
+gardenNeighbourDiscountSolo:    5,   // £ off per address — solo
+gardenOngoingDiscountPct:      10,   // % off for ongoing bookings
+
 // ── Special offers & discounts ────────────────────────────────
 // Set type to 'percent' or 'fixed' to activate an offer.
 // 'percent' = value is % off  (e.g. 10 = 10% off)
