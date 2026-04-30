@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=r424">
+<link rel="stylesheet" href="style.css?v=r425">
 </head>
 <body>
 
@@ -21,7 +21,7 @@
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">Instant Quote</div>
     </div>
-    <div class="build-tag" id="buildTag">r424</div>
+    <div class="build-tag" id="buildTag">r425</div>
   </div>
   <div class="progress-bar">
     <div class="prog-step" id="pStep1"><div class="prog-dot">1</div><div class="prog-label">Job</div></div>
@@ -238,12 +238,7 @@
     <input type="hidden" id="gardenDateTime">
     <div class="inline-fields">
       <input type="date" id="gardenDate">
-      <select id="gardenTime">
-        <option value="09:30">09:30</option>
-        <option value="11:30">11:30</option>
-        <option value="13:30">13:30</option>
-        <option value="15:30">15:30</option>
-      </select>
+      <input type="time" id="gardenTime" min="08:30" max="17:00" step="1800">
     </div>
   </div>
 
@@ -526,8 +521,8 @@
 </div>
 
 <script src="shop-items.js"></script>
-<script src="config.js?v=r424"></script>
-<script src="main.js?v=r424" defer></script>
+<script src="config.js?v=r425"></script>
+<script src="main.js?v=r425" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -848,8 +843,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var dateEl = document.getElementById('gardenDate');
     var timeEl = document.getElementById('gardenTime');
     var hidden = document.getElementById('gardenDateTime');
+    var hoursEl = document.getElementById('gardenHours');
     if (!dateEl || !timeEl || !hidden) return;
     hidden.value = dateEl.value && timeEl.value ? dateEl.value + ' ' + timeEl.value : '';
+    if (hoursEl) {
+      if (timeEl.value === '17:00') {
+        hoursEl.max = '1';
+        if (parseFloat(hoursEl.value) > 1) hoursEl.value = '1';
+      } else {
+        hoursEl.removeAttribute('max');
+      }
+    }
   }
 
   function initGardenPicker() {
@@ -861,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var nwd = nextWorkingDayISO();
     dateEl.min   = nwd;
     dateEl.value = nwd;
-    timeEl.value = '09:30';
+    timeEl.value = '08:30';
 
     dateEl.addEventListener('change', function() {
       var d = new Date(dateEl.value + 'T00:00:00');
