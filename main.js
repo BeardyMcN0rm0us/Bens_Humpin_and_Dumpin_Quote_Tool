@@ -1,7 +1,7 @@
-// r423
+// r424
 
 window.BHD = Object.assign({
-  version: "r423",
+  version: "r424",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -433,8 +433,7 @@ window.BHD = Object.assign({
   function calcGarden(){
   const hoursEl=$('gardenHours');
   const teamEl=$('gardenTeam');
-  const minHrs=Number(CFG.gardenMinHours||2);
-  const hours=Math.max(minHrs,parseFloat(hoursEl&&hoursEl.value||'2')||2);
+  const hours=parseFloat(hoursEl&&hoursEl.value||'1')||1;
   const team=(teamEl&&teamEl.value)||'solo';
 
   const soloRate=Number(CFG.gardenSoloPerHour||15);
@@ -454,8 +453,6 @@ window.BHD = Object.assign({
     cost=hours*soloRate;
     lines.push("Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
   }
-
-  lines.push("Minimum "+minHrs+" hours");
 
   // ✅ ADD WASTE REMOVAL
   if(hasWasteRemoval){
