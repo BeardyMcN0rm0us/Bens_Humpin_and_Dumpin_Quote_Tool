@@ -82,7 +82,7 @@ ikeaAssemblyPerItem: 40,   // £/item when useTimePricing is false
 
 // ── Gardening ─────────────────────────────────────────────────
 gardenSoloPerHour:    17.50,  // £/hr — Ben solo
-gardenTwoPerBlock:    40.00,  // £ per 2-hour block — Ben + Helper
+gardenTwoPerBlock:    50.00,  // £ per 2-hour block — Ben + Helper
 gardenBlockHours:     2,      // hours per block (two-person pricing)
 
 // ── Special offers & discounts ────────────────────────────────
@@ -110,7 +110,7 @@ gardenOffer: {
   soloLabel: '',      // e.g. 'Spring solo offer'
 
   twoType:   'none',  // 'none' | 'rate' | 'percent'
-  twoValue:  0,       // new GBP/hr OR % off
+  twoValue:  20,       // new GBP/hr OR % off
   twoLabel:  '',      // e.g. 'Two-person spring offer'
 },
 
