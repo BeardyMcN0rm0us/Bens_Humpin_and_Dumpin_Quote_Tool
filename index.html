@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setOffset();
   window.addEventListener('resize', setOffset);
 
-  function goTo(n) {
+  window.goTo = function goTo(n) {
     ['panel1','panel2','panel3'].forEach(function(id,i) {
       var el = document.getElementById(id);
       if(!el) return;
