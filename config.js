@@ -81,7 +81,7 @@ ikeaLaborPerHour:    25,   // £/hr when useTimePricing is true
 ikeaAssemblyPerItem: 40,   // £/item when useTimePricing is false
 
 // ── Gardening ─────────────────────────────────────────────────
-gardenSoloPerHour:    17.50,  // £/hr — Ben solo
+gardenSoloPerHour:    15.00,  // £/hr — Ben solo
 gardenTwoPerBlock:    50.00,  // £ per 2-hour block — Ben + Helper
 gardenBlockHours:     2,      // hours per block (two-person pricing)
 
