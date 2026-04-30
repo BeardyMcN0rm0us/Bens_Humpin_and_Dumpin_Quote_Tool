@@ -87,14 +87,14 @@ gardenBlockHours:     2,      // hours per block (two-person pricing)
 
 // ── Special offers & discounts ────────────────────────────────
 // Set type to 'percent' or 'fixed' to activate an offer.
-// 'percent' → value is % off  (e.g. 10 = 10% off)
-// 'fixed'   → value is £ off  (e.g. 20 = £20 off)
+// 'percent' = value is % off  (e.g. 10 = 10% off)
+// 'fixed'   = value is GBP off  (e.g. 20 = 20 GBP off)
 // label is shown in the quote breakdown and WhatsApp message.
 // Set type back to 'none' (or value to 0) to deactivate.
 discount: {
   type:  'none',   // 'none' | 'percent' | 'fixed'
-  value: 0,        // e.g. 10 for 10% off, or 20 for £20 off
-  label: '',       // e.g. 'Spring special: 10% off' or '£20 off this week only'
+  value: 0,        // e.g. 10 for 10% off, or 20 for 20 GBP off
+  label: '',       // e.g. 'Spring special 10% off' or '20 off this week only'
 },
 
 };
