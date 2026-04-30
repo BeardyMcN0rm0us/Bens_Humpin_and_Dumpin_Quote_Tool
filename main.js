@@ -1,7 +1,7 @@
-// r421
+// r422
 
 window.BHD = Object.assign({
-  version: "r421",
+  version: "r422",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -617,7 +617,7 @@ window.BHD = Object.assign({
       lines.push("Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'));
       const dtEl = $('gardenDateTime');
       const dtVal = dtEl && dtEl.value ? dtEl.value : '';
-      if (dtVal) lines.push("Date & time: " + (dtEl.options[dtEl.selectedIndex] && dtEl.options[dtEl.selectedIndex].text || dtVal));
+      if (dtVal) lines.push("Date & time: " + dtVal);
     }
     const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push("Minimum charge applied"); total=MIN;}
     const disc=CFG.discount||{};
@@ -676,7 +676,7 @@ window.BHD = Object.assign({
       const hrs=$('gardenHours')&&$('gardenHours').value||'';
       const team=$('gardenTeam')&&$('gardenTeam').value||'solo';
       const dtEl=$('gardenDateTime');
-      const dt=dtEl&&dtEl.value?(dtEl.options[dtEl.selectedIndex]&&dtEl.options[dtEl.selectedIndex].text||dtEl.value):'';
+      const dt=dtEl&&dtEl.value?dtEl.value:'';
       const schedule=$('gardenSchedule')&&$('gardenSchedule').value||'oneoff';
       const freq=$('gardenFrequency')&&$('gardenFrequency').value||'';
       gardenDetails=[
