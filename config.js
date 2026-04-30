@@ -97,4 +97,21 @@ discount: {
   label: '',       // e.g. 'Spring special 10% off' or '20 off this week only'
 },
 
+// ── Gardening special offers ──────────────────────────────────
+// Apply a discounted rate or % off independently for solo and two-person.
+// soloType / twoType:
+//   'none'    = no offer (use normal rate above)
+//   'rate'    = override the hourly rate entirely (e.g. 15.00 = GBP 15/hr)
+//   'percent' = % off the normal rate (e.g. 20 = 20% off)
+// label is shown in the quote breakdown.
+gardenOffer: {
+  soloType:  'none',  // 'none' | 'rate' | 'percent'
+  soloValue: 0,       // new GBP/hr OR % off
+  soloLabel: '',      // e.g. 'Spring solo offer'
+
+  twoType:   'none',  // 'none' | 'rate' | 'percent'
+  twoValue:  0,       // new GBP/hr OR % off
+  twoLabel:  '',      // e.g. 'Two-person spring offer'
+},
+
 };

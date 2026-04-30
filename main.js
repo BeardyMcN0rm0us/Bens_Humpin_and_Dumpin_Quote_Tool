@@ -1,7 +1,7 @@
-// r425
+// r426
 
 window.BHD = Object.assign({
-  version: "r425",
+  version: "r426",
   whatsappNumber: "447717463496",
 
   homeAddress: "15 Primrose Hill, Doddington, Cambs, PE15 0SU",
@@ -439,6 +439,27 @@ window.BHD = Object.assign({
   const soloRate=Number(CFG.gardenSoloPerHour||15);
   const twoRate=Number(CFG.gardenTwoPerHour||25);
   const wasteFee=Number(CFG.gardenWasteRemovalFee||0);
+  const offer=CFG.gardenOffer||{};
+
+  // Apply solo offer
+  let eSoloRate=soloRate, soloNote='';
+  if(offer.soloType==='rate'&&Number(offer.soloValue)>0){
+    eSoloRate=Number(offer.soloValue);
+    soloNote=(offer.soloLabel||'Special offer')+' (was £'+soloRate.toFixed(2)+'/hr)';
+  }else if(offer.soloType==='percent'&&Number(offer.soloValue)>0){
+    eSoloRate=Math.round(soloRate*(1-Number(offer.soloValue)/100)*100)/100;
+    soloNote=(offer.soloLabel||'Special offer')+' (was £'+soloRate.toFixed(2)+'/hr)';
+  }
+
+  // Apply two-person offer
+  let eTwoRate=twoRate, twoNote='';
+  if(offer.twoType==='rate'&&Number(offer.twoValue)>0){
+    eTwoRate=Number(offer.twoValue);
+    twoNote=(offer.twoLabel||'Special offer')+' (was £'+twoRate.toFixed(2)+'/hr)';
+  }else if(offer.twoType==='percent'&&Number(offer.twoValue)>0){
+    eTwoRate=Math.round(twoRate*(1-Number(offer.twoValue)/100)*100)/100;
+    twoNote=(offer.twoLabel||'Special offer')+' (was £'+twoRate.toFixed(2)+'/hr)';
+  }
 
   const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
   const hasWasteRemoval=tasks.includes("Garden waste removal");
@@ -447,11 +468,13 @@ window.BHD = Object.assign({
   let lines=[];
 
   if(team==='two'){
-    cost=hours*twoRate;
-    lines.push("Two-person: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+twoRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
+    cost=hours*eTwoRate;
+    lines.push("Two-person: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+eTwoRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
+    if(twoNote) lines.push(twoNote);
   }else{
-    cost=hours*soloRate;
-    lines.push("Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+soloRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
+    cost=hours*eSoloRate;
+    lines.push("Solo: "+hours+" hr"+(hours!==1?'s':'')+" @ £"+eSoloRate.toFixed(2)+"/hr = £"+cost.toFixed(2));
+    if(soloNote) lines.push(soloNote);
   }
 
   // ✅ ADD WASTE REMOVAL
