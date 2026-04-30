@@ -620,6 +620,13 @@ window.BHD = Object.assign({
       if (dtVal) lines.push("Date & time: " + (dtEl.options[dtEl.selectedIndex] && dtEl.options[dtEl.selectedIndex].text || dtVal));
     }
     const MIN=minFor(jt); if(MIN>0&&total<MIN){lines.push("Minimum charge applied"); total=MIN;}
+    const disc=CFG.discount||{};
+    if(disc.type&&disc.type!=='none'&&Number(disc.value)>0){
+      let dAmt=0;
+      if(disc.type==='percent') dAmt=Math.round(total*(Number(disc.value)/100)*100)/100;
+      else if(disc.type==='fixed') dAmt=Math.min(Number(disc.value),total);
+      if(dAmt>0){ total=Math.max(0,total-dAmt); lines.push((disc.label||'Special offer')+': -£'+dAmt.toFixed(2)); }
+    }
     const pct=pctFor(jt);
     const low=round5(total);
     const high=round5(total*(1+pct));
@@ -676,10 +683,10 @@ window.BHD = Object.assign({
         dt?"Preferred date/time: "+dt:'',
         "Schedule: "+(schedule==='ongoing'?'Ongoing'+(freq?' ('+freq+')':''):'One-off'),
         tasks.length?"Tasks: "+tasks.join(', '):'',
-        tasks.includes("Garden waste removal")?"Includes garden waste removal (+£"+CFG.gardenWasteRemovalFee+")":'',
+        tasks.includes("Garden waste removal")?"Includes garden waste removal (charged separately)":'',
         other?"Other details: "+other:'',
         hrs?"Estimated hours: "+hrs:'',
-        "Team: "+(team==='two'?'Ben + helper (£25/hr)':'Just Ben (£15/hr)')
+        "Team: "+(team==='two'?'Ben + Helper (£'+Number(CFG.gardenTwoPerHour||25).toFixed(2)+'/hr)':'Just Ben (£'+Number(CFG.gardenSoloPerHour||17.50).toFixed(2)+'/hr)')
       ].filter(Boolean).join('\n');
     }
     const msg=[

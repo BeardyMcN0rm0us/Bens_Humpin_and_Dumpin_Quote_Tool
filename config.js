@@ -80,4 +80,22 @@ useTimePricing:      true, // true = price by time, false = price per item
 ikeaLaborPerHour:    25,   // £/hr when useTimePricing is true
 ikeaAssemblyPerItem: 40,   // £/item when useTimePricing is false
 
+// ── Gardening ─────────────────────────────────────────────────
+gardenSoloPerHour:    17.50,  // £/hr — Ben solo
+gardenTwoPerHour:     25.00,  // £/hr — Ben + Helper
+gardenMinHours:       2,      // minimum hours charged
+gardenWasteRemovalFee: 0,     // £ added when waste removal selected (0 = charged separately)
+
+// ── Special offers & discounts ────────────────────────────────
+// Set type to 'percent' or 'fixed' to activate an offer.
+// 'percent' → value is % off  (e.g. 10 = 10% off)
+// 'fixed'   → value is £ off  (e.g. 20 = £20 off)
+// label is shown in the quote breakdown and WhatsApp message.
+// Set type back to 'none' (or value to 0) to deactivate.
+discount: {
+  type:  'none',   // 'none' | 'percent' | 'fixed'
+  value: 0,        // e.g. 10 for 10% off, or 20 for £20 off
+  label: '',       // e.g. 'Spring special: 10% off' or '£20 off this week only'
+},
+
 };
