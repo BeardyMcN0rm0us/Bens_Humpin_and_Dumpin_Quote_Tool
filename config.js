@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  Ben’s Humpin’ & Dumpin’ — Pricing Config
+//  Ben's Humpin' & Dumpin' — Pricing Config
 //  Edit values here. This file loads before main.js so anything
 //  you set below will override the defaults in main.js.
 // ═══════════════════════════════════════════════════════════════
@@ -39,8 +39,8 @@ rangePct:{
 
 // ── Minimum charges per job type (leave blank or 0 to disable) ─
 minByType: {
-tip: “”, move: “”, fb: “”, shop: “”,
-student: “”, business: “”, other: “”, ikea: “”, flatpack: “”
+tip: "", move: "", fb: "", shop: "",
+student: "", business: "", other: "", ikea: "", flatpack: ""
 },
 
 // ── House move labour ─────────────────────────────────────────
@@ -61,18 +61,18 @@ BEDROOM_LOAD_MULTIPLIERS: {
 disposalMinPct: 0.26,
 disposalVat: 0.20,     // 25% of published rate (minimum load)
 disposal: {
-general:   { label: “General Waste”,              ratePerTonne: 192.50 },
-soil:      { label: “Soil / Inert”,               ratePerTonne:  69.75 },
-hardcore:  { label: “Hardcore”,                   ratePerTonne:  25.75 },
-plaster:   { label: “Plasterboard”,               ratePerTonne: 105.00 },
-wood:      { label: “Mixed Wood”,                 ratePerTonne:  91.00 },
-mdf:       { label: “MDF”,                        ratePerTonne: 175.00 },
-metal:     { label: “Metals”,                     ratePerTonne:  27.00 },
-plastics:  { label: “Rigid / Agricultural Plastics”, ratePerTonne: 186.23 },
-green:     { label: “Green Material”,             ratePerTonne:  90.00 },
-cardboard: { label: “Cardboard (clean)”,          ratePerTonne:  25.00 },
-dmr:       { label: “Dry Mixed Recycling”,        ratePerTonne: 145.00 },
-wuds:      { label: “WUDs & POPs”,                ratePerTonne: 345.00 },
+general:   { label: "General Waste",              ratePerTonne: 192.50 },
+soil:      { label: "Soil / Inert",               ratePerTonne:  69.75 },
+hardcore:  { label: "Hardcore",                   ratePerTonne:  25.75 },
+plaster:   { label: "Plasterboard",               ratePerTonne: 105.00 },
+wood:      { label: "Mixed Wood",                 ratePerTonne:  91.00 },
+mdf:       { label: "MDF",                        ratePerTonne: 175.00 },
+metal:     { label: "Metals",                     ratePerTonne:  27.00 },
+plastics:  { label: "Rigid / Agricultural Plastics", ratePerTonne: 186.23 },
+green:     { label: "Green Material",             ratePerTonne:  90.00 },
+cardboard: { label: "Cardboard (clean)",          ratePerTonne:  25.00 },
+dmr:       { label: "Dry Mixed Recycling",        ratePerTonne: 145.00 },
+wuds:      { label: "WUDs & POPs",                ratePerTonne: 345.00 },
 },
 
 // ── IKEA / flat pack assembly ─────────────────────────────────
