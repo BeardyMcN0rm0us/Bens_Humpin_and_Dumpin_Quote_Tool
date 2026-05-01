@@ -672,7 +672,7 @@ window.BHD = Object.assign({
       const high=round5(total*(1+pct));
       const lines=[];
       if(loopMiles>0){
-        lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile = £"+mileageCost.toFixed(2));
+        lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+Number(CFG.gardenMileagePerMile).toFixed(2)+"/mile = £0.00");
       }
       q.lines.forEach(l=>lines.push(l));
       if(els.breakdown) els.breakdown.innerHTML='• '+lines.join('<br>• ');
