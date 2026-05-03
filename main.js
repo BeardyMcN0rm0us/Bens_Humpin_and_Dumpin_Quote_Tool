@@ -702,7 +702,13 @@ window.BHD = Object.assign({
         lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+Number(CFG.gardenMileagePerMile).toFixed(2)+"/mile = £0.00");
       }
       q.lines.forEach(l=>lines.push(l));
-      if(els.breakdown) els.breakdown.innerHTML='• '+lines.join('<br>• ');
+      if(els.breakdown){
+        els.breakdown.textContent='';
+        lines.forEach((l,i)=>{
+          if(i>0) els.breakdown.appendChild(document.createElement('br'));
+          els.breakdown.appendChild(document.createTextNode('• '+l));
+        });
+      }
       if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
