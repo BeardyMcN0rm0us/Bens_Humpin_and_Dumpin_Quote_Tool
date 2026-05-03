@@ -64,6 +64,7 @@ window.BHD = Object.assign({
 
   gardenSoloPerHour: 17.50,
   gardenTwoPerHour: 25.00,
+  gardenThreePerHour: 40,
   gardenMinHours: 2,
   gardenWasteRemovalFee: 0,
 
@@ -130,7 +131,7 @@ window.BHD = Object.assign({
     // Garden
     gardenWrap:$('gardenWrap'),
     gardenHours:$('gardenHours'), gardenRateHint:$('gardenRateHint'),
-    gardenTeam:$('gardenTeam'), gardenSoloBtn:$('gardenSoloBtn'), gardenTwoBtn:$('gardenTwoBtn'),
+    gardenTeam:$('gardenTeam'), gardenSoloBtn:$('gardenSoloBtn'), gardenTwoBtn:$('gardenTwoBtn'), gardenThreeBtn:$('gardenThreeBtn'),
     gardenSchedule:$('gardenSchedule'), gardenFrequencyWrap:$('gardenFrequencyWrap'), gardenFrequency:$('gardenFrequency'),
     gardenSize:$('gardenSize'),
     gardenDiscountType:$('gardenDiscountType'), gardenDiscountWarning:$('gardenDiscountWarning'),
@@ -147,6 +148,7 @@ window.BHD = Object.assign({
 
   if(els.gardenSoloBtn) els.gardenSoloBtn.textContent='Solo — £'+(CFG.gardenSoloPerHour||17.50)+'/hr';
   if(els.gardenTwoBtn)  els.gardenTwoBtn.textContent='2-Person — £'+(CFG.gardenTwoPerHour||25)+'/hr';
+  if(els.gardenThreeBtn)  els.gardenThreeBtn.textContent='3-Person - £'+(CGF.gardenThreePerHour||40)+'/hr';
   // gardenOngoingDiscountPct span is kept current by updateGardenUI()
 
   const bagsHintEl=$('bagsHint');
