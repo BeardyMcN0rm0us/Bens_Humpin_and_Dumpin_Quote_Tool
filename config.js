@@ -91,10 +91,10 @@ gardenBlockHours:     2,      // hours per block (two-person pricing)
 // Added on top of labour when "Weed killing" is selected as a task.
 // Set the cost per garden size below (£).
 gardenWeedKillingCost: {
-  small:  10,   // £ — small garden
-  medium: 20,   // £ — medium garden
-  large:  35,   // £ — large garden
-  xl:     50,   // £ — XL garden
+  small:  5,   // £ — small garden
+  medium: 10,   // £ — medium garden
+  large:  15,   // £ — large garden
+  xl:     20,   // £ — XL garden
 },
 
 // ── Gardening discounts ───────────────────────────────────────
