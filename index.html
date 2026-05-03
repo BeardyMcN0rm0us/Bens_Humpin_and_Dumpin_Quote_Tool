@@ -316,14 +316,8 @@
     <textarea id="gardenOther"
       placeholder="Anything else? e.g. size of garden, access notes, special instructions…"></textarea>
   </div>
-
-<div class="field-group">
-  <label class="field-label" for="gardenHours">Estimated hours</label>
-  <input id="gardenHours" type="number" min="1.0" step="1.0" value="2">
-  <div id="gardenRateHint" class="hint"></div>
-</div>
-
-<div class="field-group">
+  
+  <div class="field-group">
   <label class="field-label">Team size</label>
   <div class="opt-row">
     <button id="gardenSoloBtn" class="opt-btn is-active" data-sel="gardenTeam" data-val="solo"></button>
@@ -337,6 +331,14 @@
       <option value="two">Two-person</option>
       <option value="three">On request Only: Three-person</option>
     </select>
+
+<div class="field-group">
+  <label class="field-label" for="gardenHours">Estimated hours</label>
+  <input id="gardenHours" type="number" min="1.0" step="1.0" value="2">
+  <div id="gardenRateHint" class="hint"></div>
+</div>
+
+
 
   <div class="field-group">
     <label class="field-label">Discount</label>
