@@ -47,7 +47,7 @@ student: "", business: "", other: "", ikea: "", flatpack: ""
 
 // ── House move labour ─────────────────────────────────────────
 HOURLY_RATE_MOVE: 25,     // £/hr for move labour
-LUTON_HIRE_COST:  225,    // £/day default Luton van hire
+LUTON_HIRE_COST:  450,    // £/day default Luton van hire
 
 // Hours & Luton needed by bedroom count
 BEDROOM_LOAD_MULTIPLIERS: {
