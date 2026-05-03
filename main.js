@@ -279,7 +279,7 @@ window.BHD = Object.assign({
     const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
 
     if(els.gardenRateHint){
-      const rate = team==='two' ? (CFG.gardenTwoPerHour||25) : (CFG.gardenSoloPerHour||17.50);
+      const rate = team==='three' ? (CFG.gardenThreePerHour||40) : team==='two' ? (CFG.gardenTwoPerHour||25) : (CFG.gardenSoloPerHour||17.50);
       const raw = rate * hours;
       els.gardenRateHint.textContent = '£'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+raw.toFixed(2)+' before any discounts';
     }
@@ -304,10 +304,11 @@ window.BHD = Object.assign({
     }
 
     if(els.gardenNeighbourHint){
-      const ratePerAddr = team==='two'
+      const ratePerAddr = (team==='two'||team==='three')
         ? (CFG.gardenNeighbourDiscountTwoMan||10)
         : (CFG.gardenNeighbourDiscountSolo||5);
-      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s address ('+(team==='two'?'2-person team':'solo')+', up to 2 addresses = £'+(ratePerAddr*2)+' off).';
+      const teamLabel = team==='three' ? '3-person team' : team==='two' ? '2-person team' : 'solo';
+      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s address ('+teamLabel+', up to 2 addresses = £'+(ratePerAddr*2)+' off).';
     }
 
     if(els.gardenDiscountWarning){
@@ -620,7 +621,7 @@ window.BHD = Object.assign({
     const neighbour2=((els.gardenNeighbour2&&els.gardenNeighbour2.value)||'').trim();
     const gardenSize=((els.gardenSize&&els.gardenSize.value)||'').trim();
 
-    const rate = team==='two' ? Number(CFG.gardenTwoPerHour||25) : Number(CFG.gardenSoloPerHour||17.50);
+    const rate = team==='three' ? Number(CFG.gardenThreePerHour||40) : team==='two' ? Number(CFG.gardenTwoPerHour||25) : Number(CFG.gardenSoloPerHour||17.50);
     const baseAmount = rate * hours;
 
     const lines=[];
@@ -645,7 +646,7 @@ window.BHD = Object.assign({
     let discountLabel='';
 
     const pensionerPct = Number(CFG.gardenPensionerDiscountPct||10);
-    const neighbourRatePerAddr = team==='two'
+    const neighbourRatePerAddr = (team==='two'||team==='three')
       ? Number(CFG.gardenNeighbourDiscountTwoMan||10)
       : Number(CFG.gardenNeighbourDiscountSolo||5);
     const pctCfg=CFG.gardenOngoingDiscountPct;
@@ -859,7 +860,7 @@ window.BHD = Object.assign({
       gardenDetails=[
         hrs?"Estimated hours: "+hrs:'',
         gardenSize?"Garden size: "+gardenSize.charAt(0).toUpperCase()+gardenSize.slice(1):'',
-        "Team: "+(team==='two'?'Ben + helper':'Just Ben'),
+        "Team: "+(team==='three'?'Ben + 2 helpers':team==='two'?'Ben + helper':'Just Ben'),
         schedule==='ongoing'?'Booking type: Ongoing'+(frequency?' ('+frequency+')':''):'Booking type: One-off',
         discountType!=='none'?'Discount: '+discountType:'',
       ].filter(Boolean).join('\n');
