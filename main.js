@@ -148,7 +148,7 @@ window.BHD = Object.assign({
 
   if(els.gardenSoloBtn) els.gardenSoloBtn.textContent='Solo — £'+(CFG.gardenSoloPerHour||17.50)+'/hr';
   if(els.gardenTwoBtn)  els.gardenTwoBtn.innerHTML='2-Person — £'+(CFG.gardenTwoPerHour||25)+'/hr<span class="best-value-badge">Best Value</span>';
-  if(els.gardenThreeBtn)  els.gardenThreeBtn.textContent='3-Person - £'+(CFG.gardenThreePerHour||40)+'/hr';
+  if(els.gardenThreeBtn)  els.gardenThreeBtn.textContent='ON REQUEST: 3-Person - £'+(CFG.gardenThreePerHour||40)+'/hr';
   // gardenOngoingDiscountPct span is kept current by updateGardenUI()
 
   const bagsHintEl=$('bagsHint');
