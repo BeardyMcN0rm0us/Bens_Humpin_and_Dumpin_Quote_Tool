@@ -870,6 +870,25 @@ select[hidden] { display: none !important; }
   }
 }
 
+/* ── BEST VALUE BADGE ── */
+.best-value-badge {
+  display: block;
+  margin-top: 5px;
+  padding: 2px 8px;
+  background: var(--green);
+  color: #051209;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+.opt-btn.is-active .best-value-badge {
+  background: #051209;
+  color: var(--green);
+}
+
 /* ── GARDENING DISCOUNT WARNING ── */
 .discount-stack-warning {
   margin-top: 8px;
