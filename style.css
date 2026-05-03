@@ -829,6 +829,13 @@ select[hidden] { display: none !important; }
   background: #1a0800;
   color: var(--ink);
 }
+.check-label--weedkill::after {
+  content: 'materials surcharge';
+}
+.hint--charge {
+  color: var(--brand2);
+  font-weight: 700;
+}
 /* ── INLINE DATE + TIME ── */
 .inline-fields {
   display: flex;

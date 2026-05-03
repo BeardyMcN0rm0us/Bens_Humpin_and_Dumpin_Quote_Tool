@@ -290,7 +290,7 @@
     <div class="check-grid">
       <label class="check-label"><input type="checkbox" name="gardenTask" value="Mowing"> Mowing</label>
       <label class="check-label"><input type="checkbox" name="gardenTask" value="Weeding"> Weeding</label>
-      <label class="check-label"><input type="checkbox" name="gardenTask" value="Weed killing"> Weed killing</label>
+      <label class="check-label check-label--tip check-label--weedkill"><input type="checkbox" name="gardenTask" value="Weed killing"> Weed killing</label>
       <label class="check-label"><input type="checkbox" name="gardenTask" value="Hedge cutting"> Hedge cutting</label>
       <label class="check-label"><input type="checkbox" name="gardenTask" value="Digging"> Digging</label>
       <label class="check-label"><input type="checkbox" name="gardenTask" value="Labouring"> Labouring</label>
@@ -303,6 +303,9 @@
 
     <div class="hint check-tip-note" id="gardenWasteNote" style="display:none">
       &#9432; Garden waste removal is taken to Waterbeach tip — priced separately.
+    </div>
+    <div class="hint hint--charge" id="gardenWeedKillNote" style="display:none">
+      &#9888;&#65039; Weed killer materials: <span id="gardenWeedKillPrice"></span>
     </div>
   </div>
 

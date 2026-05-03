@@ -137,6 +137,7 @@ window.BHD = Object.assign({
     gardenNeighbourWrap:$('gardenNeighbourWrap'),
     gardenNeighbour1:$('gardenNeighbour1'), gardenNeighbour2:$('gardenNeighbour2'),
     gardenNeighbourHint:$('gardenNeighbourHint'),
+    gardenWeedKillNote:$('gardenWeedKillNote'), gardenWeedKillPrice:$('gardenWeedKillPrice'),
     gardenOngoingDiscountNote:$('gardenOngoingDiscountNote'),
     gardenOngoingDiscountPct:$('gardenOngoingDiscountPct')
   };
@@ -274,6 +275,7 @@ window.BHD = Object.assign({
     const hours=parseFloat((els.gardenHours&&els.gardenHours.value)||2)||2;
     const schedule=(els.gardenSchedule&&els.gardenSchedule.value)||'oneoff';
     const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
+    const gardenSize=(els.gardenSize&&els.gardenSize.value)||'';
 
     if(els.gardenRateHint){
       const rate = team==='two' ? (CFG.gardenTwoPerHour||25) : (CFG.gardenSoloPerHour||17.50);
@@ -309,6 +311,23 @@ window.BHD = Object.assign({
 
     if(els.gardenDiscountWarning){
       els.gardenDiscountWarning.style.display = discountType!=='none' ? '' : 'none';
+    }
+
+    if(els.gardenWeedKillNote){
+      const weedCb=document.querySelector('input[name="gardenTask"][value="Weed killing"]');
+      const weedChecked=weedCb&&weedCb.checked;
+      if(weedChecked){
+        const wkCfg=CFG.gardenWeedKillingCost||{small:10,medium:20,large:35,xl:50};
+        if(gardenSize&&wkCfg[gardenSize]!=null){
+          const cost=Number(wkCfg[gardenSize]);
+          if(els.gardenWeedKillPrice) els.gardenWeedKillPrice.textContent='£'+cost.toFixed(2)+' ('+gardenSize+' garden) — added to your quote';
+        } else {
+          if(els.gardenWeedKillPrice) els.gardenWeedKillPrice.textContent='select a garden size above for pricing';
+        }
+        els.gardenWeedKillNote.style.display='';
+      } else {
+        els.gardenWeedKillNote.style.display='none';
+      }
     }
   }
 
@@ -484,6 +503,9 @@ window.BHD = Object.assign({
   ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency'].forEach(id=>{
     const el=$(id);
     if(el) el.addEventListener('change', updateGardenUI);
+  });
+  document.querySelectorAll('input[name="gardenTask"]').forEach(cb=>{
+    cb.addEventListener('change', updateGardenUI);
   });
 
   const pctFor=jt=>(CFG.rangePct&&CFG.rangePct[jt]!=null)?Number(CFG.rangePct[jt]):0.15;
