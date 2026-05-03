@@ -70,7 +70,8 @@ window.BHD = Object.assign({
   gardenPensionerDiscountPct: 10,
   gardenNeighbourDiscountTwoMan: 10,
   gardenNeighbourDiscountSolo: 5,
-  gardenOngoingDiscountPct: 10,
+  gardenOngoingDiscountPct: { weekly: 15, fortnightly: 10, monthly: 5 },
+  gardenWeedKillingCost: { small: 10, medium: 20, large: 35, xl: 50 },
 
   gardenOffer: {
     soloType:  'none',
@@ -130,7 +131,8 @@ window.BHD = Object.assign({
     gardenWrap:$('gardenWrap'),
     gardenHours:$('gardenHours'), gardenRateHint:$('gardenRateHint'),
     gardenTeam:$('gardenTeam'), gardenSoloBtn:$('gardenSoloBtn'), gardenTwoBtn:$('gardenTwoBtn'),
-    gardenSchedule:$('gardenSchedule'), gardenFrequencyWrap:$('gardenFrequencyWrap'),
+    gardenSchedule:$('gardenSchedule'), gardenFrequencyWrap:$('gardenFrequencyWrap'), gardenFrequency:$('gardenFrequency'),
+    gardenSize:$('gardenSize'),
     gardenDiscountType:$('gardenDiscountType'), gardenDiscountWarning:$('gardenDiscountWarning'),
     gardenNeighbourWrap:$('gardenNeighbourWrap'),
     gardenNeighbour1:$('gardenNeighbour1'), gardenNeighbour2:$('gardenNeighbour2'),
@@ -144,7 +146,7 @@ window.BHD = Object.assign({
 
   if(els.gardenSoloBtn) els.gardenSoloBtn.textContent='Solo — £'+(CFG.gardenSoloPerHour||17.50)+'/hr';
   if(els.gardenTwoBtn)  els.gardenTwoBtn.textContent='2-Person — £'+(CFG.gardenTwoPerHour||25)+'/hr';
-  if(els.gardenOngoingDiscountPct) els.gardenOngoingDiscountPct.textContent=Number(CFG.gardenOngoingDiscountPct||10);
+  // gardenOngoingDiscountPct span is kept current by updateGardenUI()
 
   const bagsHintEl=$('bagsHint');
   if(bagsHintEl) bagsHintEl.textContent='£'+(CFG.bagPriceEach||4)+'/bag — all bags disposed at Waterbeach Waste Management Park. Fully licensed.';
@@ -285,6 +287,13 @@ window.BHD = Object.assign({
 
     if(els.gardenOngoingDiscountNote){
       els.gardenOngoingDiscountNote.style.display = schedule==='ongoing' ? '' : 'none';
+    }
+
+    if(els.gardenOngoingDiscountPct){
+      const freq=(els.gardenFrequency&&els.gardenFrequency.value)||'fortnightly';
+      const pctCfg=CFG.gardenOngoingDiscountPct;
+      const pct=typeof pctCfg==='object'&&pctCfg!==null ? Number(pctCfg[freq]||pctCfg.fortnightly||10) : Number(pctCfg||10);
+      els.gardenOngoingDiscountPct.textContent=pct;
     }
 
     if(els.gardenNeighbourWrap){
@@ -472,7 +481,7 @@ window.BHD = Object.assign({
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
-  ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType'].forEach(id=>{
+  ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency'].forEach(id=>{
     const el=$(id);
     if(el) el.addEventListener('change', updateGardenUI);
   });
@@ -581,15 +590,32 @@ window.BHD = Object.assign({
     const team=(els.gardenTeam&&els.gardenTeam.value)||'solo';
     const hours=parseFloat((els.gardenHours&&els.gardenHours.value)||2)||2;
     const schedule=(els.gardenSchedule&&els.gardenSchedule.value)||'oneoff';
+    const frequency=(els.gardenFrequency&&els.gardenFrequency.value)||'fortnightly';
     const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
     const neighbour1=((els.gardenNeighbour1&&els.gardenNeighbour1.value)||'').trim();
     const neighbour2=((els.gardenNeighbour2&&els.gardenNeighbour2.value)||'').trim();
+    const gardenSize=((els.gardenSize&&els.gardenSize.value)||'').trim();
 
     const rate = team==='two' ? Number(CFG.gardenTwoPerHour||25) : Number(CFG.gardenSoloPerHour||17.50);
     const baseAmount = rate * hours;
 
     const lines=[];
     lines.push('Labour: £'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+baseAmount.toFixed(2));
+
+    // Weed killing surcharge — added when task is selected, priced by garden size
+    let weedKillingCost=0;
+    const weedCheckboxes=document.querySelectorAll('input[name="gardenTask"]');
+    let weedKillingSelected=false;
+    weedCheckboxes.forEach(cb=>{ if(cb.value==='Weed killing'&&cb.checked) weedKillingSelected=true; });
+    if(weedKillingSelected){
+      const wkCfg=CFG.gardenWeedKillingCost||{small:10,medium:20,large:35,xl:50};
+      if(gardenSize&&wkCfg[gardenSize]!=null){
+        weedKillingCost=Number(wkCfg[gardenSize]);
+        lines.push('Weed killer ('+gardenSize+' garden): £'+weedKillingCost.toFixed(2));
+      } else {
+        lines.push('Weed killer: select a garden size to price this item');
+      }
+    }
 
     let discountAmount=0;
     let discountLabel='';
@@ -598,7 +624,8 @@ window.BHD = Object.assign({
     const neighbourRatePerAddr = team==='two'
       ? Number(CFG.gardenNeighbourDiscountTwoMan||10)
       : Number(CFG.gardenNeighbourDiscountSolo||5);
-    const ongoingPct = Number(CFG.gardenOngoingDiscountPct||10);
+    const pctCfg=CFG.gardenOngoingDiscountPct;
+    const ongoingPct = typeof pctCfg==='object'&&pctCfg!==null ? Number(pctCfg[frequency]||pctCfg.fortnightly||10) : Number(pctCfg||10);
 
     if(discountType==='pensioner'){
       discountAmount = baseAmount * (pensionerPct/100);
@@ -635,7 +662,7 @@ window.BHD = Object.assign({
       appliedLabel='Ongoing loyalty discount ('+ongoingPct+'% off)';
     }
 
-    let subtotal=baseAmount - appliedDiscount;
+    let subtotal=baseAmount + weedKillingCost - appliedDiscount;
     if(subtotal<0) subtotal=0;
 
     if(appliedDiscount>0) lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
@@ -645,7 +672,7 @@ window.BHD = Object.assign({
     const lo=Math.round(subtotal*(1-rangePct));
     const hi=Math.round(subtotal*(1+rangePct));
 
-    return { lo, hi, subtotal, lines, appliedLabel, appliedDiscount, team, hours, rate, schedule, neighbour1, neighbour2 };
+    return { lo, hi, subtotal, lines, appliedLabel, appliedDiscount, team, hours, rate, schedule, frequency, gardenSize, weedKillingCost, neighbour1, neighbour2 };
   }
 
   function calculate(milesObj){
@@ -796,11 +823,14 @@ window.BHD = Object.assign({
       const team=(els.gardenTeam&&els.gardenTeam.value)||'solo';
       const hrs=(els.gardenHours&&els.gardenHours.value)||'';
       const schedule=(els.gardenSchedule&&els.gardenSchedule.value)||'oneoff';
+      const frequency=(els.gardenFrequency&&els.gardenFrequency.value)||'';
       const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
+      const gardenSize=(els.gardenSize&&els.gardenSize.value)||'';
       gardenDetails=[
         hrs?"Estimated hours: "+hrs:'',
+        gardenSize?"Garden size: "+gardenSize.charAt(0).toUpperCase()+gardenSize.slice(1):'',
         "Team: "+(team==='two'?'Ben + helper':'Just Ben'),
-        schedule==='ongoing'?'Booking type: Ongoing':'Booking type: One-off',
+        schedule==='ongoing'?'Booking type: Ongoing'+(frequency?' ('+frequency+')':''):'Booking type: One-off',
         discountType!=='none'?'Discount: '+discountType:'',
       ].filter(Boolean).join('\n');
     }

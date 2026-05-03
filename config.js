@@ -87,13 +87,33 @@ gardenSoloPerHour:    17.50,  // £/hr — Ben solo
 gardenTwoPerBlock:    50.00,  // £ per 2-hour block — Ben + Helper
 gardenBlockHours:     2,      // hours per block (two-person pricing)
 
+// ── Gardening — weed killer surcharge ────────────────────────
+// Added on top of labour when "Weed killing" is selected as a task.
+// Set the cost per garden size below (£).
+gardenWeedKillingCost: {
+  small:  10,   // £ — small garden
+  medium: 20,   // £ — medium garden
+  large:  35,   // £ — large garden
+  xl:     50,   // £ — XL garden
+},
+
 // ── Gardening discounts ───────────────────────────────────────
 // Pensioner or Neighbour discount — only ONE may apply per booking.
 // Ongoing loyalty discount is separate and automatic.
 gardenPensionerDiscountPct:    10,   // % off for pensioner discount
+
+// Neighbour discount: £ off per address — configurable per team size.
+// Up to 2 neighbour addresses can be entered; the rate below applies to each.
+gardenNeighbourDiscountSolo:    5,   // £ off per address — solo (Ben only)
 gardenNeighbourDiscountTwoMan: 10,   // £ off per address — 2-man team
-gardenNeighbourDiscountSolo:    5,   // £ off per address — solo
-gardenOngoingDiscountPct:      10,   // % off for ongoing bookings
+
+// Ongoing loyalty discount: % off, applied automatically when "Ongoing" is selected.
+// Set a different % for each booking frequency.
+gardenOngoingDiscountPct: {
+  weekly:      15,   // % off — weekly bookings
+  fortnightly: 10,   // % off — fortnightly bookings
+  monthly:      5,   // % off — monthly bookings
+},
 
 // ── Special offers & discounts ────────────────────────────────
 // Set type to 'percent' or 'fixed' to activate an offer.
