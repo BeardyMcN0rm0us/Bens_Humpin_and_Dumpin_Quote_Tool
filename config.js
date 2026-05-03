@@ -105,7 +105,7 @@ gardenPensionerDiscountPct:    10,   // % off for pensioner discount
 // Neighbour discount: £ off per address — configurable per team size.
 // Up to 2 neighbour addresses can be entered; the rate below applies to each.
 gardenNeighbourDiscountSolo:    5,   // £ off per address — solo (Ben only)
-gardenNeighbourDiscountTwoMan: 10,   // £ off per address — 2-man team
+gardenNeighbourDiscountTwoMan: 5,   // £ off per address — 2-man team
 
 // Ongoing loyalty discount: % off, applied automatically when "Ongoing" is selected.
 // Set a different % for each booking frequency.
