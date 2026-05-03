@@ -138,7 +138,8 @@ window.BHD = Object.assign({
     gardenNeighbour1:$('gardenNeighbour1'), gardenNeighbour2:$('gardenNeighbour2'),
     gardenNeighbourHint:$('gardenNeighbourHint'),
     gardenOngoingDiscountNote:$('gardenOngoingDiscountNote'),
-    gardenOngoingDiscountPct:$('gardenOngoingDiscountPct')
+    gardenOngoingDiscountPct:$('gardenOngoingDiscountPct'),
+    gardenWeedKillingHint:$('gardenWeedKillingHint')
   };
 
   if(els.buildTag) els.buildTag.textContent='Build '+(CFG.version||'');
@@ -309,6 +310,23 @@ window.BHD = Object.assign({
 
     if(els.gardenDiscountWarning){
       els.gardenDiscountWarning.style.display = discountType!=='none' ? '' : 'none';
+    }
+
+    if(els.gardenWeedKillingHint){
+      const weedCb=document.querySelector('input[name="gardenTask"][value="Weed killing"]');
+      const weedChecked=weedCb&&weedCb.checked;
+      if(weedChecked){
+        const gardenSize=((els.gardenSize&&els.gardenSize.value)||'').trim();
+        const wkCfg=CFG.gardenWeedKillingCost||{small:10,medium:20,large:35,xl:50};
+        if(gardenSize&&wkCfg[gardenSize]!=null){
+          els.gardenWeedKillingHint.textContent='ⓘ Weed killer surcharge for a '+gardenSize+' garden: £'+Number(wkCfg[gardenSize]).toFixed(2)+' (added on top of labour)';
+        } else {
+          els.gardenWeedKillingHint.textContent='ⓘ Weed killer surcharge: select a garden size to see the price';
+        }
+        els.gardenWeedKillingHint.style.display='';
+      } else {
+        els.gardenWeedKillingHint.style.display='none';
+      }
     }
   }
 
@@ -484,6 +502,10 @@ window.BHD = Object.assign({
   ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency'].forEach(id=>{
     const el=$(id);
     if(el) el.addEventListener('change', updateGardenUI);
+  });
+
+  document.querySelectorAll('input[name="gardenTask"]').forEach(cb=>{
+    cb.addEventListener('change', updateGardenUI);
   });
 
   const pctFor=jt=>(CFG.rangePct&&CFG.rangePct[jt]!=null)?Number(CFG.rangePct[jt]):0.15;
