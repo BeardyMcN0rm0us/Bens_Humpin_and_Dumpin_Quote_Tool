@@ -266,6 +266,23 @@
     </div>
   </div>
 
+  <div class="field-group">
+    <label class="field-label">Garden size</label>
+    <div class="opt-row">
+      <button class="opt-btn" data-sel="gardenSize" data-val="small">Small</button>
+      <button class="opt-btn" data-sel="gardenSize" data-val="medium">Medium</button>
+      <button class="opt-btn" data-sel="gardenSize" data-val="large">Large</button>
+      <button class="opt-btn" data-sel="gardenSize" data-val="xl">XL</button>
+    </div>
+    <select id="gardenSize" hidden aria-hidden="true">
+      <option value="" selected>-- select --</option>
+      <option value="small">Small</option>
+      <option value="medium">Medium</option>
+      <option value="large">Large</option>
+      <option value="xl">XL</option>
+    </select>
+  </div>
+
   <!-- ✅ FIXED: these were OUTSIDE gardenWrap before -->
 
   <div class="field-group">
