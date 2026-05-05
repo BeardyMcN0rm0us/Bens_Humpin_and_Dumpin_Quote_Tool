@@ -122,59 +122,78 @@ bikePricingMode: 'job',
 bikeLabourPerHour: 22.50,   // £/hr — used when bikePricingMode is 'hourly'
 
 // Service packages — price (job mode) & hours (hourly mode)
+// Service packages — price (job mode) & hours (hourly mode)
 bikePackages: {
-  basic:    { label: 'Basic Tune-Up',    price: 30,  hours: 1.0 },  // safety check, brakes, gears, lube
-  standard: { label: 'Standard Service', price: 55,  hours: 2.0 },  // tune-up + degrease, cables checked, wheels trued
-  overhaul: { label: 'Full Overhaul',    price: 95,  hours: 3.5 },  // strip-down, all cables replaced, bearings re-greased
+  basic:    { label: 'Basic Tune-Up',    price: 20,  hours: 1.0 },  
+  // brakes, gears, chain lube, bolt check
+
+  standard: { label: 'Standard Service', price: 40,  hours: 2.0 },  
+  // tune-up + drivetrain clean + minor wheel true
+
+  overhaul: { label: 'Full Service',     price: 75,  hours: 3.5 },  
+  // deep clean, cables checked/replaced if needed, bearings checked
 },
 
-// Individual service labour — flat per-job prices (or set bikePricingMode to 'hourly')
+// Individual service labour — simplified & more competitive
 bikeLabour: {
-  punctureRepair:  5,   // patch or prep on the bike
-  brakeAdjust:      10,   // per brake (front or rear)
-  gearAdjust:      15,   // front + rear indexing
-  chainLube:        5,   // clean & lube
-  safetyCheck:     10,   // full pre-ride safety check
-  tubeReplace:     7.50,   // remove tyre, fit tube, refit — per tube
-  tyreReplace:     7.50,   // per tyre (tube extra if also replaced)
-  brakeCable:      7.50,   // per cable — parts extra
-  brakePads:        10,   // per set — parts extra
-  gearCable:       7.50,   // rear derailleur cable — parts extra
-  chainReplace:    10,   // remove & fit chain — parts extra
-  cassetteReplace: 22,   // remove wheel, swap cassette, refit — parts extra
-  wheelTrue:       15,   // per wheel
-  barTape:         7.50,   // full rewrap, drop bars — parts extra
-  grips:            7.50,   // swap grips, flat bars — parts extra
-  pedalReplace:     10,   // per pair — parts extra
-  bottomBracket:   22,   // remove, service or replace, refit — parts extra
-  headset:         17,   // clean & re-grease headset bearings
+  punctureRepair:   5,     // keep this cheap — gets people in
+  brakeAdjust:      8,     // per brake
+  gearAdjust:       10,    // full indexing
+  chainLube:        5,
+  safetyCheck:      8,
+
+  tubeReplace:      5,     // this should feel like a no-brainer
+  tyreReplace:      6,
+
+  brakeCable:       10,    // include fitting complexity
+  brakePads:        8,
+  gearCable:        10,
+
+  chainReplace:     8,
+  cassetteReplace:  15,
+
+  wheelTrue:        10,    // lower entry price = more uptake
+
+  barTape:          10,
+  grips:            5,
+  pedalReplace:     8,
+
+  bottomBracket:    20,
+  headset:          15,
 },
 
-// Parts prices — Amazon cost + 15% handling
-// Adjust these as prices change; they are added to labour unless customer supplies own parts
+// Parts prices — FIXED to be believable (this was your biggest issue)
 bikeParts: {
-  innerTubeStandard:     15,   // 700c / 26" / 27.5" / standard sizes
-  innerTubeSpecialist:   17,   // 29" MTB / unusual sizes
-  tyreBasicRoad:        14,   // budget 700c road or hybrid
-  tyreBasicMtb:         16,   // budget 26" / 27.5" / 29" MTB
-  tyreMidRange:         26,   // mid-range road / hybrid / MTB
-  brakePadsRim:          10,   // V-brake / caliper rim pads (per pair)
-  brakePadsDiscCable:   12,   // mechanical disc pads (per pair)
-  brakePadsHydraulic:   14,   // hydraulic disc pads (per pair)
-  brakeCable:            8,   // brake inner cable (each)
-  gearCable:             8,   // gear inner cable (each)
-  chain8spd:            16,   // single speed – 8 speed chain
-  chain10spd:           18,   // 9–10 speed chain
-  chain11spd:           26,   // 11 speed chain
-  chain12spd:           35,   // 12 speed chain
-  cassette8spd:         17,   // 6–8 speed cassette or freewheel
-  cassette10spd:        25,   // 9–10 speed cassette
-  cassette12spd:        45,   // 11–12 speed cassette
-  barTape:              12,   // handlebar tape (road / drop bars)
-  grips:                 12,   // handlebar grips (MTB / hybrid)
-  pedalsFlat:           20,   // flat / platform pedals (pair)
-  pedalsClipless:       36,   // clipless pedals (pair)
-  bottomBracket:        25,   // threaded bottom bracket (most common)
+  innerTubeStandard:     8,    // was 15 — too high
+  innerTubeSpecialist:   10,
+
+  tyreBasicRoad:         15,
+  tyreBasicMtb:          18,
+  tyreMidRange:          28,
+
+  brakePadsRim:          8,
+  brakePadsDiscCable:    10,
+  brakePadsHydraulic:    12,
+
+  brakeCable:            6,
+  gearCable:             6,
+
+  chain8spd:             12,
+  chain10spd:            15,
+  chain11spd:            22,
+  chain12spd:            30,
+
+  cassette8spd:          15,
+  cassette10spd:         22,
+  cassette12spd:         40,
+
+  barTape:               10,
+  grips:                 10,
+
+  pedalsFlat:            18,
+  pedalsClipless:        30,
+
+  bottomBracket:         20,
 },
 
 // Collection & return service
