@@ -130,21 +130,21 @@ bikePackages: {
 
 // Individual service labour — flat per-job prices (or set bikePricingMode to 'hourly')
 bikeLabour: {
-  punctureRepair:  12,   // patch or prep on the bike
+  punctureRepair:  5,   // patch or prep on the bike
   brakeAdjust:      10,   // per brake (front or rear)
-  gearAdjust:      12,   // front + rear indexing
-  chainLube:        10,   // clean & lube
-  safetyCheck:     12,   // full pre-ride safety check
-  tubeReplace:     12,   // remove tyre, fit tube, refit — per tube
-  tyreReplace:     12,   // per tyre (tube extra if also replaced)
-  brakeCable:      12,   // per cable — parts extra
+  gearAdjust:      15,   // front + rear indexing
+  chainLube:        5,   // clean & lube
+  safetyCheck:     10,   // full pre-ride safety check
+  tubeReplace:     7.50,   // remove tyre, fit tube, refit — per tube
+  tyreReplace:     7.50,   // per tyre (tube extra if also replaced)
+  brakeCable:      7.50,   // per cable — parts extra
   brakePads:        10,   // per set — parts extra
-  gearCable:       12,   // rear derailleur cable — parts extra
-  chainReplace:    12,   // remove & fit chain — parts extra
+  gearCable:       7.50,   // rear derailleur cable — parts extra
+  chainReplace:    10,   // remove & fit chain — parts extra
   cassetteReplace: 22,   // remove wheel, swap cassette, refit — parts extra
-  wheelTrue:       12,   // per wheel
-  barTape:         12,   // full rewrap, drop bars — parts extra
-  grips:            10,   // swap grips, flat bars — parts extra
+  wheelTrue:       15,   // per wheel
+  barTape:         7.50,   // full rewrap, drop bars — parts extra
+  grips:            7.50,   // swap grips, flat bars — parts extra
   pedalReplace:     10,   // per pair — parts extra
   bottomBracket:   22,   // remove, service or replace, refit — parts extra
   headset:         17,   // clean & re-grease headset bearings
