@@ -131,21 +131,21 @@ bikePackages: {
 // Individual service labour — flat per-job prices (or set bikePricingMode to 'hourly')
 bikeLabour: {
   punctureRepair:  12,   // patch or prep on the bike
-  brakeAdjust:      6,   // per brake (front or rear)
+  brakeAdjust:      10,   // per brake (front or rear)
   gearAdjust:      12,   // front + rear indexing
-  chainLube:        6,   // clean & lube
+  chainLube:        10,   // clean & lube
   safetyCheck:     12,   // full pre-ride safety check
   tubeReplace:     12,   // remove tyre, fit tube, refit — per tube
   tyreReplace:     12,   // per tyre (tube extra if also replaced)
   brakeCable:      12,   // per cable — parts extra
-  brakePads:        6,   // per set — parts extra
+  brakePads:        10,   // per set — parts extra
   gearCable:       12,   // rear derailleur cable — parts extra
   chainReplace:    12,   // remove & fit chain — parts extra
   cassetteReplace: 22,   // remove wheel, swap cassette, refit — parts extra
   wheelTrue:       12,   // per wheel
   barTape:         12,   // full rewrap, drop bars — parts extra
-  grips:            6,   // swap grips, flat bars — parts extra
-  pedalReplace:     6,   // per pair — parts extra
+  grips:            10,   // swap grips, flat bars — parts extra
+  pedalReplace:     10,   // per pair — parts extra
   bottomBracket:   22,   // remove, service or replace, refit — parts extra
   headset:         17,   // clean & re-grease headset bearings
 },
@@ -153,28 +153,28 @@ bikeLabour: {
 // Parts prices — Amazon cost + 15% handling
 // Adjust these as prices change; they are added to labour unless customer supplies own parts
 bikeParts: {
-  innerTubeStandard:     5,   // 700c / 26" / 27.5" / standard sizes
-  innerTubeSpecialist:   7,   // 29" MTB / unusual sizes
+  innerTubeStandard:     15,   // 700c / 26" / 27.5" / standard sizes
+  innerTubeSpecialist:   17,   // 29" MTB / unusual sizes
   tyreBasicRoad:        14,   // budget 700c road or hybrid
   tyreBasicMtb:         16,   // budget 26" / 27.5" / 29" MTB
   tyreMidRange:         26,   // mid-range road / hybrid / MTB
-  brakePadsRim:          8,   // V-brake / caliper rim pads (per pair)
+  brakePadsRim:          10,   // V-brake / caliper rim pads (per pair)
   brakePadsDiscCable:   12,   // mechanical disc pads (per pair)
   brakePadsHydraulic:   14,   // hydraulic disc pads (per pair)
-  brakeCable:            6,   // brake inner cable (each)
-  gearCable:             6,   // gear inner cable (each)
-  chain8spd:            12,   // single speed – 8 speed chain
+  brakeCable:            8,   // brake inner cable (each)
+  gearCable:             8,   // gear inner cable (each)
+  chain8spd:            16,   // single speed – 8 speed chain
   chain10spd:           18,   // 9–10 speed chain
   chain11spd:           26,   // 11 speed chain
   chain12spd:           35,   // 12 speed chain
-  cassette8spd:         13,   // 6–8 speed cassette or freewheel
-  cassette10spd:        22,   // 9–10 speed cassette
-  cassette12spd:        42,   // 11–12 speed cassette
-  barTape:              11,   // handlebar tape (road / drop bars)
-  grips:                 9,   // handlebar grips (MTB / hybrid)
-  pedalsFlat:           16,   // flat / platform pedals (pair)
+  cassette8spd:         17,   // 6–8 speed cassette or freewheel
+  cassette10spd:        25,   // 9–10 speed cassette
+  cassette12spd:        45,   // 11–12 speed cassette
+  barTape:              12,   // handlebar tape (road / drop bars)
+  grips:                 12,   // handlebar grips (MTB / hybrid)
+  pedalsFlat:           20,   // flat / platform pedals (pair)
   pedalsClipless:       36,   // clipless pedals (pair)
-  bottomBracket:        22,   // threaded bottom bracket (most common)
+  bottomBracket:        25,   // threaded bottom bracket (most common)
 },
 
 // Collection & return service
