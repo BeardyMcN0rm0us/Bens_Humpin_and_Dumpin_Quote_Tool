@@ -48,6 +48,7 @@
       <option value="hay">Hay Bale Rental</option>
       <option value="bags">Black Bag Collection</option>
       <option value="garden">Gardening - 2 Man Team Available</option>
+      <option value="bike">Bicycle Servicing</option>
       <option value="business">Business Enquiries / Barter Deals</option>
       <option value="other">Other (Tell me what you need)</option>
     </select>
@@ -62,6 +63,7 @@
       <!--<button class="tile" data-job="shop"><span class="tile-icon">&#128717;</span><span class="tile-name">Shop Run</span><span class="tile-desc">Emergency collection</span></button>-->
       <button class="tile" data-job="hay"><span class="tile-icon">&#127806;</span><span class="tile-name">Hay Bales</span><span class="tile-desc">Rental or sale</span></button>
       <!--<button class="tile" data-job="bags"><span class="tile-icon">&#128717;&#65039;</span><span class="tile-name">Black Bags</span><span class="tile-desc">Collection &amp; disposal</span></button>-->
+      <button class="tile" data-job="bike"><span class="tile-icon">&#128690;</span><span class="tile-name">Bike Servicing</span><span class="tile-desc">Repairs &amp; maintenance</span></button>
       <button class="tile" data-job="business"><span class="tile-icon">&#129309;</span><span class="tile-name">Business / Barter</span><span class="tile-desc">Trade &amp; ongoing work</span></button>
       <button class="tile tile-span" data-job="other"><span class="tile-icon">&#128172;</span><span class="tile-name">Something else &mdash; tell me what you need</span></button>
     </div>
@@ -371,6 +373,278 @@
 
   </div>
 
+      <div id="bikeWrap" class="hidden" hidden>
+
+        <div class="field-group">
+          <label class="field-label">Service type</label>
+          <div class="opt-row">
+            <button class="opt-btn is-active" data-sel="bikeMode" data-val="package">&#128230;&nbsp; Service Package</button>
+            <button class="opt-btn" data-sel="bikeMode" data-val="items">&#128295;&nbsp; Individual Items</button>
+          </div>
+          <select id="bikeMode" hidden aria-hidden="true">
+            <option value="package" selected>Package</option>
+            <option value="items">Individual Items</option>
+          </select>
+        </div>
+
+        <!-- Package selection -->
+        <div id="bikePackageWrap">
+          <div class="field-group">
+            <label class="field-label">Choose package</label>
+            <div class="opt-row">
+              <button class="opt-btn is-active" id="bikePkgBasicBtn" data-sel="bikePackage" data-val="basic">Basic Tune-Up</button>
+              <button class="opt-btn" id="bikePkgStandardBtn" data-sel="bikePackage" data-val="standard">Standard Service</button>
+              <button class="opt-btn" id="bikePkgOverhaulBtn" data-sel="bikePackage" data-val="overhaul">Full Overhaul</button>
+            </div>
+            <select id="bikePackage" hidden aria-hidden="true">
+              <option value="basic" selected>Basic Tune-Up</option>
+              <option value="standard">Standard Service</option>
+              <option value="overhaul">Full Overhaul</option>
+            </select>
+            <div class="hint" id="bikePackageHint"></div>
+          </div>
+        </div>
+
+        <!-- Individual items -->
+        <div id="bikeItemsWrap" class="hidden" hidden>
+          <div class="field-group">
+            <label class="field-label">What needs doing?</label>
+            <div class="check-grid">
+              <label class="check-label"><input type="checkbox" name="bikeService" value="punctureRepair"> Puncture repair</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="safetyCheck"> Safety check</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="chainLube"> Chain clean &amp; lube</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="brakeAdjust"> Brake adjustment</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="gearAdjust"> Gear indexing</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="wheelTrue"> Wheel truing</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="brakePads"> Brake pad replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="brakeCable"> Brake cable replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="gearCable"> Gear cable replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="tubeReplace"> Inner tube replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="tyreReplace"> Tyre replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="chainReplace"> Chain replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="cassetteReplace"> Cassette / freewheel replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="barTape"> Bar tape / grips</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="pedalReplace"> Pedal replacement</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="bottomBracket"> Bottom bracket service</label>
+              <label class="check-label"><input type="checkbox" name="bikeService" value="headset"> Headset service</label>
+            </div>
+          </div>
+
+          <!-- Tyre / tube size — shown when tube or tyre is checked -->
+          <div id="bikeTyreSizeWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">Tyre &amp; tube size</label>
+              <div class="grid2">
+                <div>
+                  <div class="hint" style="margin-bottom:6px">Wheel diameter</div>
+                  <select id="bikeWheelSize">
+                    <option value="" selected disabled>Select&hellip;</option>
+                    <option value='12"'>12&Prime; (small kids)</option>
+                    <option value='16"'>16&Prime; (kids / folding)</option>
+                    <option value='20"'>20&Prime; (BMX / folding)</option>
+                    <option value='24"'>24&Prime; (kids / some MTB)</option>
+                    <option value='26"'>26&Prime; (MTB classic)</option>
+                    <option value='27.5"'>27.5&Prime; / 650B (MTB modern)</option>
+                    <option value='29"'>29&Prime; / 700c (MTB / road)</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="hint" style="margin-bottom:6px">Tyre width</div>
+                  <select id="bikeTyreWidth">
+                    <option value="" selected disabled>Select&hellip;</option>
+                    <optgroup label="Road / Hybrid (mm)">
+                      <option value="23c">23c</option>
+                      <option value="25c">25c</option>
+                      <option value="28c">28c</option>
+                      <option value="32c">32c</option>
+                      <option value="35c">35c</option>
+                      <option value="37c">37c</option>
+                      <option value="40c">40c</option>
+                    </optgroup>
+                    <optgroup label="MTB / Hybrid (inches)">
+                      <option value='1.75"'>1.75&Prime;</option>
+                      <option value='1.95"'>1.95&Prime;</option>
+                      <option value='2.1"'>2.1&Prime;</option>
+                      <option value='2.25"'>2.25&Prime;</option>
+                      <option value='2.4"'>2.4&Prime;</option>
+                      <option value='2.6"'>2.6&Prime;</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+              <div class="hint">Check the sidewall of your tyre &mdash; e.g. 700&times;25c or 26&times;2.1</div>
+            </div>
+          </div>
+
+          <!-- Tyre / tube quantity -->
+          <div id="bikeTyreQtyWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label" id="bikeTyreQtyLabel">Which tyres / tubes?</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeTyreQty" data-val="1">Front or rear (1)</button>
+                <button class="opt-btn" data-sel="bikeTyreQty" data-val="2">Both (2)</button>
+              </div>
+              <select id="bikeTyreQty" hidden aria-hidden="true">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Brake type — shown when brake pads, cable, or adjustment is checked -->
+          <div id="bikeBrakeTypeWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">Brake type</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeBrakeType" data-val="rim">Rim (V-brake / caliper)</button>
+                <button class="opt-btn" data-sel="bikeBrakeType" data-val="discCable">Cable disc</button>
+                <button class="opt-btn" data-sel="bikeBrakeType" data-val="hydraulic">Hydraulic disc</button>
+              </div>
+              <select id="bikeBrakeType" hidden aria-hidden="true">
+                <option value="rim" selected>Rim</option>
+                <option value="discCable">Cable disc</option>
+                <option value="hydraulic">Hydraulic disc</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Brake quantity -->
+          <div id="bikeBrakeQtyWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label" id="bikeBrakeQtyLabel">Which brakes?</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeBrakeQty" data-val="1">Front or rear (1)</button>
+                <button class="opt-btn" data-sel="bikeBrakeQty" data-val="2">Both (2)</button>
+              </div>
+              <select id="bikeBrakeQty" hidden aria-hidden="true">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Wheel truing quantity -->
+          <div id="bikeWheelQtyWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">How many wheels need truing?</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeWheelQty" data-val="1">One wheel</button>
+                <button class="opt-btn" data-sel="bikeWheelQty" data-val="2">Both wheels</button>
+              </div>
+              <select id="bikeWheelQty" hidden aria-hidden="true">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Speeds — shown when chain or cassette is checked -->
+          <div id="bikeSpeedsWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">Number of rear sprockets (speeds)</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeSpeeds" data-val="8">1&ndash;8</button>
+                <button class="opt-btn" data-sel="bikeSpeeds" data-val="10">9&ndash;10</button>
+                <button class="opt-btn" data-sel="bikeSpeeds" data-val="11">11</button>
+                <button class="opt-btn" data-sel="bikeSpeeds" data-val="12">12</button>
+              </div>
+              <select id="bikeSpeeds" hidden aria-hidden="true">
+                <option value="8" selected>1&ndash;8 speed</option>
+                <option value="10">9&ndash;10 speed</option>
+                <option value="11">11 speed</option>
+                <option value="12">12 speed</option>
+              </select>
+              <div class="hint">Count the sprockets on the rear wheel. Single speed / fixie = 1.</div>
+            </div>
+          </div>
+
+          <!-- Bar tape or grips — shown when barTape is checked -->
+          <div id="bikeBarTypeWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">Handlebar style</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikeBarType" data-val="tape">Drop bars &mdash; bar tape</button>
+                <button class="opt-btn" data-sel="bikeBarType" data-val="grips">Flat bars &mdash; grips</button>
+              </div>
+              <select id="bikeBarType" hidden aria-hidden="true">
+                <option value="tape" selected>Bar tape</option>
+                <option value="grips">Grips</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pedal type — shown when pedalReplace is checked -->
+          <div id="bikePedalTypeWrap" class="hidden" hidden>
+            <div class="field-group">
+              <label class="field-label">Pedal type</label>
+              <div class="opt-row">
+                <button class="opt-btn is-active" data-sel="bikePedalType" data-val="flat">Flat / platform</button>
+                <button class="opt-btn" data-sel="bikePedalType" data-val="clipless">Clipless</button>
+              </div>
+              <select id="bikePedalType" hidden aria-hidden="true">
+                <option value="flat" selected>Flat</option>
+                <option value="clipless">Clipless</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hint" id="bikeItemsHint">Parts sourced via next-day Amazon delivery &mdash; no need to hold stock.</div>
+        </div><!-- /bikeItemsWrap -->
+
+        <!-- Bike type — always shown -->
+        <div class="field-group">
+          <label class="field-label" for="bikeType">Bike type</label>
+          <select id="bikeType">
+            <option value="" selected disabled>Select&hellip;</option>
+            <option value="Road">Road</option>
+            <option value="MTB">Mountain (MTB)</option>
+            <option value="Hybrid / City">Hybrid / City</option>
+            <option value="Gravel / CX">Gravel / CX</option>
+            <option value="BMX">BMX</option>
+            <option value="Folding">Folding</option>
+            <option value="E-bike">E-bike</option>
+            <option value="Kids">Kids</option>
+          </select>
+        </div>
+
+        <!-- Customer supplying parts -->
+        <div class="field-group">
+          <label class="check-label" style="font-size:1rem;padding:6px 0">
+            <input type="checkbox" id="bikeCustomerParts">
+            I&rsquo;ll supply my own parts &mdash; labour only
+          </label>
+          <div class="hint">By default Ben sources parts via next-day Amazon delivery (cost + 15% handling). Tick this if you&rsquo;re bringing your own &mdash; only the parts cost is removed from the quote.</div>
+        </div>
+
+        <!-- Collection & return -->
+        <div class="field-group">
+          <label class="field-label">Getting the bike to Ben</label>
+          <div class="opt-row">
+            <button class="opt-btn is-active" data-sel="bikeDropoff" data-val="dropoff">&#128230;&nbsp; I&rsquo;ll drop it off myself</button>
+            <button class="opt-btn" data-sel="bikeDropoff" data-val="collection">&#128652;&nbsp; Collect &amp; return (fee applies)</button>
+          </div>
+          <select id="bikeDropoff" hidden aria-hidden="true">
+            <option value="dropoff" selected>Drop off</option>
+            <option value="collection">Collect &amp; return</option>
+          </select>
+        </div>
+
+        <div id="bikeCollectionWrap" class="hidden" hidden>
+          <div class="field-group">
+            <label class="field-label" for="bikeAddr">&#128205; Your address</label>
+            <input id="bikeAddr" type="text" placeholder="Postcode or full address&hellip;" autocomplete="street-address">
+            <div class="hint" id="bikeCollectionHint"></div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="field-group">
+          <label class="field-label" for="bikeNotes">Notes &amp; extra details</label>
+          <textarea id="bikeNotes" placeholder="e.g. specific symptoms, known issues, bike make &amp; model, preferred appointment time&hellip;"></textarea>
+        </div>
+
+      </div><!-- /bikeWrap -->
+
       <div id="businessWrap" class="hidden" hidden>
         <div class="field-group">
           <label class="field-label" for="businessLocation">Your location / area</label>
@@ -617,7 +891,8 @@ document.addEventListener('DOMContentLoaded', function() {
     tip:'Tip Run', fb:'Marketplace Pickup', move:'House Move',
     flatpack:'Flat Pack Build', ikea:'IKEA Run', student:'Student Move',
     shop:'Shop Run', hay:'Hay Bales', bags:'Black Bags',
-    garden:'Gardening - 2 man team available', business:'Business / Barter', other:'Something Else'
+    garden:'Gardening - 2 man team available', bike:'Bicycle Servicing',
+    business:'Business / Barter', other:'Something Else'
   };
 
   document.querySelectorAll('.tile').forEach(function(tile) {

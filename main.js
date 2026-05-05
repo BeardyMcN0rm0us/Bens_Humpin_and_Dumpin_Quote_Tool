@@ -35,8 +35,8 @@ window.BHD = Object.assign({
     5: { hours:10, luton: true  }
   },
 
-  minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"", hay:"", bags:"", garden:"" },
-  rangePct:{ tip:0.15, move:0.15, fb:0.15, shop:0.15, student:0.15, business:0.15, other:0.15, ikea:0.15, flatpack:0.15, hay:0.15, bags:0.00, garden:0.10 },
+  minByType:{ tip:"", move:"", fb:"", shop:"", student:"", business:"", other:"", ikea:"", flatpack:"", hay:"", bags:"", garden:"", bike:"" },
+  rangePct:{ tip:0.15, move:0.15, fb:0.15, shop:0.15, student:0.15, business:0.15, other:0.15, ikea:0.15, flatpack:0.15, hay:0.15, bags:0.00, garden:0.10, bike:0.10 },
 
   disposalMinPct:0.25,
   disposalVat:0.20,
@@ -82,6 +82,33 @@ window.BHD = Object.assign({
     twoValue:  0,
     twoLabel:  '',
   },
+
+  bikePricingMode: 'job',
+  bikeLabourPerHour: 22.50,
+  bikePackages: {
+    basic:    { label: 'Basic Tune-Up',    price: 30,  hours: 1.0 },
+    standard: { label: 'Standard Service', price: 55,  hours: 2.0 },
+    overhaul: { label: 'Full Overhaul',    price: 95,  hours: 3.5 },
+  },
+  bikeLabour: {
+    punctureRepair:12, brakeAdjust:6,  gearAdjust:12, chainLube:6,   safetyCheck:12,
+    tubeReplace:12,    tyreReplace:12, brakeCable:12, brakePads:6,   gearCable:12,
+    chainReplace:12,   cassetteReplace:22, wheelTrue:12, barTape:12, grips:6,
+    pedalReplace:6,    bottomBracket:22, headset:17,
+  },
+  bikeParts: {
+    innerTubeStandard:5, innerTubeSpecialist:7,
+    tyreBasicRoad:14, tyreBasicMtb:16, tyreMidRange:26,
+    brakePadsRim:8, brakePadsDiscCable:12, brakePadsHydraulic:14,
+    brakeCable:6, gearCable:6,
+    chain8spd:12, chain10spd:18, chain11spd:26, chain12spd:35,
+    cassette8spd:13, cassette10spd:22, cassette12spd:42,
+    barTape:11, grips:9, pedalsFlat:16, pedalsClipless:36, bottomBracket:22,
+  },
+  bikeCollectionMode:      'flat',
+  bikeCollectionFlatFee:    5,
+  bikeCollectionPerMile:    0.50,
+  bikeCollectionWaivedAbove:60,
 
   useTimePricing: true,
   ikeaLaborPerHour: 25,
@@ -140,7 +167,25 @@ window.BHD = Object.assign({
     gardenNeighbourHint:$('gardenNeighbourHint'),
     gardenOngoingDiscountNote:$('gardenOngoingDiscountNote'),
     gardenOngoingDiscountPct:$('gardenOngoingDiscountPct'),
-    gardenWeedKillingHint:$('gardenWeedKillingHint')
+    gardenWeedKillingHint:$('gardenWeedKillingHint'),
+    // Bike
+    bikeWrap:$('bikeWrap'),
+    bikeMode:$('bikeMode'), bikePackage:$('bikePackage'),
+    bikePkgBasicBtn:$('bikePkgBasicBtn'), bikePkgStandardBtn:$('bikePkgStandardBtn'), bikePkgOverhaulBtn:$('bikePkgOverhaulBtn'),
+    bikePackageHint:$('bikePackageHint'), bikePackageWrap:$('bikePackageWrap'), bikeItemsWrap:$('bikeItemsWrap'),
+    bikeTyreSizeWrap:$('bikeTyreSizeWrap'), bikeTyreQtyWrap:$('bikeTyreQtyWrap'),
+    bikeTyreQtyLabel:$('bikeTyreQtyLabel'), bikeTyreQty:$('bikeTyreQty'),
+    bikeWheelSize:$('bikeWheelSize'),
+    bikeBrakeTypeWrap:$('bikeBrakeTypeWrap'), bikeBrakeQtyWrap:$('bikeBrakeQtyWrap'),
+    bikeBrakeQtyLabel:$('bikeBrakeQtyLabel'), bikeBrakeType:$('bikeBrakeType'), bikeBrakeQty:$('bikeBrakeQty'),
+    bikeWheelQtyWrap:$('bikeWheelQtyWrap'), bikeWheelQty:$('bikeWheelQty'),
+    bikeSpeedsWrap:$('bikeSpeedsWrap'), bikeSpeeds:$('bikeSpeeds'),
+    bikeBarTypeWrap:$('bikeBarTypeWrap'), bikeBarType:$('bikeBarType'),
+    bikePedalTypeWrap:$('bikePedalTypeWrap'), bikePedalType:$('bikePedalType'),
+    bikeType:$('bikeType'), bikeCustomerParts:$('bikeCustomerParts'),
+    bikeDropoff:$('bikeDropoff'), bikeCollectionWrap:$('bikeCollectionWrap'),
+    bikeAddr:$('bikeAddr'), bikeCollectionHint:$('bikeCollectionHint'),
+    bikeNotes:$('bikeNotes'),
   };
 
   if(els.buildTag) els.buildTag.textContent='Build '+(CFG.version||'');
@@ -150,6 +195,17 @@ window.BHD = Object.assign({
   if(els.gardenTwoBtn)  els.gardenTwoBtn.innerHTML='2-Person — £'+(CFG.gardenTwoPerHour||25)+'/hr<span class="best-value-badge">Best Value</span>';
   if(els.gardenThreeBtn)  els.gardenThreeBtn.textContent='ON REQUEST: 3-Person - £'+(CFG.gardenThreePerHour||40)+'/hr';
   // gardenOngoingDiscountPct span is kept current by updateGardenUI()
+
+  // Set bike package button labels from config
+  (function(){
+    const pkgs=CFG.bikePackages||{};
+    const mode=CFG.bikePricingMode||'job';
+    const rate=Number(CFG.bikeLabourPerHour||22.50);
+    function pkgPrice(k){ const p=pkgs[k]||{}; return mode==='hourly'?'£'+(p.hours*rate).toFixed(0)+' ('+p.hours+'hr)':'£'+(p.price||0); }
+    if(els.bikePkgBasicBtn)    els.bikePkgBasicBtn.textContent    = 'Basic Tune-Up — '+pkgPrice('basic');
+    if(els.bikePkgStandardBtn) els.bikePkgStandardBtn.textContent = 'Standard Service — '+pkgPrice('standard');
+    if(els.bikePkgOverhaulBtn) els.bikePkgOverhaulBtn.textContent = 'Full Overhaul — '+pkgPrice('overhaul');
+  })();
 
   const bagsHintEl=$('bagsHint');
   if(bagsHintEl) bagsHintEl.textContent='£'+(CFG.bagPriceEach||4)+'/bag — all bags disposed at Waterbeach Waste Management Park. Fully licensed.';
@@ -270,6 +326,7 @@ window.BHD = Object.assign({
     const bagsWrap=$('bagsWrap'); if(bagsWrap) hide(bagsWrap);
     const businessWrap=$('businessWrap'); if(businessWrap) hide(businessWrap);
     const gardenWrap=$('gardenWrap'); if(gardenWrap) hide(gardenWrap);
+    const bikeWrap=$('bikeWrap'); if(bikeWrap) hide(bikeWrap);
   }
 
   function updateGardenUI(){
@@ -333,6 +390,241 @@ window.BHD = Object.assign({
     }
   }
 
+  function updateBikePackageHint(){
+    if(!els.bikePackageHint) return;
+    const pkg=(els.bikePackage&&els.bikePackage.value)||'basic';
+    const pkgCfg=(CFG.bikePackages||{})[pkg]||{label:'Basic Tune-Up',price:30,hours:1};
+    const mode=CFG.bikePricingMode||'job';
+    const rate=Number(CFG.bikeLabourPerHour||22.50);
+    let priceStr;
+    if(mode==='hourly'){
+      const p=Number(pkgCfg.hours||1)*rate;
+      priceStr=pkgCfg.hours+'hr @ £'+rate+'/hr = £'+p.toFixed(2);
+    }else{
+      priceStr='£'+Number(pkgCfg.price||0).toFixed(2);
+    }
+    const descs={
+      basic:'Safety check · brake &amp; gear adjustment · chain lube',
+      standard:'Tune-up + degrease · cables checked · wheels trued',
+      overhaul:'Full strip-down · all cables replaced · bearings re-greased',
+    };
+    els.bikePackageHint.innerHTML=priceStr+' &mdash; '+(descs[pkg]||'');
+  }
+
+  function updateBikeCollectionHint(){
+    if(!els.bikeCollectionHint) return;
+    const mode=CFG.bikeCollectionMode||'flat';
+    const waive=Number(CFG.bikeCollectionWaivedAbove||60);
+    if(mode==='flat'){
+      const fee=Number(CFG.bikeCollectionFlatFee||5);
+      els.bikeCollectionHint.textContent='£'+fee.toFixed(2)+' collect & return fee — waived on jobs over £'+waive;
+    }else{
+      els.bikeCollectionHint.textContent='£'+Number(CFG.bikeCollectionPerMile||0.50)+'/mile — calculated when you get your quote';
+    }
+  }
+
+  function updateBikeItemsUI(){
+    const checked=Array.from(document.querySelectorAll('input[name="bikeService"]:checked')).map(cb=>cb.value);
+    const needsTyre=checked.includes('tubeReplace')||checked.includes('tyreReplace');
+    const needsBrake=checked.includes('brakePads')||checked.includes('brakeCable')||checked.includes('brakeAdjust');
+    const needsSpeeds=checked.includes('chainReplace')||checked.includes('cassetteReplace');
+    const needsBar=checked.includes('barTape');
+    const needsPedal=checked.includes('pedalReplace');
+    const needsWheelQty=checked.includes('wheelTrue');
+
+    if(needsTyre){show(els.bikeTyreSizeWrap);show(els.bikeTyreQtyWrap);}else{hide(els.bikeTyreSizeWrap);hide(els.bikeTyreQtyWrap);}
+    if(needsBrake){show(els.bikeBrakeTypeWrap);show(els.bikeBrakeQtyWrap);}else{hide(els.bikeBrakeTypeWrap);hide(els.bikeBrakeQtyWrap);}
+    if(needsSpeeds){show(els.bikeSpeedsWrap);}else{hide(els.bikeSpeedsWrap);}
+    if(needsBar){show(els.bikeBarTypeWrap);}else{hide(els.bikeBarTypeWrap);}
+    if(needsPedal){show(els.bikePedalTypeWrap);}else{hide(els.bikePedalTypeWrap);}
+    if(needsWheelQty){show(els.bikeWheelQtyWrap);}else{hide(els.bikeWheelQtyWrap);}
+
+    if(els.bikeTyreQtyLabel){
+      const t=checked.includes('tyreReplace'), u=checked.includes('tubeReplace');
+      els.bikeTyreQtyLabel.textContent=t&&u?'Which tyres & tubes?':t?'Which tyres?':'Which tubes?';
+    }
+    if(els.bikeBrakeQtyLabel){
+      const multi=checked.filter(k=>['brakePads','brakeCable','brakeAdjust'].includes(k)).length>1;
+      els.bikeBrakeQtyLabel.textContent=multi?'Front, rear, or both?':checked.includes('brakePads')?'Which brake pads?':checked.includes('brakeCable')?'Which brake cables?':'Which brakes?';
+    }
+  }
+
+  function updateBikeUI(){
+    const mode=(els.bikeMode&&els.bikeMode.value)||'package';
+    if(mode==='package'){show(els.bikePackageWrap);hide(els.bikeItemsWrap);}
+    else{hide(els.bikePackageWrap);show(els.bikeItemsWrap);updateBikeItemsUI();}
+
+    const dropoff=(els.bikeDropoff&&els.bikeDropoff.value)||'dropoff';
+    if(dropoff==='collection'){show(els.bikeCollectionWrap);updateBikeCollectionHint();}
+    else{hide(els.bikeCollectionWrap);}
+
+    updateBikePackageHint();
+  }
+
+  function calcBikeQuote(milesObj){
+    const mode=(els.bikeMode&&els.bikeMode.value)||'package';
+    const customerParts=!!(els.bikeCustomerParts&&els.bikeCustomerParts.checked);
+    const dropoff=(els.bikeDropoff&&els.bikeDropoff.value)||'dropoff';
+    const BP=CFG.bikeParts||{};
+    const pricingMode=CFG.bikePricingMode||'job';
+    const hourlyRate=Number(CFG.bikeLabourPerHour||22.50);
+    const HOURS={punctureRepair:0.5,brakeAdjust:0.25,gearAdjust:0.5,chainLube:0.25,safetyCheck:0.5,tubeReplace:0.5,tyreReplace:0.5,brakeCable:0.5,brakePads:0.25,gearCable:0.5,chainReplace:0.5,cassetteReplace:1,wheelTrue:0.5,barTape:0.5,grips:0.25,pedalReplace:0.25,bottomBracket:1,headset:0.75};
+    function labourPrice(key){
+      if(pricingMode==='hourly') return (HOURS[key]||0.5)*hourlyRate;
+      return Number((CFG.bikeLabour||{})[key]||0);
+    }
+
+    const lines=[];
+    let labourTotal=0, partsTotal=0;
+
+    if(mode==='package'){
+      const pkg=(els.bikePackage&&els.bikePackage.value)||'basic';
+      const pkgCfg=(CFG.bikePackages||{})[pkg]||{label:'Basic Tune-Up',price:30,hours:1};
+      if(pricingMode==='hourly'){
+        labourTotal=Number(pkgCfg.hours||1)*hourlyRate;
+        lines.push(pkgCfg.label+': '+pkgCfg.hours+'hr @ £'+hourlyRate+'/hr = £'+labourTotal.toFixed(2));
+      }else{
+        labourTotal=Number(pkgCfg.price||0);
+        lines.push(pkgCfg.label+': £'+labourTotal.toFixed(2));
+      }
+      if(pkg==='overhaul'&&!customerParts){
+        const cablesCost=(Number(BP.brakeCable||6)*2)+(Number(BP.gearCable||6)*2);
+        partsTotal+=cablesCost;
+        lines.push('Cables (2× brake + 2× gear): £'+cablesCost.toFixed(2));
+      }
+    }else{
+      const checked=Array.from(document.querySelectorAll('input[name="bikeService"]:checked')).map(cb=>cb.value);
+      const brakeType=(els.bikeBrakeType&&els.bikeBrakeType.value)||'rim';
+      const brakeQty=parseInt((els.bikeBrakeQty&&els.bikeBrakeQty.value)||'1',10)||1;
+      const tyreQty=parseInt((els.bikeTyreQty&&els.bikeTyreQty.value)||'1',10)||1;
+      const wheelQty=parseInt((els.bikeWheelQty&&els.bikeWheelQty.value)||'1',10)||1;
+      const speeds=parseInt((els.bikeSpeeds&&els.bikeSpeeds.value)||'8',10)||8;
+      const barType=(els.bikeBarType&&els.bikeBarType.value)||'tape';
+      const pedalType=(els.bikePedalType&&els.bikePedalType.value)||'flat';
+      const wheelSize=(els.bikeWheelSize&&els.bikeWheelSize.value)||'';
+      const isMtbWheel=['26"','27.5"','29"'].includes(wheelSize);
+
+      if(checked.length===0){
+        lines.push('No services selected — tick the items needed above');
+      }
+      checked.forEach(key=>{
+        let labour=0, partsCost=0, partDesc='', itemLabel='';
+        switch(key){
+          case 'punctureRepair':  itemLabel='Puncture repair';       labour=labourPrice(key); break;
+          case 'safetyCheck':     itemLabel='Safety check';          labour=labourPrice(key); break;
+          case 'chainLube':       itemLabel='Chain clean & lube';    labour=labourPrice(key); break;
+          case 'gearAdjust':      itemLabel='Gear indexing';         labour=labourPrice(key); break;
+          case 'headset':         itemLabel='Headset service';       labour=labourPrice(key); break;
+          case 'brakeAdjust':
+            itemLabel='Brake adjustment ×'+brakeQty;
+            labour=labourPrice('brakeAdjust')*brakeQty;
+            break;
+          case 'brakePads':
+            itemLabel='Brake pads ×'+brakeQty+' set'+(brakeQty>1?'s':'');
+            labour=labourPrice('brakePads')*brakeQty;
+            if(!customerParts){
+              const p=brakeType==='hydraulic'?Number(BP.brakePadsHydraulic||14):brakeType==='discCable'?Number(BP.brakePadsDiscCable||12):Number(BP.brakePadsRim||8);
+              partsCost=p*brakeQty; partDesc=' + parts £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'brakeCable':
+            itemLabel='Brake cable ×'+brakeQty;
+            labour=labourPrice('brakeCable')*brakeQty;
+            if(!customerParts){partsCost=Number(BP.brakeCable||6)*brakeQty; partDesc=' + parts £'+partsCost.toFixed(2);}
+            break;
+          case 'gearCable':
+            itemLabel='Gear cable';
+            labour=labourPrice('gearCable');
+            if(!customerParts){partsCost=Number(BP.gearCable||6); partDesc=' + parts £'+partsCost.toFixed(2);}
+            break;
+          case 'tubeReplace':
+            itemLabel='Inner tube ×'+tyreQty;
+            labour=labourPrice('tubeReplace')*tyreQty;
+            if(!customerParts){
+              const p=(['27.5"','29"'].includes(wheelSize))?Number(BP.innerTubeSpecialist||7):Number(BP.innerTubeStandard||5);
+              partsCost=p*tyreQty; partDesc=' + parts £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'tyreReplace':
+            itemLabel='Tyre ×'+tyreQty;
+            labour=labourPrice('tyreReplace')*tyreQty;
+            if(!customerParts){
+              const p=isMtbWheel?Number(BP.tyreBasicMtb||16):Number(BP.tyreBasicRoad||14);
+              partsCost=p*tyreQty; partDesc=' + parts est. £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'chainReplace':
+            itemLabel='Chain replacement';
+            labour=labourPrice('chainReplace');
+            if(!customerParts){
+              const k=speeds>=12?'chain12spd':speeds>=11?'chain11spd':speeds>=9?'chain10spd':'chain8spd';
+              partsCost=Number(BP[k]||12); partDesc=' + parts £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'cassetteReplace':
+            itemLabel='Cassette / freewheel replacement';
+            labour=labourPrice('cassetteReplace');
+            if(!customerParts){
+              const k=speeds>=11?'cassette12spd':speeds>=9?'cassette10spd':'cassette8spd';
+              partsCost=Number(BP[k]||13); partDesc=' + parts £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'wheelTrue':
+            itemLabel='Wheel truing ×'+wheelQty;
+            labour=labourPrice('wheelTrue')*wheelQty;
+            break;
+          case 'barTape':
+            if(barType==='grips'){
+              itemLabel='Grip replacement'; labour=labourPrice('grips');
+              if(!customerParts){partsCost=Number(BP.grips||9); partDesc=' + parts £'+partsCost.toFixed(2);}
+            }else{
+              itemLabel='Bar tape rewrap'; labour=labourPrice('barTape');
+              if(!customerParts){partsCost=Number(BP.barTape||11); partDesc=' + parts £'+partsCost.toFixed(2);}
+            }
+            break;
+          case 'pedalReplace':
+            itemLabel='Pedal replacement';
+            labour=labourPrice('pedalReplace');
+            if(!customerParts){
+              partsCost=pedalType==='clipless'?Number(BP.pedalsClipless||36):Number(BP.pedalsFlat||16);
+              partDesc=' + parts £'+partsCost.toFixed(2);
+            }
+            break;
+          case 'bottomBracket':
+            itemLabel='Bottom bracket service';
+            labour=labourPrice('bottomBracket');
+            if(!customerParts){partsCost=Number(BP.bottomBracket||22); partDesc=' + parts £'+partsCost.toFixed(2);}
+            break;
+        }
+        labourTotal+=labour; partsTotal+=partsCost;
+        if(itemLabel) lines.push(itemLabel+': £'+labour.toFixed(2)+' labour'+partDesc);
+      });
+    }
+
+    if(customerParts&&partsTotal===0) lines.push('Parts: customer supplying own');
+
+    let collectionFee=0;
+    if(dropoff==='collection'){
+      const waive=Number(CFG.bikeCollectionWaivedAbove||60);
+      const jobSoFar=labourTotal+partsTotal;
+      if(jobSoFar>=waive){
+        lines.push('Collection & return: waived (job over £'+waive+')');
+      }else{
+        const collMode=CFG.bikeCollectionMode||'flat';
+        if(collMode==='mileage'&&milesObj&&milesObj.charged>0){
+          collectionFee=milesObj.charged*Number(CFG.bikeCollectionPerMile||0.50);
+          lines.push('Collection & return: '+milesObj.charged.toFixed(1)+' miles × £'+Number(CFG.bikeCollectionPerMile||0.50)+'/mile = £'+collectionFee.toFixed(2));
+        }else{
+          collectionFee=Number(CFG.bikeCollectionFlatFee||5);
+          lines.push('Collection & return: £'+collectionFee.toFixed(2));
+        }
+      }
+    }
+
+    const subtotal=labourTotal+partsTotal+collectionFee;
+    return{subtotal,labourTotal,partsTotal,collectionFee,lines};
+  }
+
   function setUI(){
     const v=els.jobType?els.jobType.value:'';
     if(lastJobType!=='ikea'&&v==='ikea'){clearAddresses();}
@@ -379,6 +671,10 @@ window.BHD = Object.assign({
       const gardenWrap=$('gardenWrap'); if(gardenWrap) show(gardenWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Garden and back.";
       updateGardenUI();
+    }else if(v==='bike'){
+      if(els.bikeWrap) show(els.bikeWrap);
+      if(els.routeHint) els.routeHint.textContent="Fill in the details below to get an instant estimate.";
+      updateBikeUI();
     }else{
       show(els.pickupField); show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
@@ -407,14 +703,15 @@ window.BHD = Object.assign({
     });
   }
 
-  let directions=null,autoPickup=null,autoDrop=null,tryCount=0;
+  let directions=null,autoPickup=null,autoDrop=null,autoBikeAddr=null,tryCount=0;
   function initMaps(){
     try{
       if(!window.google||!google.maps) return false;
       if(!directions) directions=new google.maps.DirectionsService();
       const opt={fields:["formatted_address","geometry"],componentRestrictions:{country:["gb"]},types:["geocode"]};
-      if(!autoPickup&&els.addrPickup) autoPickup=new google.maps.places.Autocomplete(els.addrPickup,opt);
-      if(!autoDrop&&els.addrDrop)     autoDrop=new google.maps.places.Autocomplete(els.addrDrop,opt);
+      if(!autoPickup&&els.addrPickup)   autoPickup=new google.maps.places.Autocomplete(els.addrPickup,opt);
+      if(!autoDrop&&els.addrDrop)       autoDrop=new google.maps.places.Autocomplete(els.addrDrop,opt);
+      if(!autoBikeAddr&&els.bikeAddr)   autoBikeAddr=new google.maps.places.Autocomplete(els.bikeAddr,opt);
       if(els.routeHint&&tryCount>0) els.routeHint.textContent="Maps ready — enter addresses.";
       return true;
     }catch(e){return false;}
@@ -478,6 +775,19 @@ window.BHD = Object.assign({
       cb({charged,loop:round1(loop.miles),noteCharged:charged>0?'Home to Destination (over 15mi)':'No mileage billed (under 15mi)',noteLoop:'Home to Destination and back'});
       return;
     }
+    if(jt==='bike'){
+      const dropoff=(els.bikeDropoff&&els.bikeDropoff.value)||'dropoff';
+      if(dropoff!=='collection'||(CFG.bikeCollectionMode||'flat')==='flat'){
+        cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return;
+      }
+      const bikeAddr=(els.bikeAddr&&els.bikeAddr.value||'').trim();
+      if(!bikeAddr){if(els.routeHint) els.routeHint.textContent="Enter your address for collection."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
+      const loop=await routeP({origin:home,destination:home,waypoints:[{location:bikeAddr,stopover:true}],travelMode:'DRIVING'});
+      const loopMiles=round1(loop.miles);
+      if(els.routeHint) els.routeHint.textContent="Collection: "+loopMiles+" miles return.";
+      cb({charged:loopMiles,loop:loopMiles,noteCharged:'Home to your address and back',noteLoop:'Home to your address and back'});
+      return;
+    }
     if(!pickup){if(els.routeHint) els.routeHint.textContent="Enter collection address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
     if(jt!=="tip"&&!drop){if(els.routeHint) els.routeHint.textContent="Enter delivery address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
     let charged=0,loop=0,noteC='',noteL='';
@@ -509,6 +819,13 @@ window.BHD = Object.assign({
 
   document.querySelectorAll('input[name="gardenTask"]').forEach(cb=>{
     cb.addEventListener('change', updateGardenUI);
+  });
+
+  ['bikeMode','bikePackage','bikeDropoff'].forEach(id=>{
+    const el=$(id); if(el) el.addEventListener('change', updateBikeUI);
+  });
+  document.querySelectorAll('input[name="bikeService"]').forEach(cb=>{
+    cb.addEventListener('change', updateBikeItemsUI);
   });
 
   const pctFor=jt=>(CFG.rangePct&&CFG.rangePct[jt]!=null)?Number(CFG.rangePct[jt]):0.15;
@@ -741,6 +1058,22 @@ window.BHD = Object.assign({
       return;
     }
 
+    if(jt==='bike'){
+      const q=calcBikeQuote(milesObj);
+      const pct=pctFor('bike');
+      const lo=round5(q.subtotal*(1-pct));
+      const hi=round5(q.subtotal*(1+pct));
+      if(els.breakdown){
+        els.breakdown.textContent='';
+        q.lines.forEach((l,i)=>{if(i>0)els.breakdown.appendChild(document.createElement('br'));els.breakdown.appendChild(document.createTextNode('• '+l));});
+      }
+      if(els.total){els.total.textContent='£'+lo+'–£'+hi; els.total.classList.add('show');}
+      if(els.quoteId) els.quoteId.textContent='Quote ID — '+quoteId();
+      if(els.btnWA){els.btnWA.removeAttribute('hidden');els.btnWA.classList.remove('hidden');}
+      if(window.goTo) window.goTo(3);
+      return;
+    }
+
     const chargedMiles=round1(milesObj&&milesObj.charged||0);
     const loopMiles=round1(milesObj&&milesObj.loop||0);
     const noteC=milesObj&&milesObj.noteCharged||'';
@@ -837,6 +1170,7 @@ window.BHD = Object.assign({
                :jt==="bags"?"Destination: Waterbeach Waste Management Park"
                :jt==="business"?"Location: "+($('businessLocation')&&$('businessLocation').value||"N/A")
                :jt==="garden"?"Garden address: "+((els.addrPickup&&els.addrPickup.value)||"N/A")
+               :jt==="bike"?((els.bikeDropoff&&els.bikeDropoff.value)==='collection'?"Collection from: "+((els.bikeAddr&&els.bikeAddr.value)||"N/A"):"Drop-off service — Ben's address to be confirmed")
                :"Delivery: "+((els.addrDrop&&els.addrDrop.value)||"N/A");
     let businessDetails='';
     if(jt==='business'){
@@ -865,13 +1199,35 @@ window.BHD = Object.assign({
         discountType!=='none'?'Discount: '+discountType:'',
       ].filter(Boolean).join('\n');
     }
+    let bikeDetails='';
+    if(jt==='bike'){
+      const bikeMode=(els.bikeMode&&els.bikeMode.value)||'package';
+      const bikePkg=(els.bikePackage&&els.bikePackage.value)||'basic';
+      const bikePkgLabel=((CFG.bikePackages||{})[bikePkg]||{label:'Basic Tune-Up'}).label;
+      const bikeTypeVal=(els.bikeType&&els.bikeType.value)||'Not specified';
+      const customerParts=!!(els.bikeCustomerParts&&els.bikeCustomerParts.checked);
+      const bikeDropoffVal=(els.bikeDropoff&&els.bikeDropoff.value)||'dropoff';
+      const bikeAddrVal=(els.bikeAddr&&els.bikeAddr.value)||'';
+      const bikeNotesVal=(els.bikeNotes&&els.bikeNotes.value)||'';
+      const checkedServices=Array.from(document.querySelectorAll('input[name="bikeService"]:checked')).map(cb=>cb.value);
+      const serviceLabels={punctureRepair:'Puncture repair',safetyCheck:'Safety check',chainLube:'Chain lube',brakeAdjust:'Brake adjustment',gearAdjust:'Gear indexing',brakePads:'Brake pads',brakeCable:'Brake cable',gearCable:'Gear cable',tubeReplace:'Inner tube',tyreReplace:'Tyre replacement',chainReplace:'Chain replacement',cassetteReplace:'Cassette replacement',wheelTrue:'Wheel truing',barTape:'Bar tape/grips',pedalReplace:'Pedal replacement',bottomBracket:'Bottom bracket',headset:'Headset'};
+      bikeDetails=[
+        'Bike type: '+bikeTypeVal,
+        bikeMode==='package'?'Package: '+bikePkgLabel:'Services: '+checkedServices.map(k=>serviceLabels[k]||k).join(', '),
+        customerParts?'Parts: I\'ll supply my own':'Parts: please source (Amazon next-day)',
+        bikeDropoffVal==='collection'?'Collection & return'+(bikeAddrVal?' from: '+bikeAddrVal:''):'Drop-off / I\'ll bring it to you',
+        bikeNotesVal?'Notes: '+bikeNotesVal:'',
+      ].filter(Boolean).join('\n');
+    }
+
     const msg=[
       "Hey Ben! I need something Humpin' & Dumpin'",
       "Quote ID: "+id,
       "Job Type: "+(jt||"N/A"),
       jt==='business'?businessDetails:'',
       jt==='garden'?gardenDetails:'',
-      (jt!=='hay'&&jt!=='flatpack'&&jt!=='business'&&jt!=='bags'&&jt!=='garden'?"Collection: "+((els.addrPickup&&els.addrPickup.value)||"N/A"):""),
+      jt==='bike'?bikeDetails:'',
+      (jt!=='hay'&&jt!=='flatpack'&&jt!=='business'&&jt!=='bags'&&jt!=='garden'&&jt!=='bike'?"Collection: "+((els.addrPickup&&els.addrPickup.value)||"N/A"):""),
       (jt!=='business'?dest:''),
       (lines.length?"\nBreakdown:\n- "+lines.join("\n- "):""),
       (els.total&&els.total.textContent||"")
