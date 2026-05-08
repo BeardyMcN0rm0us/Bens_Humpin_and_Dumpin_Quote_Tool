@@ -291,9 +291,23 @@
     return lines.join('\n');
   }
 
-  function renderQuoteImage(cb) {
+  function dataUrlToBlob(dataUrl) {
+    try {
+      var parts = dataUrl.split(',');
+      var meta = parts[0];
+      var b64 = parts[1];
+      var mime = (meta.match(/:(.*?);/) || [])[1] || 'image/png';
+      var bin = atob(b64);
+      var len = bin.length;
+      var arr = new Uint8Array(len);
+      for (var i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    } catch (e) { return null; }
+  }
+
+  function renderQuoteImageSync() {
     var totalEl = document.getElementById('total');
-    if (!totalEl) { cb(null); return; }
+    if (!totalEl) return null;
     var amount = totalEl.textContent.trim();
     var qid = (document.getElementById('quoteId') || {}).textContent || '';
 
@@ -348,7 +362,11 @@
     ctx.font = '900 28px Nunito, system-ui, sans-serif';
     ctx.fillText('WhatsApp Ben to book', W / 2, H - 160);
 
-    c.toBlob(function (blob) { cb(blob); }, 'image/png');
+    try {
+      return dataUrlToBlob(c.toDataURL('image/png'));
+    } catch (e) {
+      return null;
+    }
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -363,45 +381,49 @@
 
   function shareQuote() {
     var text = getQuoteText();
-    renderQuoteImage(function (blob) {
-      var file = blob ? new File([blob], 'humpin-dumpin-quote.png', { type: 'image/png' }) : null;
-      var data = { title: "Ben's Humpin' & Dumpin' Quote", text: text };
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        data.files = [file];
-      }
-      if (navigator.share) {
-        navigator.share(data).catch(function () {});
-      } else if (file) {
-        var url = URL.createObjectURL(file);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'humpin-dumpin-quote.png';
-        a.click();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(function () {
-          toast({ icon: '✓', body: 'Quote copied to clipboard', timeout: 2500 });
-        });
-      }
-    });
+    var blob = renderQuoteImageSync();
+    var file = blob ? new File([blob], 'humpin-dumpin-quote.png', { type: 'image/png' }) : null;
+
+    var data = { title: "Ben's Humpin' & Dumpin' Quote", text: text };
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      data.files = [file];
+    }
+
+    if (navigator.share) {
+      navigator.share(data).catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        downloadOrCopy(file, text);
+      });
+      return;
+    }
+    downloadOrCopy(file, text);
+  }
+
+  function downloadOrCopy(file, text) {
+    if (file) {
+      var url = URL.createObjectURL(file);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'humpin-dumpin-quote.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+      toast({ icon: '⬇', body: 'Quote image saved', sub: 'Send it to Ben on WhatsApp.', timeout: 3500 });
+      return;
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function () {
+        toast({ icon: '✓', body: 'Quote copied to clipboard', timeout: 2500 });
+      }).catch(function () {
+        toast({ icon: '⚠', body: 'Could not share', timeout: 2500 });
+      });
+    }
   }
 
   function wireShare() {
     var btn = document.getElementById('btnShare');
     if (btn) btn.addEventListener('click', shareQuote);
-    var copy = document.getElementById('btnCopyQuote');
-    if (copy) copy.addEventListener('click', function () {
-      var total = (document.getElementById('total') || {}).textContent || '';
-      var qid = (document.getElementById('quoteId') || {}).textContent || '';
-      var txt = (total + ' — ' + qid).trim();
-      var orig = copy.innerHTML;
-      var done = function () {
-        copy.textContent = '✓ Copied';
-        setTimeout(function () { copy.innerHTML = orig; }, 1500);
-      };
-      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(done);
-      else done();
-    });
   }
 
   /* ── Map preview (static OSM) ────────────────────────────────── */
