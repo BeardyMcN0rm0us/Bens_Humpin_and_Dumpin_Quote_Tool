@@ -7,7 +7,7 @@
 window.BHD = {
 
 // ── Mileage & surcharges ──────────────────────────────────────
-mileagePerMile:   0.50,   // £ per charged mile
+mileagePerMile:   0.45,   // £ per charged mile
 twoManSurcharge:  20,     // £ added if two-person team requested
 stairsPerFloor:   5,      // £ per floor at pickup + drop-off
 gardenMileagePerMile:   0.00,   // £ per charged mile for gardening work
