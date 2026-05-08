@@ -276,6 +276,10 @@
   });
 
   /* ── Share quote ─────────────────────────────────────────────── */
+  var shareLogo = new Image();
+  shareLogo.crossOrigin = 'anonymous';
+  shareLogo.src = 'icon-512.png';
+
   function getQuoteText() {
     var totalEl = document.getElementById('total');
     var bdEl = document.getElementById('breakdown');
@@ -334,13 +338,20 @@
     roundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, cardR);
     ctx.stroke();
 
+    if (shareLogo && shareLogo.complete && shareLogo.naturalWidth > 0) {
+      var logoSize = 160;
+      try {
+        ctx.drawImage(shareLogo, (W - logoSize) / 2, 110, logoSize, logoSize);
+      } catch (e) {}
+    }
+
     ctx.fillStyle = '#b6b9c2';
     ctx.font = '900 32px Nunito, system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText("BEN'S HUMPIN' & DUMPIN'", W / 2, 220);
+    ctx.fillText("BEN'S HUMPIN' & DUMPIN'", W / 2, 320);
     ctx.fillStyle = '#7c8090';
     ctx.font = '700 22px Nunito, system-ui, sans-serif';
-    ctx.fillText('YOUR ESTIMATE', W / 2, 270);
+    ctx.fillText('YOUR ESTIMATE', W / 2, 360);
 
     var grad = ctx.createLinearGradient(W * 0.2, H * 0.4, W * 0.8, H * 0.6);
     grad.addColorStop(0, '#ffb26b');
