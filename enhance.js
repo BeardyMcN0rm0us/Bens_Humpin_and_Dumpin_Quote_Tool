@@ -368,8 +368,18 @@
 
     if (shareLogo && shareLogo.complete && shareLogo.naturalWidth > 0) {
       var logoSize = 140;
+      var logoCx = W / 2;
+      var logoCy = 100 + logoSize / 2;
+      var halo = ctx.createRadialGradient(logoCx, logoCy, 10, logoCx, logoCy, logoSize);
+      halo.addColorStop(0, 'rgba(11,12,16,0.95)');
+      halo.addColorStop(0.6, 'rgba(11,12,16,0.7)');
+      halo.addColorStop(1, 'rgba(11,12,16,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(logoCx, logoCy, logoSize, 0, Math.PI * 2);
+      ctx.fill();
       try {
-        ctx.drawImage(shareLogo, (W - logoSize) / 2, 100, logoSize, logoSize);
+        ctx.drawImage(shareLogo, logoCx - logoSize / 2, 100, logoSize, logoSize);
       } catch (e) {}
     }
 
