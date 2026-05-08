@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=r426">
+<link rel="stylesheet" href="style.css?v=r427">
 </head>
 <body>
 
@@ -21,7 +21,7 @@
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">Instant Estimate</div>
     </div>
-    <div class="build-tag" id="buildTag">r426</div>
+    <div class="build-tag" id="buildTag">r427</div>
   </div>
   <div class="progress-bar">
     <div class="prog-step" id="pStep1"><div class="prog-dot">1</div><div class="prog-label">Job</div></div>
@@ -779,6 +779,13 @@
       <button id="btnWhatsApp" class="btn btn-whatsapp hidden" hidden type="button">&#128172;&nbsp;&nbsp;Send to Ben on WhatsApp</button>
       <p class="quote-note">WhatsApp opens with your full quote prefilled.<br>Ben will confirm the final price.</p>
     </div>
+    <div class="quote-actions">
+      <button id="btnShare" class="btn btn-ghost" type="button">&#128228;&nbsp; Share quote</button>
+      <button id="btnCopyQuote" class="btn btn-ghost" type="button">&#128203;&nbsp; Copy total</button>
+    </div>
+    <div class="kbd-hint" aria-hidden="true">
+      Press <kbd>1</kbd>&ndash;<kbd>8</kbd> to pick a job &middot; <kbd>Enter</kbd> to calculate &middot; <kbd>Esc</kbd> to go back
+    </div>
     <div class="start-over">
       <button class="btn btn-ghost" id="btnStartOver" type="button">Start a new quote</button>
     </div>
@@ -850,8 +857,9 @@
 </div>
 
 <script src="shop-items.js"></script>
-<script src="config.js?v=r426"></script>
-<script src="main.js?v=r426" defer></script>
+<script src="config.js?v=r427"></script>
+<script src="main.js?v=r427" defer></script>
+<script src="enhance.js?v=r427" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
