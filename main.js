@@ -182,7 +182,7 @@ window.BHD = Object.assign({
     bikeSpeedsWrap:$('bikeSpeedsWrap'), bikeSpeeds:$('bikeSpeeds'),
     bikeBarTypeWrap:$('bikeBarTypeWrap'), bikeBarType:$('bikeBarType'),
     bikePedalTypeWrap:$('bikePedalTypeWrap'), bikePedalType:$('bikePedalType'),
-    bikeType:$('bikeType'), bikeCustomerParts:$('bikeCustomerParts'),
+    bikeType:$('bikeType'), bikeCustomerParts:$('bikeCustomerParts'), bikeCustomerPartsWrap:$('bikeCustomerPartsWrap'),
     bikeDropoff:$('bikeDropoff'), bikeCollectionWrap:$('bikeCollectionWrap'),
     bikeAddr:$('bikeAddr'), bikeCollectionHint:$('bikeCollectionHint'),
     bikeNotes:$('bikeNotes'),
@@ -451,8 +451,8 @@ window.BHD = Object.assign({
 
   function updateBikeUI(){
     const mode=(els.bikeMode&&els.bikeMode.value)||'package';
-    if(mode==='package'){show(els.bikePackageWrap);hide(els.bikeItemsWrap);}
-    else{hide(els.bikePackageWrap);show(els.bikeItemsWrap);updateBikeItemsUI();}
+    if(mode==='package'){show(els.bikePackageWrap);hide(els.bikeItemsWrap);hide(els.bikeCustomerPartsWrap);if(els.bikeCustomerParts)els.bikeCustomerParts.checked=false;}
+    else{hide(els.bikePackageWrap);show(els.bikeItemsWrap);show(els.bikeCustomerPartsWrap);updateBikeItemsUI();}
 
     const dropoff=(els.bikeDropoff&&els.bikeDropoff.value)||'dropoff';
     if(dropoff==='collection'){show(els.bikeCollectionWrap);updateBikeCollectionHint();}
