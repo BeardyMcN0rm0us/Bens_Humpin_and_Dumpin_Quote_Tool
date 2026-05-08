@@ -309,13 +309,41 @@
     } catch (e) { return null; }
   }
 
+  function getBreakdownLines() {
+    var bdEl = document.getElementById('breakdown');
+    if (!bdEl) return [];
+    var raw = (bdEl.innerText || bdEl.textContent || '').trim();
+    if (!raw) return [];
+    return raw.split(/\n+/).map(function (l) {
+      return l.replace(/^\s*•\s*/, '').trim();
+    }).filter(Boolean);
+  }
+
+  function wrapText(ctx, text, maxWidth) {
+    var words = text.split(/\s+/);
+    var lines = [];
+    var line = '';
+    for (var i = 0; i < words.length; i++) {
+      var test = line ? line + ' ' + words[i] : words[i];
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = words[i];
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
   function renderQuoteImageSync() {
     var totalEl = document.getElementById('total');
     if (!totalEl) return null;
     var amount = totalEl.textContent.trim();
-    var qid = (document.getElementById('quoteId') || {}).textContent || '';
+    var qid = ((document.getElementById('quoteId') || {}).textContent || '').trim();
+    var bdLines = getBreakdownLines();
 
-    var W = 1080, H = 1080;
+    var W = 1080, H = 1350;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var ctx = c.getContext('2d');
@@ -326,7 +354,7 @@
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    var glow = ctx.createRadialGradient(W * 0.2, H * 0.15, 50, W * 0.2, H * 0.15, 700);
+    var glow = ctx.createRadialGradient(W * 0.2, H * 0.12, 50, W * 0.2, H * 0.12, 800);
     glow.addColorStop(0, 'rgba(255,122,89,0.35)');
     glow.addColorStop(1, 'rgba(255,122,89,0)');
     ctx.fillStyle = glow;
@@ -339,39 +367,80 @@
     ctx.stroke();
 
     if (shareLogo && shareLogo.complete && shareLogo.naturalWidth > 0) {
-      var logoSize = 160;
+      var logoSize = 140;
       try {
-        ctx.drawImage(shareLogo, (W - logoSize) / 2, 110, logoSize, logoSize);
+        ctx.drawImage(shareLogo, (W - logoSize) / 2, 100, logoSize, logoSize);
       } catch (e) {}
     }
 
+    ctx.textAlign = 'center';
     ctx.fillStyle = '#b6b9c2';
     ctx.font = '900 32px Nunito, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("BEN'S HUMPIN' & DUMPIN'", W / 2, 320);
+    ctx.fillText("BEN'S HUMPIN' & DUMPIN'", W / 2, 290);
     ctx.fillStyle = '#7c8090';
     ctx.font = '700 22px Nunito, system-ui, sans-serif';
-    ctx.fillText('YOUR ESTIMATE', W / 2, 360);
+    ctx.fillText('YOUR ESTIMATE', W / 2, 330);
 
-    var grad = ctx.createLinearGradient(W * 0.2, H * 0.4, W * 0.8, H * 0.6);
+    var grad = ctx.createLinearGradient(W * 0.2, 400, W * 0.8, 560);
     grad.addColorStop(0, '#ffb26b');
     grad.addColorStop(0.6, '#ff7a59');
     grad.addColorStop(1, '#f15a4a');
     ctx.fillStyle = grad;
-    ctx.font = "900 220px 'Bebas Neue', Impact, sans-serif";
-    ctx.textAlign = 'center';
-    ctx.fillText(amount, W / 2, H / 2 + 60);
+    ctx.font = "900 200px 'Bebas Neue', Impact, sans-serif";
+    ctx.fillText(amount, W / 2, 540);
+
+    if (qid) {
+      ctx.fillStyle = '#7c8090';
+      ctx.font = '700 22px Nunito, system-ui, sans-serif';
+      ctx.fillText(qid, W / 2, 590);
+    }
+
+    var divY = 630;
+    ctx.strokeStyle = 'rgba(255,178,107,0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.2, divY);
+    ctx.lineTo(W * 0.8, divY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#7c8090';
+    ctx.font = '700 22px Nunito, system-ui, sans-serif';
+    ctx.fillText('QUOTE DETAILS', W / 2, 680);
+
+    if (bdLines.length) {
+      ctx.textAlign = 'left';
+      var maxLines = 14;
+      var fontSize = 26;
+      if (bdLines.length > 8) fontSize = 24;
+      if (bdLines.length > 11) fontSize = 22;
+      var lineH = Math.round(fontSize * 1.45);
+      ctx.font = '700 ' + fontSize + 'px Nunito, system-ui, sans-serif';
+      var bulletX = pad + 60;
+      var textX = bulletX + 24;
+      var maxTextW = W - pad - 60 - textX;
+      var y = 730;
+      var rendered = 0;
+      for (var i = 0; i < bdLines.length && rendered < maxLines; i++) {
+        var wrapped = wrapText(ctx, bdLines[i], maxTextW);
+        ctx.fillStyle = '#ffb26b';
+        ctx.fillText('•', bulletX, y);
+        ctx.fillStyle = '#d6d8df';
+        for (var j = 0; j < wrapped.length && rendered < maxLines; j++) {
+          ctx.fillText(wrapped[j], textX, y);
+          y += lineH;
+          rendered++;
+        }
+      }
+      ctx.textAlign = 'center';
+    }
 
     ctx.fillStyle = '#b6b9c2';
     ctx.font = '700 26px Nunito, system-ui, sans-serif';
-    ctx.fillText('Final price confirmed by Ben', W / 2, H - 280);
-    ctx.fillStyle = '#7c8090';
-    ctx.font = '700 22px Nunito, system-ui, sans-serif';
-    ctx.fillText(qid, W / 2, H - 230);
+    ctx.fillText('Final price confirmed by Ben', W / 2, H - 170);
 
     ctx.fillStyle = '#ffb26b';
     ctx.font = '900 28px Nunito, system-ui, sans-serif';
-    ctx.fillText('WhatsApp Ben to book', W / 2, H - 160);
+    ctx.fillText('WhatsApp Ben to book', W / 2, H - 120);
 
     try {
       return dataUrlToBlob(c.toDataURL('image/png'));
