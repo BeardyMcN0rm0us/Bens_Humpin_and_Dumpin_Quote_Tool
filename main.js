@@ -808,7 +808,7 @@ window.BHD = Object.assign({
       const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:'DRIVING'});
       loop=lp.miles; noteL='Home to Pickup to Delivery and back';
     }
-    if(els.routeHint) els.routeHint.textContent="Charged route: "+round1(charged)+" mi — "+noteC+".";
+    if(els.routeHint) els.routeHint.textContent=(jt==='tip')?"Charged route: "+round1(charged)+" mi — "+noteC+".":"Charged: "+round1(loop)+" mi (full return journey) — "+noteL+".";
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
@@ -1080,7 +1080,7 @@ window.BHD = Object.assign({
     const noteL=milesObj&&milesObj.noteLoop||'';
     const base=baseFeeFor(jt);
     const vanLoads=(window._wasteAnalysis&&window._wasteAnalysis.van&&window._wasteAnalysis.van.loadsNeeded>1)?window._wasteAnalysis.van.loadsNeeded:1;
-    const effectiveMiles=(jt==='tip')?chargedMiles*vanLoads:chargedMiles;
+    const effectiveMiles=(jt==='tip')?chargedMiles*vanLoads:loopMiles;
     const mileageCost=effectiveMiles*Number(CFG.mileagePerMile||0);
     let twoMan=0;
     if(jt!=="tip"&&jt!=="shop"&&jt!=="business"&&jt!=="other"&&jt!=="flatpack"&&jt!=="hay"&&jt!=="bags"&&jt!=="garden"){
@@ -1124,9 +1124,13 @@ window.BHD = Object.assign({
     const lines=[];
     if(jt==='bags'){
       bags.lines.forEach(l=>lines.push(l));
-    }else{
+    }else if(jt==='tip'){
       lines.push("Total journey: "+loopMiles.toFixed(1)+" miles ("+noteL+")");
       lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile ("+noteC+")");
+      lines.push("Base fee: £"+base.toFixed(2));
+      lines.push("Mileage: £"+mileageCost.toFixed(2));
+    }else{
+      lines.push("Charged: "+loopMiles.toFixed(1)+" miles ("+noteL+") @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile");
       lines.push("Base fee: £"+base.toFixed(2));
       lines.push("Mileage: £"+mileageCost.toFixed(2));
     }
