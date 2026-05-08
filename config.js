@@ -27,16 +27,16 @@ flatpack:         0,   // flat pack build only
 // ── Quote range (±% either side of calculated total) ─────────
 // e.g. 0.15 = quote shown as £85–£115 on a £100 job
 rangePct:{ 
-    tip:0.15, 
-    move:0.15, 
+    tip:0.05, 
+    move:0.05, 
     fb:0.05, 
     shop:0.15, 
     student:0.15, 
-    business:0.15, 
-    other:0.15, 
-    ikea:0.15, 
-    flatpack:0.15, 
-    hay:0.05, 
+    business:0.05, 
+    other:0.00, 
+    ikea:0.05, 
+    flatpack:0.05, 
+    hay:0.00, 
     bags:0.00 },
 
 // ── Minimum charges per job type (leave blank or 0 to disable) ─
