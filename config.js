@@ -7,7 +7,7 @@
 window.BHD = {
 
 // ── Mileage & surcharges ──────────────────────────────────────
-mileagePerMile:   0.45,   // £ per charged mile
+mileagePerMile:   0.50,   // £ per charged mile
 twoManSurcharge:  20,     // £ added if two-person team requested
 stairsPerFloor:   5,      // £ per floor at pickup + drop-off
 gardenMileagePerMile:   0.00,   // £ per charged mile for gardening work
@@ -29,14 +29,14 @@ flatpack:         0,   // flat pack build only
 rangePct:{ 
     tip:0.15, 
     move:0.15, 
-    fb:0.15, 
+    fb:0.05, 
     shop:0.15, 
     student:0.15, 
     business:0.15, 
     other:0.15, 
     ikea:0.15, 
     flatpack:0.15, 
-    hay:0.15, 
+    hay:0.05, 
     bags:0.00 },
 
 // ── Minimum charges per job type (leave blank or 0 to disable) ─
@@ -119,7 +119,7 @@ gardenOngoingDiscountPct: {
 // ── Bicycle Servicing ─────────────────────────────────────────
 // Pricing mode: 'job' = fixed price per job/package | 'hourly' = hours × bikeLabourPerHour
 bikePricingMode: 'job',
-bikeLabourPerHour: 22.50,   // £/hr — used when bikePricingMode is 'hourly'
+bikeLabourPerHour: 25.00,   // £/hr — used when bikePricingMode is 'hourly'
 
 // Service packages — price (job mode) & hours (hourly mode)
 // Service packages — price (job mode) & hours (hourly mode)
