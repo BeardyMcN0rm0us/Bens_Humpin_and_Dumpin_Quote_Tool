@@ -942,6 +942,10 @@ window.BHD = Object.assign({
     const baseAmount = rate * hours;
 
     const lines=[];
+    const selectedGardenTasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
+    if(selectedGardenTasks.length){
+      lines.push('Tasks: '+selectedGardenTasks.join(', '));
+    }
     lines.push('Labour: £'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+baseAmount.toFixed(2));
 
     // Weed killing surcharge — added when task is selected, priced by garden size
@@ -1195,7 +1199,9 @@ window.BHD = Object.assign({
       const frequency=(els.gardenFrequency&&els.gardenFrequency.value)||'';
       const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
       const gardenSize=(els.gardenSize&&els.gardenSize.value)||'';
+      const tasks=Array.from(document.querySelectorAll('input[name="gardenTask"]:checked')).map(cb=>cb.value);
       gardenDetails=[
+        tasks.length?"Tasks: "+tasks.join(', '):'Tasks: (none selected)',
         hrs?"Estimated hours: "+hrs:'',
         gardenSize?"Garden size: "+gardenSize.charAt(0).toUpperCase()+gardenSize.slice(1):'',
         "Team: "+(team==='three'?'Ben + 2 helpers':team==='two'?'Ben + helper':'Just Ben'),
