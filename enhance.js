@@ -380,22 +380,48 @@
   }
 
   function shareQuote() {
-    var text = getQuoteText();
-    var blob = renderQuoteImageSync();
-    var file = blob ? new File([blob], 'humpin-dumpin-quote.png', { type: 'image/png' }) : null;
+    var btn = document.getElementById('btnShare');
+    var orig = btn ? btn.innerHTML : null;
+    if (btn) { btn.innerHTML = '⏳ Preparing…'; btn.disabled = true; }
+    var restore = function () {
+      if (btn && orig != null) { btn.innerHTML = orig; btn.disabled = false; }
+    };
 
-    var data = { title: "Ben's Humpin' & Dumpin' Quote", text: text };
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      data.files = [file];
+    var text, blob, file, data;
+    try {
+      text = getQuoteText();
+      blob = renderQuoteImageSync();
+      file = blob ? new File([blob], 'humpin-dumpin-quote.png', { type: 'image/png' }) : null;
+      data = { title: "Ben's Humpin' & Dumpin' Quote", text: text };
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        data.files = [file];
+      }
+    } catch (e) {
+      restore();
+      toast({ icon: '⚠', body: 'Could not build share image', sub: String(e.message || e), timeout: 4000 });
+      return;
     }
 
     if (navigator.share) {
-      navigator.share(data).catch(function (err) {
-        if (err && err.name === 'AbortError') return;
+      try {
+        var p = navigator.share(data);
+        if (p && p.then) {
+          p.then(restore).catch(function (err) {
+            restore();
+            if (err && err.name === 'AbortError') return;
+            downloadOrCopy(file, text);
+          });
+        } else {
+          restore();
+        }
+        return;
+      } catch (e) {
+        restore();
         downloadOrCopy(file, text);
-      });
-      return;
+        return;
+      }
     }
+    restore();
     downloadOrCopy(file, text);
   }
 
