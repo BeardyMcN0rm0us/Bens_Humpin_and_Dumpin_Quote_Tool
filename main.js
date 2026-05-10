@@ -419,7 +419,9 @@ window.BHD = Object.assign({
 
     if(els.gardenNeighbourHint){
       const flat = Number(CFG.gardenNeighbourDiscountSolo||5);
-      els.gardenNeighbourHint.textContent = '£'+flat+' off your booking when a neighbour also books — flat rate, not per address. Each property gets £'+flat+' off their own quote. Requires at least 2 hours booked. Neighbours must be on the same street or an adjacent street. Cannot be combined with other discounts — the bigger one applies.';
+      const stackPct = Number(CFG.gardenNeighbourStackPct!=null?CFG.gardenNeighbourStackPct:50);
+      const stacked = Math.round(flat*(stackPct/100)*100)/100;
+      els.gardenNeighbourHint.textContent = '£'+flat+' off your booking when a neighbour also books — flat rate, not per address. Each property gets £'+flat+' off their own quote. Requires at least 2 hours booked. Neighbours must be on the same street or an adjacent street. On weekly bookings: stacks at '+stackPct+'% (£'+stacked.toFixed(2)+' on top of weekly loyalty); on other frequencies, only the bigger discount applies.';
     }
 
     if(els.gardenDiscountWarning){
@@ -1078,10 +1080,18 @@ window.BHD = Object.assign({
       ongoingDiscountAmount = baseAmount * (ongoingPct/100);
     }
 
+    const stackNeighbourPct = Number(CFG.gardenNeighbourStackPct!=null?CFG.gardenNeighbourStackPct:50);
+    const stackNeighbourWithWeekly = neighbourActive && schedule==='ongoing' && frequency==='weekly';
+
     let appliedDiscount=0;
     let appliedLabel='';
     let stackNote='';
-    if(discountAmount>0 && ongoingDiscountAmount>0){
+    if(stackNeighbourWithWeekly && ongoingDiscountAmount>0){
+      const stackedNeighbour = Math.round(neighbourFlat * (stackNeighbourPct/100) * 100)/100;
+      appliedDiscount = ongoingDiscountAmount + stackedNeighbour;
+      lines.push('Weekly loyalty discount ('+ongoingPct+'% off): −£'+ongoingDiscountAmount.toFixed(2));
+      lines.push('Neighbour discount ('+stackNeighbourPct+'% — stacked with weekly): −£'+stackedNeighbour.toFixed(2));
+    } else if(discountAmount>0 && ongoingDiscountAmount>0){
       if(discountAmount >= ongoingDiscountAmount){
         appliedDiscount=discountAmount;
         appliedLabel=discountLabel;
