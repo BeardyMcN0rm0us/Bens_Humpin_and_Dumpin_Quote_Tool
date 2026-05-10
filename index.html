@@ -266,6 +266,53 @@
         <option value="monthly">Monthly</option>
       </select>
     </div>
+
+    <div id="gardenWeekOfMonthWrap" class="field-group hidden" hidden>
+      <label class="field-label" for="gardenWeekOfMonth">Which week of the month?</label>
+      <select id="gardenWeekOfMonth">
+        <option value="1">1st</option>
+        <option value="2">2nd</option>
+        <option value="3">3rd</option>
+        <option value="4">4th</option>
+        <option value="last">Last</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="gardenDayOfWeek">Preferred day</label>
+      <select id="gardenDayOfWeek">
+        <option value="Mon">Monday</option>
+        <option value="Tue">Tuesday</option>
+        <option value="Wed">Wednesday</option>
+        <option value="Thu">Thursday</option>
+        <option value="Fri">Friday</option>
+        <option value="Sat">Saturday</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">AM or PM?</label>
+      <div class="opt-row">
+        <button type="button" class="opt-btn is-active" data-sel="gardenTimeOfDay" data-val="AM">AM</button>
+        <button type="button" class="opt-btn" data-sel="gardenTimeOfDay" data-val="PM">PM</button>
+      </div>
+      <select id="gardenTimeOfDay" hidden aria-hidden="true">
+        <option value="AM" selected>AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+
+    <div id="gardenStartingWeekWrap" class="field-group hidden" hidden>
+      <label class="field-label">Starting week</label>
+      <div class="opt-row">
+        <button type="button" class="opt-btn is-active" data-sel="gardenStartingWeek" data-val="this">This week</button>
+        <button type="button" class="opt-btn" data-sel="gardenStartingWeek" data-val="next">Next week</button>
+      </div>
+      <select id="gardenStartingWeek" hidden aria-hidden="true">
+        <option value="this" selected>This week</option>
+        <option value="next">Next week</option>
+      </select>
+    </div>
   </div>
 
   <div class="field-group">
