@@ -1128,15 +1128,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       var feeHtml = '';
-      if(a.estimatedDisposalFee!=null){
-        var rangeBits = [];
-        if(a.estimatedDisposalFeeMin!=null) rangeBits.push('&pound;'+a.estimatedDisposalFeeMin);
-        if(a.estimatedDisposalFeeMax!=null) rangeBits.push('&pound;'+a.estimatedDisposalFeeMax);
-        var range = rangeBits.length===2 ? ' (range '+rangeBits.join('&ndash;')+')' : '';
-        var rateLabel = a.pricingCategoryLabel ? esc(a.pricingCategoryLabel) : '';
-        var rateNum = (a.pricingRate!=null) ? ' @ &pound;'+Number(a.pricingRate).toFixed(2)+'/t' : '';
-        feeHtml = '<div class="analysis-fee" style="padding:2px 0">Estimated disposal: <strong>&pound;'+a.estimatedDisposalFee+'</strong>'+range+'<br><small style="opacity:0.8">'+rateLabel+rateNum+' inc VAT</small></div>';
-      }
 
       var notesHtml = '';
       if(a.notes) notesHtml += '<div class="analysis-notes" style="padding:4px 0;opacity:0.85"><em>'+esc(a.notes)+'</em></div>';
