@@ -919,7 +919,21 @@
   }
 
   /* ── init ────────────────────────────────────────────────────── */
+  function isEnabled() {
+    var f = (window.BHD && window.BHD.features) || {};
+    return f.quotesBookings !== false;
+  }
+
+  function hideFeatureUI() {
+    ['btnSaveQuote', 'btnBookNow'].forEach(function (id) {
+      var el = $(id); if (el) { el.setAttribute('hidden', ''); el.classList.add('hidden'); }
+    });
+    var row = document.querySelector('.my-stuff-row');
+    if (row) { row.setAttribute('hidden', ''); row.classList.add('hidden'); }
+  }
+
   function init() {
+    if (!isEnabled()) { hideFeatureUI(); return; }
     wireModalClose();
     wireButtons();
     refreshCounts();
