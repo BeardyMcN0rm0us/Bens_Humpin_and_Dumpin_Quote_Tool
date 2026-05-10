@@ -1065,7 +1065,8 @@ window.BHD = Object.assign({
     if(jt==='garden'){
       const chargedMiles=round1(milesObj&&milesObj.charged||0);
       const loopMiles=round1(milesObj&&milesObj.loop||0);
-      const mileageCost=chargedMiles*Number(CFG.mileagePerMile||0);
+      const gardenMileRate=Number(CFG.gardenMileagePerMile!=null?CFG.gardenMileagePerMile:(CFG.mileagePerMile||0));
+      const mileageCost=chargedMiles*gardenMileRate;
       const q=calcGardenQuote();
       const total=q.subtotal+mileageCost;
       const pct=pctFor(jt);
@@ -1073,7 +1074,7 @@ window.BHD = Object.assign({
       const high=round5(total*(1+pct));
       const lines=[];
       if(loopMiles>0){
-        lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+Number(CFG.gardenMileagePerMile).toFixed(2)+"/mile = £0.00");
+        lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+gardenMileRate.toFixed(2)+"/mile = £"+mileageCost.toFixed(2));
       }
       q.lines.forEach(l=>lines.push(l));
       if(els.breakdown){
