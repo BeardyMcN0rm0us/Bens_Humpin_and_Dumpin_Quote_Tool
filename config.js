@@ -111,9 +111,9 @@ gardenNeighbourDiscountTwoMan: 5,   // £ off per address — 2-man team
 // Ongoing loyalty discount: % off, applied automatically when "Ongoing" is selected.
 // Set a different % for each booking frequency.
 gardenOngoingDiscountPct: {
-  weekly:      15,   // % off — weekly bookings
-  fortnightly: 10,   // % off — fortnightly bookings
-  monthly:      5,   // % off — monthly bookings
+  weekly:      10,    // % off — weekly bookings
+  fortnightly:  7.5,  // % off — fortnightly bookings
+  monthly:      5,    // % off — monthly bookings
 },
 
 // ── Bicycle Servicing ─────────────────────────────────────────
