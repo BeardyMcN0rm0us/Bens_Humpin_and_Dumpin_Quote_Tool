@@ -126,6 +126,17 @@ window.BHD = Object.assign({
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return "ID"+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+"-"+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds());};
 
+  const setBreakdownLines=(el,entries)=>{
+    if(!el) return;
+    el.textContent='';
+    (entries||[]).forEach((entry,i)=>{
+      if(i>0) el.appendChild(document.createElement('br'));
+      const span=document.createElement('span');
+      span.textContent='• '+entry;
+      el.appendChild(span);
+    });
+  };
+
   const JOB_LABELS={
     tip:'Tip Run',
     move:'House Move',
@@ -1104,7 +1115,7 @@ window.BHD = Object.assign({
     if(!jt){if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return;}
 
     if(jt==='business'){
-      if(els.breakdown) els.breakdown.innerHTML='• Service: '+jobLabel(jt)+'<br>• Ben will review your proposal and get back to you with a price.';
+      if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt), 'Ben will review your proposal and get back to you with a price.']);
       if(els.total){els.total.textContent="Price on request"; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
@@ -1237,7 +1248,7 @@ window.BHD = Object.assign({
     const pct=pctFor(jt);
     const low=round5(total);
     const high=round5(total*(1+pct));
-    if(els.breakdown) els.breakdown.innerHTML='• '+(['Service: '+jobLabel(jt)].concat(lines)).join('<br>• ');
+    if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt)].concat(lines));
     if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
     if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
