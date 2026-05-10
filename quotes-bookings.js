@@ -49,7 +49,9 @@
       + '-' + p(n.getHours()) + p(n.getMinutes()) + p(n.getSeconds());
   }
   function toast(opts) {
-    if (typeof window.bhdToast === 'function') return window.bhdToast(opts);
+    try {
+      if (typeof window.bhdToast === 'function') return window.bhdToast(opts);
+    } catch (e) { console.error('[BHD] toast error:', e); }
     // fallback if enhance.js didn't expose it
     alert((opts.body || '') + (opts.sub ? '\n' + opts.sub : ''));
   }
@@ -911,11 +913,46 @@
   }
 
   /* ── wire panel buttons ──────────────────────────────────────── */
+  function safeWire(el, label, fn) {
+    if (!el) { console.warn('[BHD] missing element:', label); return; }
+    el.addEventListener('click', function (e) {
+      try {
+        console.info('[BHD] click:', label);
+        fn(e);
+      } catch (err) {
+        console.error('[BHD] handler error for', label, err);
+        alert('Sorry — something went wrong opening "' + label + '".\n\n' +
+          (err && err.message ? err.message : err) +
+          '\n\nPlease screenshot this and send to Ben.');
+      }
+    });
+  }
   function wireButtons() {
-    var s = $('btnSaveQuote'); if (s) s.addEventListener('click', saveCurrentQuote);
-    var b = $('btnBookNow');   if (b) b.addEventListener('click', function () { openBookingModal(null); });
-    var q = $('btnMyQuotes');  if (q) q.addEventListener('click', openQuotesModal);
-    var k = $('btnMyBookings'); if (k) k.addEventListener('click', openBookingsModal);
+    safeWire($('btnSaveQuote'),  'Save quote',  saveCurrentQuote);
+    safeWire($('btnBookNow'),    'Book this job', function () {
+      var snap = currentQuoteSnapshot();
+      if (!snap) {
+        var saved = Store.quotes();
+        if (saved.length) {
+          toast({
+            icon: '📅', body: 'Pick a quote to book',
+            sub: 'No live quote on screen — opening your saved quotes.',
+            timeout: 4000
+          });
+          openQuotesModal();
+        } else {
+          toast({
+            icon: '⚠', body: 'Calculate a quote first',
+            sub: 'Pick a job, fill the details, then tap Calculate.',
+            timeout: 5000
+          });
+        }
+        return;
+      }
+      openBookingModal(snap);
+    });
+    safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
+    safeWire($('btnMyBookings'), 'My bookings',   openBookingsModal);
   }
 
   /* ── init ────────────────────────────────────────────────────── */
@@ -933,11 +970,20 @@
   }
 
   function init() {
-    if (!isEnabled()) { hideFeatureUI(); return; }
-    wireModalClose();
-    wireButtons();
-    refreshCounts();
-    handleDeeplink();
+    try {
+      console.info('[BHD] quotes-bookings init, enabled =', isEnabled(),
+        'btnBookNow =', !!$('btnBookNow'),
+        'btnSaveQuote =', !!$('btnSaveQuote'),
+        'bhdModal =', !!$('bhdModal'));
+      if (!isEnabled()) { hideFeatureUI(); return; }
+      wireModalClose();
+      wireButtons();
+      refreshCounts();
+      handleDeeplink();
+    } catch (err) {
+      console.error('[BHD] init failed:', err);
+      alert('Booking module init error: ' + (err && err.message || err));
+    }
   }
 
   if (document.readyState === 'loading') {
