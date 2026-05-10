@@ -5,11 +5,12 @@
 (function () {
   'use strict';
 
-  var QUOTES_KEY   = 'bhd:quotes';
-  var BOOKINGS_KEY = 'bhd:bookings';
-  var CONTACT_KEY  = 'bhd:contact';
-  var MAX_QUOTES   = 50;
-  var MAX_BOOKINGS = 50;
+  var QUOTES_KEY         = 'bhd:quotes';
+  var BOOKINGS_KEY       = 'bhd:bookings';
+  var ADMIN_BOOKINGS_KEY = 'bhd:adminBookings';
+  var CONTACT_KEY        = 'bhd:contact';
+  var MAX_QUOTES         = 50;
+  var MAX_BOOKINGS       = 50;
 
   var JOB_LABELS = {
     tip: 'Tip Run', fb: 'Marketplace Pickup', move: 'House Move',
@@ -86,9 +87,79 @@
     deleteBooking: function (id) {
       writeJSON(BOOKINGS_KEY, Store.bookings().filter(function (x) { return x.id !== id; }));
     },
-    saveContact: function (c) { writeJSON(CONTACT_KEY, c); }
+    saveContact: function (c) { writeJSON(CONTACT_KEY, c); },
+    adminBookings: function () { return readJSON(ADMIN_BOOKINGS_KEY, []) || []; },
+    saveAdminBooking: function (b) {
+      var list = Store.adminBookings();
+      list = list.filter(function (x) { return x.id !== b.id; });
+      list.unshift(b);
+      if (list.length > MAX_BOOKINGS) list = list.slice(0, MAX_BOOKINGS);
+      writeJSON(ADMIN_BOOKINGS_KEY, list);
+    },
+    updateAdminBooking: function (id, patch) {
+      var list = Store.adminBookings();
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === id) { Object.assign(list[i], patch); break; }
+      }
+      writeJSON(ADMIN_BOOKINGS_KEY, list);
+    }
   };
   window.BHDStore = Store;
+
+  /* ── deeplink helpers ────────────────────────────────────────── */
+  function encodePayload(obj) {
+    try {
+      var s = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+      return s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } catch (e) { return ''; }
+  }
+  function decodePayload(s) {
+    if (!s) return null;
+    s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    try { return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+    catch (e) { return null; }
+  }
+  function appUrl() { return location.origin + location.pathname; }
+  function buildBenLink(booking) {
+    var p = {
+      v: 1, k: 'ben', id: booking.id, dt: booking.whenISO,
+      svc: booking.jobLabel || booking.jobType || '',
+      est: booking.total || '',
+      n: booking.name || '', ph: booking.phone || '', em: booking.email || '',
+      a: booking.address || '', nt: booking.notes || '',
+      qid: booking.quoteId || '',
+      bd: (booking.breakdown || []).slice(0, 14)
+    };
+    return appUrl() + '?bhd=' + encodePayload(p);
+  }
+  function buildCustLink(action, id, opts) {
+    var p = { v: 1, k: 'cust', id: id, act: action };
+    if (opts && opts.dt) p.dt = opts.dt;
+    if (opts && opts.note) p.nt = opts.note;
+    return appUrl() + '?bhd=' + encodePayload(p);
+  }
+  function buildBenReplyLink(action, id, opts) {
+    var p = { v: 1, k: 'ben2', id: id, act: action };
+    if (opts && opts.dt) p.dt = opts.dt;
+    return appUrl() + '?bhd=' + encodePayload(p);
+  }
+  function normalizePhone(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return '';
+    var plus = s.charAt(0) === '+';
+    var digits = s.replace(/\D/g, '');
+    if (!digits) return '';
+    if (!plus && digits.charAt(0) === '0') digits = '44' + digits.slice(1);
+    return digits;
+  }
+  function waOpen(phone, msg) {
+    var num = normalizePhone(phone);
+    var url = num
+      ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg)
+      : 'https://wa.me/?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+  }
 
   /* ── snapshot the current quote on panel 3 ───────────────────── */
   function currentQuoteSnapshot() {
@@ -414,6 +485,9 @@
   }
 
   function buildBookingMessage(b, snap) {
+    var benLink = buildBenLink(Object.assign({}, b, {
+      breakdown: (snap && snap.breakdown) || b.breakdown || []
+    }));
     var lines = [
       "Hey Ben — booking request via the app",
       "Booking ref: " + b.id,
@@ -431,7 +505,8 @@
         ? "Breakdown:\n- " + snap.breakdown.join("\n- ")
         : ''),
       "",
-      "Please confirm the slot when you can."
+      "👉 Tap to review & respond in the app:",
+      benLink
     ];
     return lines.filter(function (l) { return l !== ''; }).join('\n');
   }
@@ -490,6 +565,272 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
   }
 
+  /* ── Ben-side: review an inbound booking deeplink ────────────── */
+  function openBenReview(p) {
+    // Persist the inbound booking on Ben's device.
+    var existing = Store.adminBookings().filter(function (x) { return x.id === p.id; })[0] || {};
+    var rec = Object.assign({
+      receivedAt: new Date().toISOString(),
+      status: 'pending'
+    }, existing, {
+      id: p.id,
+      whenISO: p.dt,
+      jobLabel: p.svc,
+      total: p.est,
+      name: p.n,
+      phone: p.ph,
+      email: p.em,
+      address: p.a,
+      notes: p.nt,
+      quoteId: p.qid,
+      breakdown: p.bd || []
+    });
+    Store.saveAdminBooking(rec);
+    refreshCounts();
+    renderBenReview(rec);
+  }
+  function renderBenReview(b) {
+    var when = new Date(b.whenISO);
+    var whenStr = isNaN(when.getTime()) ? '(unknown)' : fmtDate(b.whenISO);
+    var html =
+      '<div class="bhd-booking-summary">' +
+        '<div><span class="bhd-label">Service</span><strong>' + esc(b.jobLabel || '') + '</strong></div>' +
+        '<div><span class="bhd-label">Estimate</span><strong>' + esc(b.total || '') + '</strong></div>' +
+        '<div><span class="bhd-label">Requested</span><strong>' + esc(whenStr) + '</strong></div>' +
+        '<div class="bhd-meta">' + esc(b.id) + ' · quote ' + esc(b.quoteId || '') + '</div>' +
+      '</div>' +
+      '<div class="bhd-card" style="margin-bottom:14px">' +
+        '<div class="bhd-card-head"><strong>' + esc(b.name || '') + '</strong>' +
+          '<span class="bhd-meta">' + esc(b.phone || '') + '</span></div>' +
+        (b.email   ? '<div class="bhd-meta">' + esc(b.email) + '</div>' : '') +
+        (b.address ? '<div class="bhd-meta">📍 ' + esc(b.address) + '</div>' : '') +
+        (b.notes   ? '<div class="bhd-meta">📝 ' + esc(b.notes) + '</div>' : '') +
+        (b.breakdown && b.breakdown.length
+          ? '<details class="bhd-card-details"><summary>Breakdown</summary><ul>' +
+            b.breakdown.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') +
+            '</ul></details>'
+          : '') +
+      '</div>' +
+      '<p class="hint" style="margin-bottom:8px">Pick one — the customer\'s app will update when they tap the link you send back.</p>' +
+      '<div class="bhd-form-actions">' +
+        '<button class="btn btn-whatsapp" type="button" id="benAccept">✅ Accept</button>' +
+        '<button class="btn btn-ghost"    type="button" id="benDecline">❌ Decline</button>' +
+        '<button class="btn btn-primary"  type="button" id="benSuggest">🕐 Suggest new time</button>' +
+      '</div>';
+    modal.open('Booking request from ' + (b.name || 'customer'), html);
+    var body = $('bhdModalBody');
+    if (!body) return;
+    body.querySelector('#benAccept').addEventListener('click', function () { benAccept(b); });
+    body.querySelector('#benDecline').addEventListener('click', function () { benDecline(b); });
+    body.querySelector('#benSuggest').addEventListener('click', function () { benSuggest(b); });
+  }
+  function benAccept(b) {
+    Store.updateAdminBooking(b.id, { status: 'confirmed', decidedAt: new Date().toISOString() });
+    var link = buildCustLink('confirm', b.id, { dt: b.whenISO });
+    var msg = "✅ Confirmed! " + (b.name ? 'Hi ' + b.name + ', ' : '') +
+      "see you " + fmtDate(b.whenISO) + " for " + (b.jobLabel || 'the job') + "." +
+      "\nBooking ref: " + b.id +
+      "\n\n👉 Tap to confirm in your app:\n" + link;
+    waOpen(b.phone, msg);
+    downloadIcs({
+      id: b.id, whenISO: b.whenISO, jobLabel: b.jobLabel,
+      address: b.address, notes: b.notes, total: b.total, quoteId: b.quoteId
+    }, { breakdown: b.breakdown });
+    modal.close();
+    toast({ icon: '✅', body: 'Accepted', sub: 'Reply opened in WhatsApp · calendar saved', timeout: 4000 });
+  }
+  function benDecline(b) {
+    Store.updateAdminBooking(b.id, { status: 'declined', decidedAt: new Date().toISOString() });
+    var link = buildCustLink('decline', b.id);
+    var msg = "❌ Sorry " + (b.name || '') + ", I can't make " + fmtDate(b.whenISO) +
+      ". Happy to discuss alternatives." +
+      "\nBooking ref: " + b.id +
+      "\n\n👉 Tap to update your app:\n" + link;
+    waOpen(b.phone, msg);
+    modal.close();
+    toast({ icon: '❌', body: 'Declined', sub: 'Reply opened in WhatsApp', timeout: 4000 });
+  }
+  function benSuggest(b) {
+    var when = new Date(b.whenISO);
+    var defDate = isNaN(when.getTime()) ? '' :
+      when.getFullYear() + '-' + pad(when.getMonth() + 1) + '-' + pad(when.getDate());
+    var defTime = isNaN(when.getTime()) ? '' : pad(when.getHours()) + ':' + pad(when.getMinutes());
+    var html =
+      '<p class="hint" style="margin-bottom:10px">Customer asked for ' +
+        esc(fmtDate(b.whenISO)) + '. Propose an alternative:</p>' +
+      '<form id="bhdSuggestForm" class="bhd-form" novalidate>' +
+        '<div class="bhd-grid2">' +
+          '<label class="field-label">New date<input type="date" id="sgDate" required value="' + esc(defDate) + '"></label>' +
+          '<label class="field-label">New time<input type="time" id="sgTime" required value="' + esc(defTime) + '"></label>' +
+        '</div>' +
+        '<label class="field-label">Note for customer <span class="bhd-optional">(optional)</span>' +
+          '<textarea id="sgNote" rows="2" placeholder="e.g. Already booked that morning — could we do later?"></textarea>' +
+        '</label>' +
+        '<div class="bhd-form-msg" id="sgErr" hidden></div>' +
+        '<div class="bhd-form-actions">' +
+          '<button type="submit" class="btn btn-primary">Send suggestion</button>' +
+          '<button type="button" class="btn btn-ghost" id="sgBack">Back</button>' +
+        '</div>' +
+      '</form>';
+    modal.open('Suggest a different time', html);
+    var body = $('bhdModalBody');
+    body.querySelector('#sgBack').addEventListener('click', function () { renderBenReview(b); });
+    body.querySelector('#bhdSuggestForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var d = $('sgDate').value, t = $('sgTime').value, note = $('sgNote').value.trim();
+      var err = $('sgErr');
+      if (!d || !t) { err.textContent = 'Pick a date and time.'; err.removeAttribute('hidden'); return; }
+      var newWhen = new Date(d + 'T' + t);
+      if (isNaN(newWhen.getTime())) { err.textContent = 'That date/time looks off.'; err.removeAttribute('hidden'); return; }
+      Store.updateAdminBooking(b.id, {
+        status: 'suggested',
+        suggestedISO: newWhen.toISOString(),
+        suggestedNote: note,
+        decidedAt: new Date().toISOString()
+      });
+      var link = buildCustLink('suggest', b.id, { dt: newWhen.toISOString(), note: note });
+      var msg = "🕐 " + (b.name ? 'Hi ' + b.name + ', ' : '') +
+        "could we do " + fmtDate(newWhen.toISOString()) + " instead of " + fmtDate(b.whenISO) + "?" +
+        (note ? "\n" + note : '') +
+        "\nBooking ref: " + b.id +
+        "\n\n👉 Accept or decline in your app:\n" + link;
+      waOpen(b.phone, msg);
+      modal.close();
+      toast({ icon: '🕐', body: 'Suggestion sent', sub: 'Awaiting customer response', timeout: 4000 });
+    });
+  }
+
+  /* ── Customer-side: apply Ben's response ─────────────────────── */
+  function applyCustomerAction(p) {
+    var booking = Store.bookings().filter(function (x) { return x.id === p.id; })[0];
+    if (!booking) {
+      toast({
+        icon: '⚠', body: 'Unknown booking',
+        sub: 'This link is for a booking that isn\'t on this device. Open the original device, or message Ben.',
+        timeout: 6000
+      });
+      return;
+    }
+    if (p.act === 'confirm') {
+      Store.updateBooking(p.id, { status: 'confirmed', confirmedAt: new Date().toISOString() });
+      refreshCounts();
+      toast({
+        icon: '✅', body: 'Booking confirmed',
+        sub: booking.jobLabel + ' · ' + booking.date + ' ' + booking.time,
+        actions: [
+          { label: 'Add to calendar', onClick: function () { downloadIcs(booking, null); } },
+          { label: 'My bookings', ghost: true, onClick: openBookingsModal }
+        ],
+        timeout: 9000
+      });
+    } else if (p.act === 'decline') {
+      Store.updateBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
+      refreshCounts();
+      toast({
+        icon: '❌', body: 'Booking declined by Ben',
+        sub: 'Tap to message him about an alternative',
+        actions: [
+          { label: 'Message Ben', onClick: function () {
+              var num = (window.BHD && window.BHD.whatsappNumber) || '';
+              waOpen(num, "Hi Ben, about booking " + p.id + " — when could you fit it in?");
+            } },
+          { label: 'My bookings', ghost: true, onClick: openBookingsModal }
+        ],
+        timeout: 9000
+      });
+    } else if (p.act === 'suggest') {
+      Store.updateBooking(p.id, {
+        status: 'suggested',
+        suggestedISO: p.dt,
+        suggestedNote: p.nt || '',
+        decidedAt: new Date().toISOString()
+      });
+      refreshCounts();
+      toast({
+        icon: '🕐', body: 'Ben suggested a different time',
+        sub: fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : ''),
+        actions: [
+          { label: 'Respond', onClick: openBookingsModal }
+        ],
+        timeout: 0
+      });
+    }
+  }
+  function applyBenSecondAction(p) {
+    var b = Store.adminBookings().filter(function (x) { return x.id === p.id; })[0];
+    if (!b) {
+      toast({ icon: '⚠', body: 'Unknown booking', sub: 'Not in your admin list on this device.', timeout: 5000 });
+      return;
+    }
+    if (p.act === 'accept-suggest') {
+      Store.updateAdminBooking(p.id, {
+        status: 'confirmed',
+        whenISO: p.dt || b.suggestedISO || b.whenISO,
+        decidedAt: new Date().toISOString()
+      });
+      var b2 = Store.adminBookings().filter(function (x) { return x.id === p.id; })[0];
+      toast({
+        icon: '✅', body: (b.name || 'Customer') + ' accepted the new time',
+        sub: fmtDate(b2.whenISO),
+        actions: [{ label: 'Add to calendar', onClick: function () {
+          downloadIcs({
+            id: b2.id, whenISO: b2.whenISO, jobLabel: b2.jobLabel,
+            address: b2.address, notes: b2.notes, total: b2.total, quoteId: b2.quoteId
+          }, { breakdown: b2.breakdown });
+        } }],
+        timeout: 9000
+      });
+    } else if (p.act === 'reject-suggest') {
+      Store.updateAdminBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
+      toast({ icon: '❌', body: (b.name || 'Customer') + ' declined the new time', timeout: 6000 });
+    }
+  }
+  function handleDeeplink() {
+    var sp;
+    try { sp = new URLSearchParams(location.search); } catch (e) { return; }
+    var raw = sp.get('bhd');
+    if (!raw) return;
+    var p = decodePayload(raw);
+    // Strip the param so refreshes don't re-fire.
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    if (!p || !p.k) return;
+    if (p.k === 'ben')  setTimeout(function () { openBenReview(p); }, 200);
+    else if (p.k === 'cust') setTimeout(function () { applyCustomerAction(p); }, 200);
+    else if (p.k === 'ben2') setTimeout(function () { applyBenSecondAction(p); }, 200);
+  }
+
+  /* ── customer responds to a 'suggested' booking ──────────────── */
+  function customerAcceptSuggestion(b) {
+    if (!b.suggestedISO) return;
+    Store.updateBooking(b.id, {
+      status: 'confirmed',
+      whenISO: b.suggestedISO,
+      date: b.suggestedISO.slice(0, 10),
+      time: b.suggestedISO.slice(11, 16),
+      confirmedAt: new Date().toISOString()
+    });
+    refreshCounts();
+    var link = buildBenReplyLink('accept-suggest', b.id, { dt: b.suggestedISO });
+    var num = (window.BHD && window.BHD.whatsappNumber) || '';
+    var msg = "✅ Accepting your new time for booking " + b.id + ": " +
+      fmtDate(b.suggestedISO) + ".\n\n👉 Update your app:\n" + link;
+    waOpen(num, msg);
+    var refreshed = Store.bookings().filter(function (x) { return x.id === b.id; })[0];
+    downloadIcs(refreshed, null);
+    modal.close();
+    toast({ icon: '✅', body: 'New time accepted', sub: 'Reply opened in WhatsApp · calendar saved', timeout: 5000 });
+  }
+  function customerRejectSuggestion(b) {
+    Store.updateBooking(b.id, { status: 'declined', decidedAt: new Date().toISOString() });
+    refreshCounts();
+    var link = buildBenReplyLink('reject-suggest', b.id);
+    var num = (window.BHD && window.BHD.whatsappNumber) || '';
+    var msg = "❌ Sorry, that time doesn't work for booking " + b.id + ".\n\n👉 Update your app:\n" + link;
+    waOpen(num, msg);
+    modal.close();
+    toast({ icon: '❌', body: 'Suggestion declined', sub: 'Reply opened in WhatsApp', timeout: 5000 });
+  }
+
   /* ── bookings list modal ─────────────────────────────────────── */
   function openBookingsModal() {
     var list = Store.bookings();
@@ -501,6 +842,17 @@
         '<ul class="bhd-list">' +
         list.map(function (b) {
           var statusClass = 'bhd-status bhd-status-' + (b.status || 'pending');
+          var suggestedBanner = (b.status === 'suggested' && b.suggestedISO)
+            ? '<div class="bhd-suggest-banner">' +
+                '<div class="bhd-meta"><strong>Ben suggested:</strong> ' + esc(fmtDate(b.suggestedISO)) +
+                  (b.suggestedNote ? ' — ' + esc(b.suggestedNote) : '') + '</div>' +
+                '<div class="bhd-card-actions">' +
+                  '<button class="btn btn-whatsapp btn-sm" type="button" data-act="acceptSuggest">✅ Accept new time</button>' +
+                  '<button class="btn btn-ghost btn-sm" type="button" data-act="rejectSuggest">❌ Decline</button>' +
+                '</div>' +
+              '</div>'
+            : '';
+          var canIcs = b.status === 'confirmed' || b.status === 'pending';
           return '<li class="bhd-card" data-id="' + esc(b.id) + '">' +
             '<div class="bhd-card-head">' +
               '<strong>' + esc(b.jobLabel || b.jobType || 'Booking') + '</strong>' +
@@ -514,9 +866,10 @@
               (b.address ? ' · ' + esc(b.address) : '') +
             '</div>' +
             (b.total ? '<div class="bhd-meta"><strong>' + esc(b.total) + '</strong></div>' : '') +
+            suggestedBanner +
             '<div class="bhd-card-actions">' +
               '<button class="btn btn-whatsapp btn-sm" type="button" data-act="wa">💬 Resend to Ben</button>' +
-              '<button class="btn btn-ghost btn-sm" type="button" data-act="ics">📅 Calendar</button>' +
+              (canIcs ? '<button class="btn btn-ghost btn-sm" type="button" data-act="ics">📅 Calendar</button>' : '') +
               '<button class="btn btn-ghost btn-sm" type="button" data-act="del">Cancel</button>' +
             '</div>' +
           '</li>';
@@ -542,10 +895,15 @@
             var snap = Store.quotes().filter(function (x) { return x.id === b.quoteId; })[0];
             var num = (window.BHD && window.BHD.whatsappNumber) || '';
             var msg = buildBookingMessage(b, snap);
-            if (num) window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+            waOpen(num, msg);
           } else if (act === 'ics') {
             var snap2 = Store.quotes().filter(function (x) { return x.id === b.quoteId; })[0];
             downloadIcs(b, snap2);
+          } else if (act === 'acceptSuggest') {
+            customerAcceptSuggestion(b);
+          } else if (act === 'rejectSuggest') {
+            if (!confirm('Decline Ben\'s suggested time? He\'ll be notified.')) return;
+            customerRejectSuggestion(b);
           }
         });
       });
@@ -565,6 +923,7 @@
     wireModalClose();
     wireButtons();
     refreshCounts();
+    handleDeeplink();
   }
 
   if (document.readyState === 'loading') {
