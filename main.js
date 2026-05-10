@@ -125,6 +125,38 @@ window.BHD = Object.assign({
   const metersToMiles=m=>m/1609.344;
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return "ID"+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+"-"+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds());};
+
+  const JOB_LABELS={
+    tip:'Tip Run',
+    move:'House Move',
+    fb:'Facebook Marketplace Pickup/Drop-off',
+    shop:'Emergency Shop Run',
+    student:'Student Relocation',
+    ikea:'IKEA Collect / Build',
+    flatpack:'Flat Pack Build',
+    hay:'Hay Bale Rental',
+    bags:'Black Bag Collection',
+    garden:'Gardening',
+    bike:'Bicycle Servicing',
+    business:'Business Enquiry',
+    other:'Other'
+  };
+  const jobLabel=jt=>JOB_LABELS[jt]||jt||'';
+
+  function getNeighbourStreet(input){
+    if(!input) return '';
+    if(input.dataset && input.dataset.street) return input.dataset.street;
+    return '';
+  }
+  function updateNeighbourStreetWarning(){
+    const w=document.getElementById('gardenNeighbourStreetWarn');
+    if(!w) return;
+    const s1=getNeighbourStreet(document.getElementById('gardenNeighbour1'));
+    const s2=getNeighbourStreet(document.getElementById('gardenNeighbour2'));
+    const both=s1&&s2;
+    const differ=both && s1!==s2;
+    w.style.display = differ ? '' : 'none';
+  }
   const ceil0=v=>Math.ceil(v);
   const fmtMins=(mins)=>{const m=Math.max(0,Math.round(mins)); if(m<60)return m+" min"; const h=Math.floor(m/60),r=m%60; return r?h+"h "+r+"m":h+"h";};
 
@@ -168,6 +200,7 @@ window.BHD = Object.assign({
     gardenNeighbourWrap:$('gardenNeighbourWrap'),
     gardenNeighbour1:$('gardenNeighbour1'), gardenNeighbour2:$('gardenNeighbour2'),
     gardenNeighbourHint:$('gardenNeighbourHint'),
+    gardenNeighbourStreetWarn:$('gardenNeighbourStreetWarn'),
     gardenOngoingDiscountNote:$('gardenOngoingDiscountNote'),
     gardenOngoingDiscountPct:$('gardenOngoingDiscountPct'),
     gardenWeedKillingHint:$('gardenWeedKillingHint'),
@@ -378,7 +411,7 @@ window.BHD = Object.assign({
         ? (CFG.gardenNeighbourDiscountTwoMan||10)
         : (CFG.gardenNeighbourDiscountSolo||5);
       const teamLabel = team==='three' ? '3-person team' : team==='two' ? '2-person team' : 'solo';
-      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s address ('+teamLabel+', up to 2 addresses = £'+(ratePerAddr*2)+' off).';
+      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s property — not the total ('+teamLabel+', up to 2 neighbours = £'+(ratePerAddr*2)+' off). Neighbours must be on the same street or an adjacent street.';
     }
 
     if(els.gardenDiscountWarning){
@@ -716,7 +749,22 @@ window.BHD = Object.assign({
     });
   }
 
-  let directions=null,autoPickup=null,autoDrop=null,autoBikeAddr=null,tryCount=0;
+  let directions=null,autoPickup=null,autoDrop=null,autoBikeAddr=null,autoNeighbour1=null,autoNeighbour2=null,tryCount=0;
+  function attachNeighbourAutocomplete(input,opt){
+    if(!input) return null;
+    const ac=new google.maps.places.Autocomplete(input,Object.assign({},opt,{fields:["formatted_address","geometry","address_components"]}));
+    ac.addListener('place_changed',()=>{
+      const place=ac.getPlace()||{};
+      const route=(place.address_components||[]).find(c=>(c.types||[]).indexOf('route')>=0);
+      input.dataset.street=route?(route.long_name||'').toLowerCase():'';
+      updateNeighbourStreetWarning();
+    });
+    input.addEventListener('input',()=>{
+      input.dataset.street='';
+      updateNeighbourStreetWarning();
+    });
+    return ac;
+  }
   function initMaps(){
     try{
       if(!window.google||!google.maps) return false;
@@ -725,6 +773,8 @@ window.BHD = Object.assign({
       if(!autoPickup&&els.addrPickup)   autoPickup=new google.maps.places.Autocomplete(els.addrPickup,opt);
       if(!autoDrop&&els.addrDrop)       autoDrop=new google.maps.places.Autocomplete(els.addrDrop,opt);
       if(!autoBikeAddr&&els.bikeAddr)   autoBikeAddr=new google.maps.places.Autocomplete(els.bikeAddr,opt);
+      if(!autoNeighbour1&&els.gardenNeighbour1) autoNeighbour1=attachNeighbourAutocomplete(els.gardenNeighbour1,opt);
+      if(!autoNeighbour2&&els.gardenNeighbour2) autoNeighbour2=attachNeighbourAutocomplete(els.gardenNeighbour2,opt);
       if(els.routeHint&&tryCount>0) els.routeHint.textContent="Maps ready — enter addresses.";
       return true;
     }catch(e){return false;}
@@ -1054,7 +1104,7 @@ window.BHD = Object.assign({
     if(!jt){if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return;}
 
     if(jt==='business'){
-      if(els.breakdown) els.breakdown.innerHTML='• Ben will review your proposal and get back to you with a price.';
+      if(els.breakdown) els.breakdown.innerHTML='• Service: '+jobLabel(jt)+'<br>• Ben will review your proposal and get back to you with a price.';
       if(els.total){els.total.textContent="Price on request"; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
@@ -1069,10 +1119,8 @@ window.BHD = Object.assign({
       const mileageCost=chargedMiles*gardenMileRate;
       const q=calcGardenQuote();
       const total=q.subtotal+mileageCost;
-      const pct=pctFor(jt);
-      const low=round5(total);
-      const high=round5(total*(1+pct));
-      const lines=[];
+      const exact=Math.round(total);
+      const lines=['Service: '+jobLabel(jt)];
       if(loopMiles>0){
         lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+gardenMileRate.toFixed(2)+"/mile = £"+mileageCost.toFixed(2));
       }
@@ -1084,7 +1132,7 @@ window.BHD = Object.assign({
           els.breakdown.appendChild(document.createTextNode('• '+l));
         });
       }
-      if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
+      if(els.total){els.total.textContent="£"+exact; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
       if(window.goTo) window.goTo(3);
@@ -1098,7 +1146,8 @@ window.BHD = Object.assign({
       const hi=round5(q.subtotal*(1+pct));
       if(els.breakdown){
         els.breakdown.textContent='';
-        q.lines.forEach((l,i)=>{if(i>0)els.breakdown.appendChild(document.createElement('br'));els.breakdown.appendChild(document.createTextNode('• '+l));});
+        const bikeLines=['Service: '+jobLabel(jt)].concat(q.lines);
+        bikeLines.forEach((l,i)=>{if(i>0)els.breakdown.appendChild(document.createElement('br'));els.breakdown.appendChild(document.createTextNode('• '+l));});
       }
       if(els.total){els.total.textContent='£'+lo+'–£'+hi; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent='Quote ID — '+quoteId();
@@ -1188,7 +1237,7 @@ window.BHD = Object.assign({
     const pct=pctFor(jt);
     const low=round5(total);
     const high=round5(total*(1+pct));
-    if(els.breakdown) els.breakdown.innerHTML='• '+lines.join('<br>• ');
+    if(els.breakdown) els.breakdown.innerHTML='• '+(['Service: '+jobLabel(jt)].concat(lines)).join('<br>• ');
     if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
     if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
@@ -1280,7 +1329,7 @@ window.BHD = Object.assign({
     const msg=[
       "Hey Ben! I need something Humpin' & Dumpin'",
       "Quote ID: "+id,
-      "Job Type: "+(jt||"N/A"),
+      "Service: "+(jobLabel(jt)||"N/A"),
       jt==='business'?businessDetails:'',
       jt==='garden'?gardenDetails:'',
       jt==='bike'?bikeDetails:'',
