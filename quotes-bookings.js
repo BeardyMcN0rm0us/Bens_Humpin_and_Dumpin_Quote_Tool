@@ -151,7 +151,9 @@
     if (role === 'cust') {
       return {
         k: 'cust', id: arr[1], act: arr[2],
-        dt: expandDate(arr[3]), nt: arr[4] || ''
+        dt: expandDate(arr[3]), nt: arr[4] || '',
+        svc: arr[5] || '', est: arr[6] || '',
+        n: arr[7] || '', qid: arr[8] || ''
       };
     }
     return { k: 'ben2', id: arr[1], act: arr[2], dt: expandDate(arr[3]) };
@@ -169,10 +171,19 @@
     ];
     return appUrl() + '?bhd=' + encodeArr(arr);
   }
-  function buildCustLink(action, id, opts) {
+  function buildCustLink(action, id, opts, snap) {
+    // Self-contained so the link still works if it lands in a different
+    // browsing context (e.g. Safari rather than the installed PWA — iOS
+    // sandboxes the two; their localStorage doesn't share).
     var arr = ['c', id, action];
     if (opts && opts.dt)   arr[3] = compactDate(opts.dt);
     if (opts && opts.note) arr[4] = opts.note;
+    if (snap) {
+      arr[5] = snap.jobLabel || snap.jobType || '';
+      arr[6] = snap.total || '';
+      arr[7] = snap.name || '';
+      arr[8] = snap.quoteId || '';
+    }
     return appUrl() + '?bhd=' + encodeArr(arr);
   }
   function buildBenReplyLink(action, id, opts) {
@@ -666,7 +677,7 @@
   }
   function benAccept(b) {
     Store.updateAdminBooking(b.id, { status: 'confirmed', decidedAt: new Date().toISOString() });
-    var link = buildCustLink('confirm', b.id, { dt: b.whenISO });
+    var link = buildCustLink('confirm', b.id, { dt: b.whenISO }, b);
     var msg = "✅ Confirmed! " + (b.name ? 'Hi ' + b.name + ', ' : '') +
       "see you " + fmtDate(b.whenISO) + " for " + (b.jobLabel || 'the job') + "." +
       "\nBooking ref: " + b.id +
@@ -681,7 +692,7 @@
   }
   function benDecline(b) {
     Store.updateAdminBooking(b.id, { status: 'declined', decidedAt: new Date().toISOString() });
-    var link = buildCustLink('decline', b.id);
+    var link = buildCustLink('decline', b.id, null, b);
     var msg = "❌ Sorry " + (b.name || '') + ", I can't make " + fmtDate(b.whenISO) +
       ". Happy to discuss alternatives." +
       "\nBooking ref: " + b.id +
@@ -728,7 +739,7 @@
         suggestedNote: note,
         decidedAt: new Date().toISOString()
       });
-      var link = buildCustLink('suggest', b.id, { dt: newWhen.toISOString(), note: note });
+      var link = buildCustLink('suggest', b.id, { dt: newWhen.toISOString(), note: note }, b);
       var msg = "🕐 " + (b.name ? 'Hi ' + b.name + ', ' : '') +
         "could we do " + fmtDate(newWhen.toISOString()) + " instead of " + fmtDate(b.whenISO) + "?" +
         (note ? "\n" + note : '') +
@@ -741,24 +752,65 @@
   }
 
   /* ── Customer-side: apply Ben's response ─────────────────────── */
+  function isStandalone() {
+    try {
+      return !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches)
+        || !!window.navigator.standalone;
+    } catch (e) { return false; }
+  }
+  function reconstructBookingFrom(p) {
+    // Build a minimal booking from a self-contained Ben→customer link
+    // when this device's localStorage doesn't have the original record
+    // (iOS sandboxes Safari vs. installed-PWA storage).
+    if (!p.svc) return null;
+    var when = p.dt || '';
+    return {
+      id: p.id,
+      createdAt: new Date().toISOString(),
+      reconstructed: true,
+      jobType: '',
+      jobLabel: p.svc,
+      total: p.est || '',
+      name: p.n || '',
+      phone: '',
+      email: '',
+      address: '',
+      notes: '',
+      quoteId: p.qid || '',
+      whenISO: when,
+      date: when ? when.slice(0, 10) : '',
+      time: when ? when.slice(11, 16) : '',
+      status: 'pending'
+    };
+  }
   function applyCustomerAction(p) {
     var booking = Store.bookings().filter(function (x) { return x.id === p.id; })[0];
+    var reconstructed = false;
     if (!booking) {
-      toast({
-        icon: '⚠', body: 'Unknown booking',
-        sub: 'This link is for a booking that isn\'t on this device. Open the original device, or message Ben.',
-        timeout: 6000
-      });
-      return;
+      booking = reconstructBookingFrom(p);
+      if (!booking) {
+        toast({
+          icon: '⚠', body: 'Unknown booking',
+          sub: 'This link is for a booking that isn\'t on this device. Open the original device, or message Ben.',
+          timeout: 6000
+        });
+        return;
+      }
+      Store.saveBooking(booking);
+      reconstructed = true;
     }
+    var crossContextHint = (reconstructed && !isStandalone())
+      ? '\nOpen the installed app once to sync.'
+      : '';
     if (p.act === 'confirm') {
       Store.updateBooking(p.id, { status: 'confirmed', confirmedAt: new Date().toISOString() });
       refreshCounts();
+      var b1 = Store.bookings().filter(function (x) { return x.id === p.id; })[0] || booking;
       toast({
         icon: '✅', body: 'Booking confirmed',
-        sub: booking.jobLabel + ' · ' + booking.date + ' ' + booking.time,
+        sub: b1.jobLabel + ' · ' + b1.date + ' ' + b1.time + crossContextHint,
         actions: [
-          { label: 'Add to calendar', onClick: function () { downloadIcs(booking, null); } },
+          { label: 'Add to calendar', onClick: function () { downloadIcs(b1, null); } },
           { label: 'My bookings', ghost: true, onClick: openBookingsModal }
         ],
         timeout: 9000
@@ -768,7 +820,7 @@
       refreshCounts();
       toast({
         icon: '❌', body: 'Booking declined by Ben',
-        sub: 'Tap to message him about an alternative',
+        sub: 'Tap to message him about an alternative' + crossContextHint,
         actions: [
           { label: 'Message Ben', onClick: function () {
               var num = (window.BHD && window.BHD.whatsappNumber) || '';
@@ -788,7 +840,7 @@
       refreshCounts();
       toast({
         icon: '🕐', body: 'Ben suggested a different time',
-        sub: fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : ''),
+        sub: fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : '') + crossContextHint,
         actions: [
           { label: 'Respond', onClick: openBookingsModal }
         ],
