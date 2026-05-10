@@ -6,6 +6,15 @@
 
 window.BHD = {
 
+// ── Feature flags ─────────────────────────────────────────────
+// Set quotesBookings to false to disable Save quote / Book this job
+// and hide the Saved quotes / My bookings chips. Inbound deeplinks
+// (?bhd=...) are also ignored. Use this as a kill switch if the
+// feature misbehaves in production — no redeploy of code needed.
+features: {
+  quotesBookings: true,
+},
+
 // ── Mileage & surcharges ──────────────────────────────────────
 mileagePerMile:   0.50,   // £ per charged mile
 twoManSurcharge:  20,     // £ added if two-person team requested
