@@ -340,7 +340,7 @@
                 '</ul></details>'
               : '') +
             '<div class="bhd-card-actions">' +
-              '<button class="btn btn-primary btn-sm" type="button" data-act="book">📅 Book</button>' +
+              (bookingsEnabled() ? '<button class="btn btn-primary btn-sm" type="button" data-act="book">📅 Book</button>' : '') +
               '<button class="btn btn-whatsapp btn-sm" type="button" data-act="wa">💬 WhatsApp</button>' +
               '<button class="btn btn-ghost btn-sm" type="button" data-act="del">Delete</button>' +
             '</div>' +
@@ -882,9 +882,10 @@
     try { sp = new URLSearchParams(location.search); } catch (e) { return; }
     var raw = sp.get('bhd');
     if (!raw) return;
-    var p = decodePayload(raw);
     // Strip the param so refreshes don't re-fire.
     try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    if (!bookingsEnabled()) return;
+    var p = decodePayload(raw);
     if (!p || !p.k) return;
     if (p.k === 'ben')  setTimeout(function () { openBenReview(p); }, 200);
     else if (p.k === 'cust') setTimeout(function () { applyCustomerAction(p); }, 200);
@@ -1019,6 +1020,8 @@
   }
   function wireButtons() {
     safeWire($('btnSaveQuote'),  'Save quote',  saveCurrentQuote);
+    safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
+    if (!bookingsEnabled()) return;
     safeWire($('btnBookNow'),    'Book this job', function () {
       var snap = currentQuoteSnapshot();
       if (!snap) {
@@ -1041,7 +1044,6 @@
       }
       openBookingModal(snap);
     });
-    safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
     safeWire($('btnMyBookings'), 'My bookings',   openBookingsModal);
   }
 
@@ -1049,6 +1051,10 @@
   function isEnabled() {
     var f = (window.BHD && window.BHD.features) || {};
     return f.quotesBookings !== false;
+  }
+  function bookingsEnabled() {
+    var f = (window.BHD && window.BHD.features) || {};
+    return f.bookings !== false;
   }
 
   function hideFeatureUI() {
@@ -1058,6 +1064,11 @@
     var row = document.querySelector('.my-stuff-row');
     if (row) { row.setAttribute('hidden', ''); row.classList.add('hidden'); }
   }
+  function hideBookingOnlyUI() {
+    ['btnBookNow', 'btnMyBookings'].forEach(function (id) {
+      var el = $(id); if (el) { el.setAttribute('hidden', ''); el.classList.add('hidden'); }
+    });
+  }
 
   function init() {
     try {
@@ -1066,6 +1077,7 @@
         'btnSaveQuote =', !!$('btnSaveQuote'),
         'bhdModal =', !!$('bhdModal'));
       if (!isEnabled()) { hideFeatureUI(); return; }
+      if (!bookingsEnabled()) hideBookingOnlyUI();
       wireModalClose();
       wireButtons();
       refreshCounts();

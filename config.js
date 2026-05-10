@@ -7,12 +7,17 @@
 window.BHD = {
 
 // ── Feature flags ─────────────────────────────────────────────
-// Set quotesBookings to false to disable Save quote / Book this job
-// and hide the Saved quotes / My bookings chips. Inbound deeplinks
-// (?bhd=...) are also ignored. Use this as a kill switch if the
-// feature misbehaves in production — no redeploy of code needed.
+// quotesBookings: master switch for the whole save/book module.
+//   Set to false to hide all the new UI (Save quote, Book, Saved
+//   quotes, My bookings) and ignore inbound ?bhd=... deeplinks.
+// bookings: gate the booking flow specifically. With this false the
+//   quote save/share UI stays live but the Book button, My bookings
+//   chip, the Book action on saved-quote cards, and inbound deeplinks
+//   are all disabled. Set true once the cross-device sync story is in
+//   place.
 features: {
   quotesBookings: true,
+  bookings: false,
 },
 
 // ── Mileage & surcharges ──────────────────────────────────────
