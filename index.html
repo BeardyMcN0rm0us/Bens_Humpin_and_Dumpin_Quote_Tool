@@ -1096,19 +1096,66 @@ document.addEventListener('DOMContentLoaded', function() {
         window.BHD._aiDifficultyMultiplier = a.difficultyMultiplier || 1.0;
       }
 
+      var esc = function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+
+      var items = Array.isArray(a.items) ? a.items : [];
+      var itemsHtml = '';
+      if(items.length){
+        itemsHtml = '<div class="analysis-items" style="padding:6px 0"><div class="analysis-items-head"><strong>Identified:</strong></div>' +
+          items.map(function(it){
+            var label = it.categoryLabel || it.category || '';
+            var pct = (it.percentage!=null) ? ' &middot; ~' + it.percentage + '%' : '';
+            var wMin = it.weightKgMin, wMax = it.weightKgMax;
+            var w = (wMin!=null && wMax!=null) ? (wMin + '&ndash;' + wMax + ' kg') : (wMin!=null ? wMin+' kg' : (wMax!=null ? wMax+' kg' : ''));
+            var v = (it.volumeM3!=null) ? (Number(it.volumeM3).toFixed(2) + ' m&sup3;') : '';
+            var meta = [esc(label)+pct, w, v].filter(Boolean).join(' &middot; ');
+            return '<div class="analysis-item" style="padding:2px 0">&bull; <strong>' + esc(it.description||label||'Item') + '</strong>' +
+              (meta ? '<br><span style="opacity:0.85">' + meta + '</span>' : '') + '</div>';
+          }).join('') + '</div>';
+      }
+
+      var totalsBits = [];
+      if(a.totalWeightKgMin!=null && a.totalWeightKgMax!=null) totalsBits.push(a.totalWeightKgMin+'&ndash;'+a.totalWeightKgMax+' kg');
+      if(a.totalVolumeM3!=null) totalsBits.push(Number(a.totalVolumeM3).toFixed(2)+' m&sup3;');
+      totalsBits.push(a.isMixed ? 'Mixed waste' : esc(a.dominantCategoryLabel || a.pricingCategoryLabel || 'Single type'));
+      if(a.confidence) totalsBits.push('Confidence: ' + esc(a.confidence));
+      var totalsHtml = '<div class="analysis-totals" style="padding:6px 0"><strong>Total:</strong> ' + totalsBits.join(' &middot; ') + '</div>';
+
+      var vanHtml = '';
+      if(a.van){
+        var lf = a.van.limitingFactor ? ' (limiting factor: ' + esc(a.van.limitingFactor) + ')' : '';
+        vanHtml = '<div class="analysis-van" style="padding:2px 0">Van loads needed: <strong>' + (a.van.loadsNeeded||1) + '</strong>' + lf + '</div>';
+      }
+
+      var feeHtml = '';
+      if(a.estimatedDisposalFee!=null){
+        var rangeBits = [];
+        if(a.estimatedDisposalFeeMin!=null) rangeBits.push('&pound;'+a.estimatedDisposalFeeMin);
+        if(a.estimatedDisposalFeeMax!=null) rangeBits.push('&pound;'+a.estimatedDisposalFeeMax);
+        var range = rangeBits.length===2 ? ' (range '+rangeBits.join('&ndash;')+')' : '';
+        var rateLabel = a.pricingCategoryLabel ? esc(a.pricingCategoryLabel) : '';
+        var rateNum = (a.pricingRate!=null) ? ' @ &pound;'+Number(a.pricingRate).toFixed(2)+'/t' : '';
+        feeHtml = '<div class="analysis-fee" style="padding:2px 0">Estimated disposal: <strong>&pound;'+a.estimatedDisposalFee+'</strong>'+range+'<br><small style="opacity:0.8">'+rateLabel+rateNum+' inc VAT</small></div>';
+      }
+
+      var notesHtml = '';
+      if(a.notes) notesHtml += '<div class="analysis-notes" style="padding:4px 0;opacity:0.85"><em>'+esc(a.notes)+'</em></div>';
+      if(a.vanNotes) notesHtml += '<div class="analysis-notes" style="padding:4px 0;opacity:0.85"><em>'+esc(a.vanNotes)+'</em></div>';
+
       var rejected = a.rejected || a.rejectedItems || [];
+      var rejHtml = '';
       if(rejected.length > 0) {
-        var rejHtml = '<div class="analysis-rejected">' +
+        rejHtml = '<div class="analysis-rejected">' +
           '<div class="analysis-rejected-head">&#9940; Cannot be taken &mdash; ' + rejected.length + ' item' + (rejected.length!==1?'s':'') + '</div>' +
           rejected.map(function(r){
-            return '<div class="analysis-rejected-item">&#10007; <strong>' + (r.description||r) + '</strong>' +
-              (r.reason ? '<br><span style="font-weight:600;opacity:0.8">' + r.reason + '</span>' : '') + '</div>';
+            return '<div class="analysis-rejected-item">&#10007; <strong>' + esc(r.description||r) + '</strong>' +
+              (r.reason ? '<br><span style="font-weight:600;opacity:0.8">' + esc(r.reason) + '</span>' : '') + '</div>';
           }).join('') +
         '</div>';
-        resultEl.innerHTML = rejHtml + '<div class="hint" style="padding:8px 0">&#129302; Analysis complete &mdash; quote calculated automatically. Remove any flagged items before booking.</div>';
-      } else {
-        resultEl.innerHTML = '<div class="hint" style="padding:8px 0">&#129302; Analysis complete &mdash; quote calculated automatically.</div>';
       }
+
+      var head = '<div class="hint" style="padding:8px 0">&#129302; Analysis complete &mdash; quote calculated automatically.' + (rejected.length ? ' Remove any flagged items before booking.' : '') + '</div>';
+      resultEl.innerHTML = head + rejHtml + itemsHtml + totalsHtml + vanHtml + feeHtml + notesHtml;
     }
 
     var jt=document.getElementById('jobType');
