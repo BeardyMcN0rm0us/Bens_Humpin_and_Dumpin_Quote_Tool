@@ -160,6 +160,9 @@ window.BHD = Object.assign({
     gardenHours:$('gardenHours'), gardenRateHint:$('gardenRateHint'),
     gardenTeam:$('gardenTeam'), gardenSoloBtn:$('gardenSoloBtn'), gardenTwoBtn:$('gardenTwoBtn'), gardenThreeBtn:$('gardenThreeBtn'),
     gardenSchedule:$('gardenSchedule'), gardenFrequencyWrap:$('gardenFrequencyWrap'), gardenFrequency:$('gardenFrequency'),
+    gardenDayOfWeek:$('gardenDayOfWeek'), gardenTimeOfDay:$('gardenTimeOfDay'),
+    gardenStartingWeekWrap:$('gardenStartingWeekWrap'), gardenStartingWeek:$('gardenStartingWeek'),
+    gardenWeekOfMonthWrap:$('gardenWeekOfMonthWrap'), gardenWeekOfMonth:$('gardenWeekOfMonth'),
     gardenSize:$('gardenSize'),
     gardenDiscountType:$('gardenDiscountType'), gardenDiscountWarning:$('gardenDiscountWarning'),
     gardenNeighbourWrap:$('gardenNeighbourWrap'),
@@ -343,6 +346,16 @@ window.BHD = Object.assign({
 
     if(els.gardenFrequencyWrap){
       if(schedule==='ongoing'){ show(els.gardenFrequencyWrap); } else { hide(els.gardenFrequencyWrap); }
+    }
+
+    {
+      const freq=(els.gardenFrequency&&els.gardenFrequency.value)||'fortnightly';
+      if(els.gardenStartingWeekWrap){
+        if(schedule==='ongoing' && freq==='fortnightly'){ show(els.gardenStartingWeekWrap); } else { hide(els.gardenStartingWeekWrap); }
+      }
+      if(els.gardenWeekOfMonthWrap){
+        if(schedule==='ongoing' && freq==='monthly'){ show(els.gardenWeekOfMonthWrap); } else { hide(els.gardenWeekOfMonthWrap); }
+      }
     }
 
     if(els.gardenOngoingDiscountNote){
@@ -812,7 +825,7 @@ window.BHD = Object.assign({
     cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
   }
 
-  ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency'].forEach(id=>{
+  ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency','gardenDayOfWeek','gardenTimeOfDay','gardenStartingWeek','gardenWeekOfMonth'].forEach(id=>{
     const el=$(id);
     if(el) el.addEventListener('change', updateGardenUI);
   });
@@ -943,6 +956,25 @@ window.BHD = Object.assign({
 
     const lines=[];
     lines.push('Labour: £'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+baseAmount.toFixed(2));
+
+    if(schedule==='ongoing'){
+      const dayOfWeek=(els.gardenDayOfWeek&&els.gardenDayOfWeek.value)||'';
+      const timeOfDay=(els.gardenTimeOfDay&&els.gardenTimeOfDay.value)||'';
+      const startingWeek=(els.gardenStartingWeek&&els.gardenStartingWeek.value)||'';
+      const weekOfMonth=(els.gardenWeekOfMonth&&els.gardenWeekOfMonth.value)||'';
+      const dayLabels={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+      const weekOrdinals={'1':'1st','2':'2nd','3':'3rd','4':'4th','last':'last'};
+      const dayLabel=dayLabels[dayOfWeek]||dayOfWeek;
+      let slot='';
+      if(frequency==='monthly' && weekOfMonth && dayLabel){
+        slot='Monthly — '+(weekOrdinals[weekOfMonth]||weekOfMonth)+' '+dayLabel+(timeOfDay?' '+timeOfDay:'');
+      } else if(frequency==='fortnightly' && dayLabel){
+        slot='Fortnightly — '+dayLabel+(timeOfDay?' '+timeOfDay:'')+(startingWeek?' (starting '+(startingWeek==='next'?'next':'this')+' week)':'');
+      } else if(frequency==='weekly' && dayLabel){
+        slot='Weekly — every '+dayLabel+(timeOfDay?' '+timeOfDay:'');
+      }
+      if(slot) lines.push('Slot: '+slot);
+    }
 
     // Weed killing surcharge — added when task is selected, priced by garden size
     let weedKillingCost=0;
@@ -1195,11 +1227,31 @@ window.BHD = Object.assign({
       const frequency=(els.gardenFrequency&&els.gardenFrequency.value)||'';
       const discountType=(els.gardenDiscountType&&els.gardenDiscountType.value)||'none';
       const gardenSize=(els.gardenSize&&els.gardenSize.value)||'';
+      const dayOfWeek=(els.gardenDayOfWeek&&els.gardenDayOfWeek.value)||'';
+      const timeOfDay=(els.gardenTimeOfDay&&els.gardenTimeOfDay.value)||'';
+      const startingWeek=(els.gardenStartingWeek&&els.gardenStartingWeek.value)||'';
+      const weekOfMonth=(els.gardenWeekOfMonth&&els.gardenWeekOfMonth.value)||'';
+      const dayLabels={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+      const weekOrdinals={'1':'1st','2':'2nd','3':'3rd','4':'4th','last':'last'};
+      let scheduleLine='Booking type: One-off';
+      if(schedule==='ongoing'){
+        const freqLabel=frequency?frequency.charAt(0).toUpperCase()+frequency.slice(1):'Ongoing';
+        const dayLabel=dayLabels[dayOfWeek]||dayOfWeek;
+        if(frequency==='monthly' && weekOfMonth && dayLabel){
+          scheduleLine='Booking type: Monthly — '+(weekOrdinals[weekOfMonth]||weekOfMonth)+' '+dayLabel+(timeOfDay?' '+timeOfDay:'');
+        } else if(frequency==='fortnightly' && dayLabel){
+          scheduleLine='Booking type: Fortnightly — '+dayLabel+(timeOfDay?' '+timeOfDay:'')+(startingWeek?' (starting '+(startingWeek==='next'?'next':'this')+' week)':'');
+        } else if(frequency==='weekly' && dayLabel){
+          scheduleLine='Booking type: Weekly — every '+dayLabel+(timeOfDay?' '+timeOfDay:'');
+        } else {
+          scheduleLine='Booking type: Ongoing'+(freqLabel?' ('+freqLabel.toLowerCase()+')':'');
+        }
+      }
       gardenDetails=[
         hrs?"Estimated hours: "+hrs:'',
         gardenSize?"Garden size: "+gardenSize.charAt(0).toUpperCase()+gardenSize.slice(1):'',
         "Team: "+(team==='three'?'Ben + 2 helpers':team==='two'?'Ben + helper':'Just Ben'),
-        schedule==='ongoing'?'Booking type: Ongoing'+(frequency?' ('+frequency+')':''):'Booking type: One-off',
+        scheduleLine,
         discountType!=='none'?'Discount: '+discountType:'',
       ].filter(Boolean).join('\n');
     }
