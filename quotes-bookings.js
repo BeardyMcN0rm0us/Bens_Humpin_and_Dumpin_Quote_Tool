@@ -109,9 +109,23 @@
   window.BHDStore = Store;
 
   /* ── deeplink helpers ────────────────────────────────────────── */
-  function encodePayload(obj) {
+  // Payload format v2: positional JSON array. Field names cost bytes,
+  // and these links travel through WhatsApp so every character matters.
+  //   ['b', id, dt, svc, est, n, ph, a, qid]      ← customer → Ben
+  //   ['c', id, act, dt?, nt?]                    ← Ben → customer
+  //   ['r', id, act, dt?]                         ← customer → Ben (reply)
+  // Date is compact ISO without ms or Z, e.g. "2026-05-11T07:08".
+  function compactDate(iso) {
+    if (!iso) return '';
+    return String(iso).replace(/:\d\d(\.\d+)?Z?$/, '').replace(/Z$/, '');
+  }
+  function expandDate(s) {
+    if (!s) return '';
+    return /Z$/.test(s) ? s : s + ':00Z';
+  }
+  function encodeArr(arr) {
     try {
-      var s = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+      var s = btoa(unescape(encodeURIComponent(JSON.stringify(arr))));
       return s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     } catch (e) { return ''; }
   }
@@ -119,33 +133,52 @@
     if (!s) return null;
     s = String(s).replace(/-/g, '+').replace(/_/g, '/');
     while (s.length % 4) s += '=';
-    try { return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+    var arr;
+    try { arr = JSON.parse(decodeURIComponent(escape(atob(s)))); }
     catch (e) { return null; }
+    if (!Array.isArray(arr) || arr.length < 2) return null;
+    var ROLE = { b: 'ben', c: 'cust', r: 'ben2' };
+    var role = ROLE[arr[0]];
+    if (!role) return null;
+    if (role === 'ben') {
+      return {
+        k: 'ben', id: arr[1], dt: expandDate(arr[2]),
+        svc: arr[3] || '', est: arr[4] || '',
+        n: arr[5] || '', ph: arr[6] || '',
+        a: arr[7] || '', qid: arr[8] || ''
+      };
+    }
+    if (role === 'cust') {
+      return {
+        k: 'cust', id: arr[1], act: arr[2],
+        dt: expandDate(arr[3]), nt: arr[4] || ''
+      };
+    }
+    return { k: 'ben2', id: arr[1], act: arr[2], dt: expandDate(arr[3]) };
   }
   function appUrl() { return location.origin + location.pathname; }
   function buildBenLink(booking) {
     // Keep this payload small — the breakdown is already in the message
     // body, no need to duplicate it inside the deeplink.
-    var p = {
-      v: 1, k: 'ben', id: booking.id, dt: booking.whenISO,
-      svc: booking.jobLabel || booking.jobType || '',
-      est: booking.total || '',
-      n: booking.name || '', ph: booking.phone || '',
-      a: booking.address || '',
-      qid: booking.quoteId || ''
-    };
-    return appUrl() + '?bhd=' + encodePayload(p);
+    var arr = [
+      'b', booking.id, compactDate(booking.whenISO),
+      booking.jobLabel || booking.jobType || '',
+      booking.total || '',
+      booking.name || '', booking.phone || '',
+      booking.address || '', booking.quoteId || ''
+    ];
+    return appUrl() + '?bhd=' + encodeArr(arr);
   }
   function buildCustLink(action, id, opts) {
-    var p = { v: 1, k: 'cust', id: id, act: action };
-    if (opts && opts.dt) p.dt = opts.dt;
-    if (opts && opts.note) p.nt = opts.note;
-    return appUrl() + '?bhd=' + encodePayload(p);
+    var arr = ['c', id, action];
+    if (opts && opts.dt)   arr[3] = compactDate(opts.dt);
+    if (opts && opts.note) arr[4] = opts.note;
+    return appUrl() + '?bhd=' + encodeArr(arr);
   }
   function buildBenReplyLink(action, id, opts) {
-    var p = { v: 1, k: 'ben2', id: id, act: action };
-    if (opts && opts.dt) p.dt = opts.dt;
-    return appUrl() + '?bhd=' + encodePayload(p);
+    var arr = ['r', id, action];
+    if (opts && opts.dt) arr[3] = compactDate(opts.dt);
+    return appUrl() + '?bhd=' + encodeArr(arr);
   }
   function normalizePhone(raw) {
     var s = String(raw || '').trim();
