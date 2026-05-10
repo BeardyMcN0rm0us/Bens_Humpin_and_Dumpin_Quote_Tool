@@ -69,6 +69,8 @@
     return { dismiss: dismiss, el: el };
   }
 
+  window.bhdToast = toast;
+
   /* ── Tile ripple coords + haptics ─────────────────────────────── */
   function wireTiles() {
     document.querySelectorAll('.tile').forEach(function (tile) {

@@ -36,6 +36,14 @@
 
   <div class="panel" id="panel1">
     <div class="panel-head"><h2>What do you need?</h2><p>Tap to get started</p></div>
+    <div class="my-stuff-row">
+      <button class="chip-btn" id="btnMyQuotes" type="button">
+        <span class="chip-icon">&#128190;</span><span>Saved quotes</span><span class="chip-count" id="myQuotesCount" hidden></span>
+      </button>
+      <button class="chip-btn" id="btnMyBookings" type="button">
+        <span class="chip-icon">&#128197;</span><span>My bookings</span><span class="chip-count" id="myBookingsCount" hidden></span>
+      </button>
+    </div>
     <select id="jobType" hidden aria-hidden="true">
       <option value="" selected disabled hidden></option>
       <option value="tip">Tip Run</option>
@@ -830,6 +838,12 @@
       <p class="quote-note">WhatsApp opens with your full quote prefilled.<br>Ben will confirm the final price.</p>
     </div>
     <div class="quote-actions">
+      <button id="btnBookNow" class="btn btn-primary" type="button">
+        <span class="btn-emoji" aria-hidden="true">&#128197;</span><span>Book this job</span>
+      </button>
+      <button id="btnSaveQuote" class="btn btn-ghost" type="button">
+        <span class="btn-emoji" aria-hidden="true">&#128190;</span><span>Save quote</span>
+      </button>
       <button id="btnShare" class="btn btn-ghost" type="button">
         <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
           <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0-12 4 4m-4-4-4 4M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>
@@ -852,6 +866,17 @@
     </div>
   </div>
 
+</div>
+
+<div id="bhdModal" class="bhd-modal hidden" hidden role="dialog" aria-modal="true" aria-labelledby="bhdModalTitle">
+  <div class="bhd-modal-backdrop" data-bhd-close></div>
+  <div class="bhd-modal-panel">
+    <div class="bhd-modal-head">
+      <strong id="bhdModalTitle">&nbsp;</strong>
+      <button class="btn btn-ghost btn-sm" type="button" data-bhd-close>Close &#x2715;</button>
+    </div>
+    <div class="bhd-modal-body" id="bhdModalBody"></div>
+  </div>
 </div>
 
 <input type="checkbox" id="helpToggle"/>
@@ -911,6 +936,7 @@
 <script src="config.js?v=r428"></script>
 <script src="main.js?v=r428" defer></script>
 <script src="enhance.js?v=r428" defer></script>
+<script src="quotes-bookings.js?v=r428" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
