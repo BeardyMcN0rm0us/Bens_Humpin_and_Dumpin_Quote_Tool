@@ -124,14 +124,15 @@
   }
   function appUrl() { return location.origin + location.pathname; }
   function buildBenLink(booking) {
+    // Keep this payload small — the breakdown is already in the message
+    // body, no need to duplicate it inside the deeplink.
     var p = {
       v: 1, k: 'ben', id: booking.id, dt: booking.whenISO,
       svc: booking.jobLabel || booking.jobType || '',
       est: booking.total || '',
-      n: booking.name || '', ph: booking.phone || '', em: booking.email || '',
-      a: booking.address || '', nt: booking.notes || '',
-      qid: booking.quoteId || '',
-      bd: (booking.breakdown || []).slice(0, 14)
+      n: booking.name || '', ph: booking.phone || '',
+      a: booking.address || '',
+      qid: booking.quoteId || ''
     };
     return appUrl() + '?bhd=' + encodePayload(p);
   }
@@ -154,6 +155,10 @@
     if (!digits) return '';
     if (!plus && digits.charAt(0) === '0') digits = '44' + digits.slice(1);
     return digits;
+  }
+  function displayPhone(raw) {
+    var d = normalizePhone(raw);
+    return d ? '+' + d : (raw || '');
   }
   function waOpen(phone, msg) {
     var num = normalizePhone(phone);
@@ -497,7 +502,7 @@
       "Service: " + (b.jobLabel || b.jobType || 'N/A'),
       "When: " + b.date + " at " + b.time,
       "Name: " + b.name,
-      "Mobile: " + b.phone,
+      "Mobile: " + displayPhone(b.phone),
       b.email ? "Email: " + b.email : '',
       b.address ? "Address / access: " + b.address : '',
       b.notes ? "Notes: " + b.notes : '',
@@ -603,7 +608,7 @@
       '</div>' +
       '<div class="bhd-card" style="margin-bottom:14px">' +
         '<div class="bhd-card-head"><strong>' + esc(b.name || '') + '</strong>' +
-          '<span class="bhd-meta">' + esc(b.phone || '') + '</span></div>' +
+          '<span class="bhd-meta">' + esc(displayPhone(b.phone)) + '</span></div>' +
         (b.email   ? '<div class="bhd-meta">' + esc(b.email) + '</div>' : '') +
         (b.address ? '<div class="bhd-meta">📍 ' + esc(b.address) + '</div>' : '') +
         (b.notes   ? '<div class="bhd-meta">📝 ' + esc(b.notes) + '</div>' : '') +
@@ -864,7 +869,7 @@
               '📅 ' + esc(b.date) + ' at ' + esc(b.time) +
             '</div>' +
             '<div class="bhd-meta">' +
-              esc(b.id) + ' · ' + esc(b.name) + ' · ' + esc(b.phone) +
+              esc(b.id) + ' · ' + esc(b.name) + ' · ' + esc(displayPhone(b.phone)) +
               (b.address ? ' · ' + esc(b.address) : '') +
             '</div>' +
             (b.total ? '<div class="bhd-meta"><strong>' + esc(b.total) + '</strong></div>' : '') +
