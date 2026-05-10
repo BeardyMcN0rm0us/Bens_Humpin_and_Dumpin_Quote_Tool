@@ -403,14 +403,17 @@
 
   <div id="gardenNeighbourWrap" class="hidden" hidden>
     <div class="field-group">
-      <label class="field-label" for="gardenNeighbour1">&#128205; Neighbour 1 address</label>
-      <input id="gardenNeighbour1" type="text" placeholder="Address or postcode&hellip;">
+      <label class="field-label" for="gardenNeighbour1">&#128205; Neighbour 1 &mdash; full address</label>
+      <input id="gardenNeighbour1" type="text" placeholder="Start typing the address&hellip;" autocomplete="off">
     </div>
     <div class="field-group">
-      <label class="field-label" for="gardenNeighbour2">&#128205; Neighbour 2 address (optional)</label>
-      <input id="gardenNeighbour2" type="text" placeholder="Address or postcode&hellip;">
+      <label class="field-label" for="gardenNeighbour2">&#128205; Neighbour 2 &mdash; full address (optional)</label>
+      <input id="gardenNeighbour2" type="text" placeholder="Start typing the address&hellip;" autocomplete="off">
     </div>
     <div class="hint" id="gardenNeighbourHint"></div>
+    <div class="hint" id="gardenNeighbourStreetWarn" style="display:none;color:#b35c00">
+      &#9888;&#65039; These addresses are on different streets &mdash; the discount applies for properties on the same or adjacent streets. Ben will confirm at booking.
+    </div>
   </div>
 
   <div id="gardenOngoingDiscountNote" class="hint" style="display:none">
