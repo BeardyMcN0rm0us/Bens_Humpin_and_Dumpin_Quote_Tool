@@ -418,11 +418,8 @@ window.BHD = Object.assign({
     }
 
     if(els.gardenNeighbourHint){
-      const ratePerAddr = (team==='two'||team==='three')
-        ? (CFG.gardenNeighbourDiscountTwoMan||10)
-        : (CFG.gardenNeighbourDiscountSolo||5);
-      const teamLabel = team==='three' ? '3-person team' : team==='two' ? '2-person team' : 'solo';
-      els.gardenNeighbourHint.textContent = '£'+ratePerAddr+' off per neighbour\'s property — not the total ('+teamLabel+', up to 2 neighbours = £'+(ratePerAddr*2)+' off). Neighbours must be on the same street or an adjacent street.';
+      const flat = Number(CFG.gardenNeighbourDiscountSolo||5);
+      els.gardenNeighbourHint.textContent = '£'+flat+' off your booking when a neighbour also books — flat rate, not per address. Each property gets £'+flat+' off their own quote. Requires at least 2 hours booked. Stacks with the weekly loyalty discount. Neighbours must be on the same street or an adjacent street.';
     }
 
     if(els.gardenDiscountWarning){
@@ -1056,19 +1053,24 @@ window.BHD = Object.assign({
     let discountLabel='';
 
     const pensionerPct = Number(CFG.gardenPensionerDiscountPct||10);
-    const neighbourRatePerAddr = (team==='two'||team==='three')
-      ? Number(CFG.gardenNeighbourDiscountTwoMan||10)
-      : Number(CFG.gardenNeighbourDiscountSolo||5);
+    const neighbourFlat = Number(CFG.gardenNeighbourDiscountSolo||5);
     const pctCfg=CFG.gardenOngoingDiscountPct;
     const ongoingPct = typeof pctCfg==='object'&&pctCfg!==null ? Number(pctCfg[frequency]||pctCfg.fortnightly||10) : Number(pctCfg||10);
+
+    const neighbourCount = (neighbour1?1:0) + (neighbour2?1:0);
+    const neighbourEligible = neighbourCount>0 && hours>=2;
+    const neighbourActive = discountType==='neighbour' && neighbourEligible;
 
     if(discountType==='pensioner'){
       discountAmount = baseAmount * (pensionerPct/100);
       discountLabel = 'Pensioner discount ('+pensionerPct+'% off)';
     } else if(discountType==='neighbour'){
-      const addrCount = (neighbour1?1:0) + (neighbour2?1:0);
-      discountAmount = neighbourRatePerAddr * addrCount;
-      discountLabel = 'Neighbour discount ('+addrCount+' address'+(addrCount!==1?'es':'')+' × £'+neighbourRatePerAddr+')';
+      if(neighbourEligible){
+        discountAmount = neighbourFlat;
+        discountLabel = 'Neighbour discount (£'+neighbourFlat+' off — neighbour also booking)';
+      } else if(neighbourCount>0 && hours<2){
+        lines.push('ℹ️ Neighbour discount needs at least 2 hours booked');
+      }
     }
 
     let ongoingDiscountAmount=0;
@@ -1076,10 +1078,16 @@ window.BHD = Object.assign({
       ongoingDiscountAmount = baseAmount * (ongoingPct/100);
     }
 
+    const stackNeighbourWithWeekly = neighbourActive && schedule==='ongoing' && frequency==='weekly';
+
     let appliedDiscount=0;
     let appliedLabel='';
     let stackNote='';
-    if(discountAmount>0 && ongoingDiscountAmount>0){
+    if(stackNeighbourWithWeekly){
+      appliedDiscount = discountAmount + ongoingDiscountAmount;
+      lines.push(discountLabel+': −£'+discountAmount.toFixed(2));
+      lines.push('Weekly loyalty discount ('+ongoingPct+'% off): −£'+ongoingDiscountAmount.toFixed(2));
+    } else if(discountAmount>0 && ongoingDiscountAmount>0){
       if(discountAmount >= ongoingDiscountAmount){
         appliedDiscount=discountAmount;
         appliedLabel=discountLabel;
@@ -1089,19 +1097,20 @@ window.BHD = Object.assign({
         appliedLabel='Ongoing loyalty discount ('+ongoingPct+'% off)';
         stackNote='('+discountLabel+' not stacked — ongoing loyalty gives the greater saving)';
       }
+      lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
+      if(stackNote) lines.push('ℹ️ '+stackNote);
     } else if(discountAmount>0){
       appliedDiscount=discountAmount;
       appliedLabel=discountLabel;
+      lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
     } else if(ongoingDiscountAmount>0){
       appliedDiscount=ongoingDiscountAmount;
       appliedLabel='Ongoing loyalty discount ('+ongoingPct+'% off)';
+      lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
     }
 
     let subtotal=baseAmount + weedKillingCost - appliedDiscount;
     if(subtotal<0) subtotal=0;
-
-    if(appliedDiscount>0) lines.push(appliedLabel+': −£'+appliedDiscount.toFixed(2));
-    if(stackNote) lines.push('ℹ️ '+stackNote);
 
     const rangePct=Number((CFG.rangePct&&CFG.rangePct.garden)||0.10);
     const lo=Math.round(subtotal*(1-rangePct));
