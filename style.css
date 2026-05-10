@@ -1492,3 +1492,22 @@ body.bhd-modal-open { overflow: hidden; }
 
 /* Quote action button emoji */
 .btn-emoji { font-size: 1.05rem; margin-right: 4px; }
+
+.bhd-suggest-banner {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(255,178,107,0.10);
+  border: 1px solid rgba(255,178,107,0.32);
+  border-radius: var(--r-sm, 12px);
+}
+.bhd-suggest-banner .bhd-card-actions { margin-top: 8px; }
+.bhd-status-suggested {
+  background: rgba(245, 200, 100, 0.18);
+  color: #ffd28a;
+  border-color: rgba(245, 200, 100, 0.4);
+}
+.bhd-status-declined {
+  background: rgba(241,90,74,0.14);
+  color: #ffb6ad;
+  border-color: rgba(241,90,74,0.4);
+}
