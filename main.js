@@ -419,7 +419,7 @@ window.BHD = Object.assign({
 
     if(els.gardenNeighbourHint){
       const flat = Number(CFG.gardenNeighbourDiscountSolo||5);
-      els.gardenNeighbourHint.textContent = '£'+flat+' off your booking when a neighbour also books — flat rate, not per address. Each property gets £'+flat+' off their own quote. Requires at least 2 hours booked. Stacks with the weekly loyalty discount. Neighbours must be on the same street or an adjacent street.';
+      els.gardenNeighbourHint.textContent = '£'+flat+' off your booking when a neighbour also books — flat rate, not per address. Each property gets £'+flat+' off their own quote. Requires at least 2 hours booked. Neighbours must be on the same street or an adjacent street. Cannot be combined with other discounts — the bigger one applies.';
     }
 
     if(els.gardenDiscountWarning){
@@ -1078,16 +1078,10 @@ window.BHD = Object.assign({
       ongoingDiscountAmount = baseAmount * (ongoingPct/100);
     }
 
-    const stackNeighbourWithWeekly = neighbourActive && schedule==='ongoing' && frequency==='weekly';
-
     let appliedDiscount=0;
     let appliedLabel='';
     let stackNote='';
-    if(stackNeighbourWithWeekly){
-      appliedDiscount = discountAmount + ongoingDiscountAmount;
-      lines.push(discountLabel+': −£'+discountAmount.toFixed(2));
-      lines.push('Weekly loyalty discount ('+ongoingPct+'% off): −£'+ongoingDiscountAmount.toFixed(2));
-    } else if(discountAmount>0 && ongoingDiscountAmount>0){
+    if(discountAmount>0 && ongoingDiscountAmount>0){
       if(discountAmount >= ongoingDiscountAmount){
         appliedDiscount=discountAmount;
         appliedLabel=discountLabel;
