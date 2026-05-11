@@ -291,6 +291,119 @@
       bEl.textContent = bc;
       bEl.toggleAttribute('hidden', bc === 0);
     }
+    var aEl = $('adminPendingCount');
+    if (aEl) {
+      var pending = Store.adminBookings().filter(function (b) { return b.status === 'pending'; }).length;
+      aEl.textContent = pending;
+      aEl.toggleAttribute('hidden', pending === 0);
+    }
+  }
+
+  /* ── admin PIN + dashboard ───────────────────────────────────── */
+  var adminUnlocked = false;
+
+  function openAdminPinModal() {
+    var html =
+      '<div style="text-align:center;padding:20px 0 8px">' +
+        '<div style="font-size:2.5rem;margin-bottom:10px">&#128274;</div>' +
+        '<p style="font-weight:600;margin:0 0 18px">Enter admin PIN</p>' +
+        '<input type="password" id="adminPinInput" inputmode="numeric" pattern="[0-9]*" ' +
+               'maxlength="6" autocomplete="off" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" ' +
+               'style="font-size:1.8rem;letter-spacing:0.4em;text-align:center;width:180px;' +
+                      'border:2px solid var(--clr-border,#e0e0e0);border-radius:10px;padding:10px 8px;' +
+                      'background:var(--clr-surface,#f8f8f8)">' +
+        '<div id="adminPinErr" style="color:#e53e3e;font-size:0.85rem;margin-top:10px;min-height:18px"></div>' +
+      '</div>';
+    modal.open('Admin Access', html);
+    var inp = $('adminPinInput');
+    if (!inp) return;
+    // Small delay so the modal animation finishes before keyboard pops
+    setTimeout(function () { inp.focus(); }, 120);
+    inp.addEventListener('input', function () {
+      $('adminPinErr').textContent = '';
+      if (inp.value.length === 6) {
+        var correct = String((window.BHD && window.BHD.adminPin) || '010203');
+        if (inp.value === correct) {
+          adminUnlocked = true;
+          openAdminDashboard();
+        } else {
+          inp.value = '';
+          $('adminPinErr').textContent = 'Incorrect PIN — try again';
+          inp.focus();
+        }
+      }
+    });
+  }
+
+  function openAdminDashboard() {
+    var all = Store.adminBookings().filter(function (b) { return b.status !== 'removed'; }).slice().sort(function (a, b) {
+      return new Date(b.receivedAt || b.createdAt || 0) - new Date(a.receivedAt || a.createdAt || 0);
+    });
+    var pending   = all.filter(function (b) { return b.status === 'pending';   }).length;
+    var confirmed = all.filter(function (b) { return b.status === 'confirmed'; }).length;
+    var html;
+    if (!all.length) {
+      html =
+        '<div class="bhd-empty-state">' +
+          '<span class="bhd-empty-icon">&#128203;</span>' +
+          '<div class="bhd-empty-title">No bookings yet</div>' +
+          '<div class="bhd-empty-sub">Customer booking requests will appear here when you tap their links.</div>' +
+        '</div>';
+    } else {
+      var summary = all.length + ' total';
+      if (pending)   summary += ' &nbsp;·&nbsp; <strong style="color:#c0392b">' + pending + ' pending</strong>';
+      if (confirmed) summary += ' &nbsp;·&nbsp; <span style="color:#27ae60">' + confirmed + ' confirmed</span>';
+      html =
+        '<div style="font-size:0.85rem;color:var(--clr-muted,#666);margin-bottom:12px">' + summary + '</div>' +
+        '<ul class="bhd-list">' +
+        all.map(function (b) {
+          var statusClass = 'bhd-status bhd-status-' + (b.status || 'pending');
+          var whenStr = b.whenISO ? fmtDate(b.whenISO) : '(no date)';
+          var canReview = b.status === 'pending' || b.status === 'suggested';
+          return '<li class="bhd-card" data-adm-id="' + esc(b.id) + '">' +
+            '<div class="bhd-card-head">' +
+              '<strong>' + esc(b.name || 'Customer') + '</strong>' +
+              '<span class="' + esc(statusClass) + '">' + esc(b.status || 'pending') + '</span>' +
+            '</div>' +
+            '<div class="bhd-meta">&#128197; ' + esc(whenStr) + '</div>' +
+            '<div class="bhd-meta">' + esc(b.jobLabel || b.jobType || '') +
+              (b.total ? ' &nbsp;&middot;&nbsp; <strong>' + esc(b.total) + '</strong>' : '') + '</div>' +
+            '<div class="bhd-meta">' + esc(b.id) +
+              (b.phone   ? ' &nbsp;&middot;&nbsp; ' + esc(displayPhone(b.phone)) : '') +
+              (b.address ? ' &nbsp;&middot;&nbsp; &#128205; ' + esc(b.address)   : '') +
+            '</div>' +
+            '<div class="bhd-card-actions">' +
+              (canReview
+                ? '<button class="btn btn-primary btn-sm" type="button" data-adm-act="review">Review &rarr;</button>'
+                : '') +
+              '<button class="btn btn-ghost btn-sm" type="button" data-adm-act="del">Remove</button>' +
+            '</div>' +
+          '</li>';
+        }).join('') +
+        '</ul>';
+    }
+    modal.open('&#128203; All Bookings', html);
+    var body = $('bhdModalBody');
+    if (!body) return;
+    body.querySelectorAll('.bhd-card').forEach(function (card) {
+      var id = card.getAttribute('data-adm-id');
+      card.querySelectorAll('[data-adm-act]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-adm-act');
+          var b = Store.adminBookings().filter(function (x) { return x.id === id; })[0];
+          if (!b) return;
+          if (act === 'review') {
+            renderBenReview(b);
+          } else if (act === 'del') {
+            if (!confirm('Remove this booking from your list?')) return;
+            // soft-delete: mark removed so it doesn't clutter the list
+            Store.updateAdminBooking(id, { status: 'removed' });
+            refreshCounts();
+            openAdminDashboard();
+          }
+        });
+      });
+    });
   }
 
   /* ── save current quote ──────────────────────────────────────── */
@@ -1135,6 +1248,10 @@
     });
     safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
     safeWire($('btnMyBookings'), 'My bookings',   openBookingsModal);
+    safeWire($('btnAdmin'),      'Admin', function () {
+      if (adminUnlocked) openAdminDashboard();
+      else openAdminPinModal();
+    });
   }
 
   /* ── init ────────────────────────────────────────────────────── */

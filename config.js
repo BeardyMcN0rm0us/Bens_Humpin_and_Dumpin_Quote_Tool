@@ -213,6 +213,11 @@ bikeCollectionFlatFee:   5,      // £ flat collect & return fee
 bikeCollectionPerMile:   0.50,   // £/mile if using mileage mode
 bikeCollectionWaivedAbove: 60,   // waive collection fee if labour+parts total >= this
 
+// ── Admin PIN ─────────────────────────────────────────────────
+// PIN to access Ben's admin booking dashboard. Change here at any time —
+// no redeploy needed. Keep it numeric.
+adminPin: '010203',
+
 // ── Special offers & discounts ────────────────────────────────
 // Set type to 'percent' or 'fixed' to activate an offer.
 // 'percent' = value is % off  (e.g. 10 = 10% off)
