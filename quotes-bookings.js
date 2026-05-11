@@ -314,7 +314,12 @@
     var list = Store.quotes();
     var html;
     if (!list.length) {
-      html = '<p class="bhd-empty">No saved quotes yet. Calculate one and tap <strong>Save quote</strong>.</p>';
+      html = '<div class="bhd-empty-state">' +
+        '<span class="bhd-empty-icon">💾</span>' +
+        '<div class="bhd-empty-title">No saved quotes yet</div>' +
+        '<div class="bhd-empty-sub">Tap a job type, fill in the details,<br>then hit <strong>Save</strong> to store it here.</div>' +
+        '<button class="bhd-empty-cta" type="button" data-bhd-close>Get a quote →</button>' +
+        '</div>';
     } else {
       html =
         '<div class="bhd-list-actions">' +
@@ -928,7 +933,12 @@
     var list = Store.bookings();
     var html;
     if (!list.length) {
-      html = '<p class="bhd-empty">No bookings yet. After calculating a quote, tap <strong>Book this job</strong>.</p>';
+      html = '<div class="bhd-empty-state">' +
+        '<span class="bhd-empty-icon">📅</span>' +
+        '<div class="bhd-empty-title">No bookings yet</div>' +
+        '<div class="bhd-empty-sub">Get a quote, then tap <strong>Book</strong><br>to request a slot with Ben.</div>' +
+        '<button class="bhd-empty-cta" type="button" data-bhd-close>Get a quote →</button>' +
+        '</div>';
     } else {
       html =
         '<ul class="bhd-list">' +

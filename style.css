@@ -1266,6 +1266,160 @@ select[hidden] { display: none !important; }
 }
 
 /* ════════════════════════════════════════════════════════════════
+   RECENT TILE BADGE
+   ════════════════════════════════════════════════════════════════ */
+.tile.is-recent::after {
+  content: 'RECENT';
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border: 1px solid rgba(255,178,107,0.35);
+  border-radius: 999px;
+  padding: 2px 7px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ITEMISED BREAKDOWN LINES
+   ════════════════════════════════════════════════════════════════ */
+.bd-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+.bd-line:last-child { border-bottom: none; padding-bottom: 2px; }
+.bd-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  margin-top: 1px;
+}
+.bd-text {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--ink2);
+  font-weight: 600;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PRICE TIER COLOUR TINTING
+   ════════════════════════════════════════════════════════════════ */
+.amount.price-low  { filter: hue-rotate(95deg) saturate(1.1); }
+.amount.price-high { filter: hue-rotate(-18deg) saturate(1.2); }
+
+/* ════════════════════════════════════════════════════════════════
+   QUOTE SKELETON (shows while price transitions in)
+   ════════════════════════════════════════════════════════════════ */
+#quoteSkeleton {
+  padding: 16px 16px 0;
+  transition: opacity 0.4s ease;
+}
+#quoteSkeleton.is-gone {
+  opacity: 0;
+  pointer-events: none;
+}
+.skel-amount-block {
+  height: 120px;
+  border-radius: var(--r-xl);
+  margin-bottom: 18px;
+}
+.skel-row {
+  height: 14px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.skel-row.w90 { width: 90%; }
+.skel-row.w72 { width: 72%; }
+.skel-row.w85 { width: 85%; }
+.skel-row.w60 { width: 60%; }
+.skel-cta { height: 52px; border-radius: 999px; margin-top: 18px; }
+
+/* ════════════════════════════════════════════════════════════════
+   ENHANCED EMPTY STATES  (quotes & bookings modal)
+   ════════════════════════════════════════════════════════════════ */
+.bhd-empty-state {
+  text-align: center;
+  padding: 32px 20px 24px;
+}
+.bhd-empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 4px 12px rgba(255,178,107,0.25));
+}
+.bhd-empty-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.bhd-empty-sub {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink2);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.bhd-empty-cta {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--brand-grad);
+  color: var(--on-brand);
+  font-weight: 900;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: none;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: 0.03em;
+  box-shadow: 0 8px 22px rgba(255,122,89,0.3);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur);
+  -webkit-tap-highlight-color: transparent;
+}
+.bhd-empty-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(255,122,89,0.4);
+}
+.bhd-empty-cta:active { transform: scale(0.97); }
+
+/* ════════════════════════════════════════════════════════════════
+   STICKY QUOTE ACTIONS BAR  (panel 3 bottom)
+   ════════════════════════════════════════════════════════════════ */
+.quote-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent 0%, rgba(11,12,16,0.88) 28%, rgba(11,12,16,0.97) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.quote-actions .btn {
+  flex: 1;
+  padding: 13px 8px;
+  font-size: 0.84rem;
+  border-radius: 999px;
+  margin: 0;
+  min-width: 0;
+}
+.quote-actions .btn + .btn { margin-top: 0; }
+
+/* ════════════════════════════════════════════════════════════════
    REDUCED MOTION
    ════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
