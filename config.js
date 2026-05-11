@@ -12,7 +12,7 @@ window.BHD = {
 // (?bhd=...) are also ignored. Use this as a kill switch if the
 // feature misbehaves in production — no redeploy of code needed.
 features: {
-  quotesBookings: false,
+  quotesBookings: true,
 },
 
 // ── Mileage & surcharges ──────────────────────────────────────
