@@ -126,14 +126,37 @@ window.BHD = Object.assign({
   const legsMeters=legs=>legs.reduce((s,l)=>s+((l.distance&&l.distance.value)||0),0);
   const quoteId=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return "ID"+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+"-"+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds());};
 
+  const BD_ICONS=[
+    [/service/i,'🔧'],[/mileage|miles? @/i,'🚗'],[/charged:/i,'🚗'],
+    [/base fee/i,'📋'],[/labour|labor|\bhrs?\b/i,'⏱'],[/luton/i,'🚐'],
+    [/disposal|waste remov/i,'♻️'],[/two.person|helper/i,'👥'],
+    [/assembly/i,'🔩'],[/package/i,'📦'],[/discount/i,'✂️'],
+    [/stairs/i,'🏠'],[/minimum/i,'⚡'],[/ongoing/i,'🔄'],
+    [/parts/i,'🔩'],[/collection/i,'🚲'],[/rental|bale/i,'🌾'],
+    [/run time/i,'🕐'],[/items?:/i,'📦'],
+  ];
+  function bdIcon(text){
+    for(var i=0;i<BD_ICONS.length;i++) if(BD_ICONS[i][0].test(text)) return BD_ICONS[i][1];
+    return '·';
+  }
+
   const setBreakdownLines=(el,entries)=>{
     if(!el) return;
-    el.textContent='';
-    (entries||[]).forEach((entry,i)=>{
-      if(i>0) el.appendChild(document.createElement('br'));
-      const span=document.createElement('span');
-      span.textContent='• '+entry;
-      el.appendChild(span);
+    el.innerHTML='';
+    (entries||[]).forEach((entry,idx)=>{
+      const row=document.createElement('div');
+      row.className='bd-line br-line';
+      row.style.setProperty('--i',idx);
+      const icon=document.createElement('span');
+      icon.className='bd-icon';
+      icon.setAttribute('aria-hidden','true');
+      icon.textContent=bdIcon(entry);
+      const text=document.createElement('span');
+      text.className='bd-text';
+      text.textContent=entry;
+      row.appendChild(icon);
+      row.appendChild(text);
+      el.appendChild(row);
     });
   };
 
@@ -1149,13 +1172,7 @@ window.BHD = Object.assign({
         lines.push("Mileage: "+chargedMiles.toFixed(1)+" miles return @ £"+gardenMileRate.toFixed(2)+"/mile = £"+mileageCost.toFixed(2));
       }
       q.lines.forEach(l=>lines.push(l));
-      if(els.breakdown){
-        els.breakdown.textContent='';
-        lines.forEach((l,i)=>{
-          if(i>0) els.breakdown.appendChild(document.createElement('br'));
-          els.breakdown.appendChild(document.createTextNode('• '+l));
-        });
-      }
+      if(els.breakdown) setBreakdownLines(els.breakdown, lines);
       if(els.total){els.total.textContent="£"+exact; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
@@ -1168,11 +1185,7 @@ window.BHD = Object.assign({
       const pct=pctFor('bike');
       const lo=round5(q.subtotal*(1-pct));
       const hi=round5(q.subtotal*(1+pct));
-      if(els.breakdown){
-        els.breakdown.textContent='';
-        const bikeLines=['Service: '+jobLabel(jt)].concat(q.lines);
-        bikeLines.forEach((l,i)=>{if(i>0)els.breakdown.appendChild(document.createElement('br'));els.breakdown.appendChild(document.createTextNode('• '+l));});
-      }
+      if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt)].concat(q.lines));
       if(els.total){els.total.textContent='£'+lo+'–£'+hi; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent='Quote ID — '+quoteId();
       if(els.btnWA){els.btnWA.removeAttribute('hidden');els.btnWA.classList.remove('hidden');}

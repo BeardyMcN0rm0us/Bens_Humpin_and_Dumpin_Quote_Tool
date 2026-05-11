@@ -84,8 +84,22 @@
       tile.addEventListener('click', function () {
         buzz(8);
         var job = tile.dataset.job;
-        if (job) try { localStorage.setItem(RESUME_KEY, job); } catch (e) {}
+        if (job) {
+          try { localStorage.setItem(RESUME_KEY, job); } catch (e) {}
+          markRecentTile(job);
+        }
       });
+    });
+  }
+
+  /* ── Mark last-used tile with a "Recent" badge ───────────────── */
+  function markRecentTile(job) {
+    var target = job;
+    if (!target) {
+      try { target = localStorage.getItem(RESUME_KEY); } catch (e) {}
+    }
+    document.querySelectorAll('.tile').forEach(function (tile) {
+      tile.classList.toggle('is-recent', tile.dataset.job === target);
     });
   }
 
@@ -132,7 +146,7 @@
     });
   }
 
-  /* ── Quote reveal: haptic burst + confetti ───────────────────── */
+  /* ── Quote reveal: haptic burst + confetti + count-up ───────── */
   function wireQuoteReveal() {
     var totalEl = document.getElementById('total');
     if (!totalEl) return;
@@ -142,10 +156,99 @@
         revealed = true;
         buzz(30);
         confettiBurst();
+        hideSkeleton();
+        applyPriceTier(totalEl);
+        countUpPrice(totalEl);
         setTimeout(function () { revealed = false; }, 4000);
       }
     });
     obs.observe(totalEl, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  /* ── Hide the skeleton overlay ───────────────────────────────── */
+  function hideSkeleton() {
+    var sk = document.getElementById('quoteSkeleton');
+    if (sk) sk.classList.add('is-gone');
+  }
+
+  /* ── Price tier: tint the amount green / default / red ──────── */
+  function applyPriceTier(el) {
+    var text = el.textContent || '';
+    var nums = text.match(/\d+/g);
+    if (!nums || !nums.length) return;
+    var mid = nums.reduce(function (s, n) { return s + parseInt(n, 10); }, 0) / nums.length;
+    el.classList.remove('price-low', 'price-high');
+    if (mid < 80) el.classList.add('price-low');
+    else if (mid > 220) el.classList.add('price-high');
+  }
+
+  /* ── Count-up animation on the price figure ──────────────────── */
+  function countUpPrice(el) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var text = el.textContent || '';
+    if (!/\d/.test(text)) return;
+    var nums = text.match(/\d+/g);
+    if (!nums || !nums.length) return;
+    var isRange = nums.length >= 2 && text.indexOf('–') !== -1;
+    var targets = isRange ? [parseInt(nums[0], 10), parseInt(nums[1], 10)] : [parseInt(nums[0], 10)];
+    var duration = 550;
+    var t0 = performance.now();
+    function tick(now) {
+      var elapsed = now - t0;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      if (isRange) {
+        el.textContent = '£' + Math.round(eased * targets[0]) + '–£' + Math.round(eased * targets[1]);
+      } else {
+        el.textContent = '£' + Math.round(eased * targets[0]);
+      }
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = text;
+      }
+    }
+    el.textContent = isRange ? '£0–£0' : '£0';
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Skeleton: reset when calc button is clicked ─────────────── */
+  function wireSkeleton() {
+    var calcBtn = document.getElementById('btnCalc');
+    var sk = document.getElementById('quoteSkeleton');
+    if (!calcBtn || !sk) return;
+    calcBtn.addEventListener('click', function () {
+      sk.classList.remove('is-gone');
+      var totalEl = document.getElementById('total');
+      if (totalEl) totalEl.classList.remove('price-low', 'price-high');
+    });
+  }
+
+  /* ── Swipe right to navigate back between panels ─────────────── */
+  function wireSwipe() {
+    var body = document.getElementById('scrollBody');
+    if (!body) return;
+    var startX = 0, startY = 0;
+    body.addEventListener('touchstart', function (e) {
+      startX = e.changedTouches[0].clientX;
+      startY = e.changedTouches[0].clientY;
+    }, { passive: true });
+    body.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - startX;
+      var dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) < 64 || Math.abs(dy) > Math.abs(dx) * 0.75) return;
+      if (dx > 0) {
+        var p3 = document.getElementById('panel3');
+        var p2 = document.getElementById('panel2');
+        if (p3 && p3.classList.contains('is-visible')) {
+          var b = document.getElementById('btnBackToDetails');
+          if (b) { buzz(6); b.click(); }
+        } else if (p2 && p2.classList.contains('is-visible')) {
+          var b = document.getElementById('btnBack');
+          if (b) { buzz(6); b.click(); }
+        }
+      }
+    }, { passive: true });
   }
 
   /* ── Confetti (canvas, ~30 lines) ─────────────────────────────── */
@@ -595,6 +698,9 @@
     wireQuoteReveal();
     wireShare();
     wireMapPreview();
+    wireSkeleton();
+    wireSwipe();
+    markRecentTile();
     maybeOfferResume();
   }
 
