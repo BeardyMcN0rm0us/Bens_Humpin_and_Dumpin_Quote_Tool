@@ -788,9 +788,51 @@
       status: 'pending'
     };
   }
-  function applyCustomerAction(p) {
+
+  // Shown when a customer deeplink opens in the browser rather than the
+  // installed PWA (iOS always sandboxes the two; their localStorage is
+  // separate). We show a full-panel UI with an "Open in the App" button
+  // that carries the same ?bhd= token — on Android this re-opens inside
+  // the installed PWA; on iOS it at least shows a clear status and points
+  // the customer to the home screen icon.
+  function showCrossContextPanel(statusIcon, statusTitle, statusSub, openUrl, extraBtns) {
+    var extraHtml = (extraBtns || []).map(function (b) {
+      return '<button type="button" class="btn ' + (b.ghost ? 'btn-ghost' : 'btn-whatsapp') +
+             ' btn-sm" style="display:block;width:100%;box-sizing:border-box;margin-top:8px" data-xid="' +
+             esc(b.id) + '">' + b.label + '</button>';
+    }).join('');
+    var html =
+      '<div style="text-align:center;padding:16px 0">' +
+        '<div style="font-size:3rem;line-height:1;margin-bottom:12px">' + statusIcon + '</div>' +
+        '<div style="font-size:1.2rem;font-weight:700;margin-bottom:6px">' + esc(statusTitle) + '</div>' +
+        '<div style="color:var(--clr-muted,#666);font-size:0.95rem;margin-bottom:20px">' + esc(statusSub) + '</div>' +
+        '<div style="background:var(--clr-surface,#f5f5f5);border-radius:10px;padding:12px 14px;' +
+             'margin-bottom:16px;font-size:0.85rem;color:var(--clr-text-mute,#555);text-align:left">' +
+          '⚠️ This link opened in your browser, not the app — so the update ' +
+          'won\'t show in the installed app automatically.<br><br>' +
+          'Tap <strong>Open in App</strong> below, or open <strong>Ben\'s H&D</strong> from ' +
+          'your home screen and tap <strong>My Bookings</strong>.' +
+        '</div>' +
+        '<a href="' + esc(openUrl) + '" class="btn btn-primary" ' +
+           'style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">' +
+          '📱 Open in the App &rarr;' +
+        '</a>' +
+        extraHtml +
+      '</div>';
+    modal.open('Booking Update', html);
+    var body = $('bhdModalBody');
+    if (!body) return;
+    body.querySelectorAll('[data-xid]').forEach(function (btn) {
+      var xid = btn.getAttribute('data-xid');
+      var match = (extraBtns || []).filter(function (b) { return b.id === xid; })[0];
+      if (match && match.onClick) btn.addEventListener('click', match.onClick);
+    });
+  }
+
+  // raw = the original base64 token from the URL, kept so we can rebuild
+  // the ?bhd= link for the "Open in App" button without double-decoding.
+  function applyCustomerAction(p, raw) {
     var booking = Store.bookings().filter(function (x) { return x.id === p.id; })[0];
-    var reconstructed = false;
     if (!booking) {
       booking = reconstructBookingFrom(p);
       if (!booking) {
@@ -802,18 +844,67 @@
         return;
       }
       Store.saveBooking(booking);
-      reconstructed = true;
     }
-    var crossContextHint = (reconstructed && !isStandalone())
-      ? '\nOpen the installed app once to sync.'
-      : '';
+
+    // Apply the status update to this browsing context's localStorage first,
+    // regardless of whether we're in the PWA or the browser. That way "My
+    // Bookings" shows the right state wherever this page is open.
     if (p.act === 'confirm') {
       Store.updateBooking(p.id, { status: 'confirmed', confirmedAt: new Date().toISOString() });
-      refreshCounts();
-      var b1 = Store.bookings().filter(function (x) { return x.id === p.id; })[0] || booking;
+    } else if (p.act === 'decline') {
+      Store.updateBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
+    } else if (p.act === 'suggest') {
+      Store.updateBooking(p.id, {
+        status: 'suggested',
+        suggestedISO: p.dt,
+        suggestedNote: p.nt || '',
+        decidedAt: new Date().toISOString()
+      });
+    }
+    refreshCounts();
+
+    var b1 = Store.bookings().filter(function (x) { return x.id === p.id; })[0] || booking;
+
+    // Cross-context: link opened in browser, not the installed PWA.
+    // Show a prominent panel instead of a toast, and offer an "Open in App"
+    // button that carries the original ?bhd= token so the PWA can process it.
+    if (!isStandalone() && raw) {
+      var openUrl = appUrl() + '?bhd=' + raw;
+      if (p.act === 'confirm') {
+        showCrossContextPanel(
+          '✅', 'Booking Confirmed!',
+          (b1.jobLabel || '') + (b1.date ? ' · ' + b1.date + ' at ' + b1.time : ''),
+          openUrl,
+          [{ id: 'ics', label: '📅 Add to Calendar', ghost: true,
+             onClick: function () { downloadIcs(b1, null); } }]
+        );
+      } else if (p.act === 'decline') {
+        var benNum = (window.BHD && window.BHD.whatsappNumber) || '';
+        showCrossContextPanel(
+          '❌', 'Booking Declined by Ben',
+          'Ben can\'t make the original time. Message him to find an alternative.',
+          openUrl,
+          [{ id: 'msg', label: '💬 Message Ben', ghost: false,
+             onClick: function () {
+               waOpen(benNum, 'Hi Ben, about booking ' + p.id + ' — when could you fit it in?');
+             }}]
+        );
+      } else if (p.act === 'suggest') {
+        showCrossContextPanel(
+          '🕐', 'Ben Suggested a New Time',
+          fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : ''),
+          openUrl,
+          []
+        );
+      }
+      return;
+    }
+
+    // Standalone PWA — normal toast flow.
+    if (p.act === 'confirm') {
       toast({
         icon: '✅', body: 'Booking confirmed',
-        sub: b1.jobLabel + ' · ' + b1.date + ' ' + b1.time + crossContextHint,
+        sub: b1.jobLabel + ' · ' + b1.date + ' ' + b1.time,
         actions: [
           { label: 'Add to calendar', onClick: function () { downloadIcs(b1, null); } },
           { label: 'My bookings', ghost: true, onClick: openBookingsModal }
@@ -821,11 +912,9 @@
         timeout: 9000
       });
     } else if (p.act === 'decline') {
-      Store.updateBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
-      refreshCounts();
       toast({
         icon: '❌', body: 'Booking declined by Ben',
-        sub: 'Tap to message him about an alternative' + crossContextHint,
+        sub: 'Tap to message him about an alternative',
         actions: [
           { label: 'Message Ben', onClick: function () {
               var num = (window.BHD && window.BHD.whatsappNumber) || '';
@@ -836,16 +925,9 @@
         timeout: 9000
       });
     } else if (p.act === 'suggest') {
-      Store.updateBooking(p.id, {
-        status: 'suggested',
-        suggestedISO: p.dt,
-        suggestedNote: p.nt || '',
-        decidedAt: new Date().toISOString()
-      });
-      refreshCounts();
       toast({
         icon: '🕐', body: 'Ben suggested a different time',
-        sub: fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : '') + crossContextHint,
+        sub: fmtDate(p.dt) + (p.nt ? ' — ' + p.nt : ''),
         actions: [
           { label: 'Respond', onClick: openBookingsModal }
         ],
@@ -892,7 +974,7 @@
     try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
     if (!p || !p.k) return;
     if (p.k === 'ben')  setTimeout(function () { openBenReview(p); }, 200);
-    else if (p.k === 'cust') setTimeout(function () { applyCustomerAction(p); }, 200);
+    else if (p.k === 'cust') setTimeout(function () { applyCustomerAction(p, raw); }, 200);
     else if (p.k === 'ben2') setTimeout(function () { applyBenSecondAction(p); }, 200);
   }
 
