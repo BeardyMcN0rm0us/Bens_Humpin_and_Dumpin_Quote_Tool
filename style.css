@@ -1309,10 +1309,11 @@ select[hidden] { display: none !important; }
    ════════════════════════════════════════════════════════════════ */
 #quoteSkeleton {
   padding: 16px 16px 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 #quoteSkeleton.is-gone {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 .skel-amount-block {
   height: 120px;
@@ -1398,9 +1399,8 @@ select[hidden] { display: none !important; }
 }
 .quote-actions .btn {
   flex: 1;
-  width: auto;
   padding: 13px 8px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   border-radius: 999px;
   margin: 0;
   min-width: 0;
