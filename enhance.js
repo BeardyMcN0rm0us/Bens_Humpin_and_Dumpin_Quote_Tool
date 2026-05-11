@@ -156,19 +156,12 @@
         revealed = true;
         buzz(30);
         confettiBurst();
-        hideSkeleton();
         applyPriceTier(totalEl);
         countUpPrice(totalEl);
         setTimeout(function () { revealed = false; }, 4000);
       }
     });
     obs.observe(totalEl, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  /* ── Hide the skeleton overlay ───────────────────────────────── */
-  function hideSkeleton() {
-    var sk = document.getElementById('quoteSkeleton');
-    if (sk) sk.classList.add('is-gone');
   }
 
   /* ── Price tier: tint the amount green / default / red ──────── */
@@ -210,18 +203,6 @@
     }
     el.textContent = isRange ? '£0–£0' : '£0';
     requestAnimationFrame(tick);
-  }
-
-  /* ── Skeleton: reset when calc button is clicked ─────────────── */
-  function wireSkeleton() {
-    var calcBtn = document.getElementById('btnCalc');
-    var sk = document.getElementById('quoteSkeleton');
-    if (!calcBtn || !sk) return;
-    calcBtn.addEventListener('click', function () {
-      sk.classList.remove('is-gone');
-      var totalEl = document.getElementById('total');
-      if (totalEl) totalEl.classList.remove('price-low', 'price-high');
-    });
   }
 
   /* ── Swipe right to navigate back between panels ─────────────── */
@@ -698,7 +679,6 @@
     wireQuoteReveal();
     wireShare();
     wireMapPreview();
-    wireSkeleton();
     wireSwipe();
     markRecentTile();
     maybeOfferResume();

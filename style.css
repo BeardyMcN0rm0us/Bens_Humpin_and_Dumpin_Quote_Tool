@@ -1304,31 +1304,6 @@ select[hidden] { display: none !important; }
 .amount.price-low  { filter: hue-rotate(95deg) saturate(1.1); }
 .amount.price-high { filter: hue-rotate(-18deg) saturate(1.2); }
 
-/* ════════════════════════════════════════════════════════════════
-   QUOTE SKELETON (shows while price transitions in)
-   ════════════════════════════════════════════════════════════════ */
-#quoteSkeleton {
-  padding: 16px 16px 0;
-  transition: opacity 0.3s ease;
-}
-#quoteSkeleton.is-gone {
-  display: none;
-}
-.skel-amount-block {
-  height: 120px;
-  border-radius: var(--r-xl);
-  margin-bottom: 18px;
-}
-.skel-row {
-  height: 14px;
-  border-radius: 999px;
-  margin-bottom: 10px;
-}
-.skel-row.w90 { width: 90%; }
-.skel-row.w72 { width: 72%; }
-.skel-row.w85 { width: 85%; }
-.skel-row.w60 { width: 60%; }
-.skel-cta { height: 52px; border-radius: 999px; margin-top: 18px; }
 
 /* ════════════════════════════════════════════════════════════════
    ENHANCED EMPTY STATES  (quotes & bookings modal)
