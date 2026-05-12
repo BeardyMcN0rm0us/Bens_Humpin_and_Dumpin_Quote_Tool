@@ -16,7 +16,7 @@
 
 <div class="app-header">
   <div class="header-inner">
-    <img src="icon-192.png" alt="logo">
+    <img src="icon-192.png" alt="logo" id="adminTrigger">
     <div class="header-title">
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">Instant Estimate</div>
@@ -42,9 +42,6 @@
       </button>
       <button class="chip-btn" id="btnMyBookings" type="button">
         <span class="chip-icon">&#128197;</span><span>My bookings</span><span class="chip-count" id="myBookingsCount" hidden></span>
-      </button>
-      <button class="chip-btn chip-btn--admin" id="btnAdmin" type="button">
-        <span class="chip-icon">&#128274;</span><span>Admin</span><span class="chip-count chip-count--urgent" id="adminPendingCount" hidden></span>
       </button>
     </div>
     <select id="jobType" hidden aria-hidden="true">
