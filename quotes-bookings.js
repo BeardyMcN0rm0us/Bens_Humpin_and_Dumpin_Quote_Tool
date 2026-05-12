@@ -291,12 +291,6 @@
       bEl.textContent = bc;
       bEl.toggleAttribute('hidden', bc === 0);
     }
-    var aEl = $('adminPendingCount');
-    if (aEl) {
-      var pending = Store.adminBookings().filter(function (b) { return b.status === 'pending'; }).length;
-      aEl.textContent = pending;
-      aEl.toggleAttribute('hidden', pending === 0);
-    }
   }
 
   /* ── admin PIN + dashboard ───────────────────────────────────── */
@@ -1248,7 +1242,7 @@
     });
     safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
     safeWire($('btnMyBookings'), 'My bookings',   openBookingsModal);
-    safeWire($('btnAdmin'),      'Admin', function () {
+    safeWire($('adminTrigger'),  'Admin', function () {
       if (adminUnlocked) openAdminDashboard();
       else openAdminPinModal();
     });
