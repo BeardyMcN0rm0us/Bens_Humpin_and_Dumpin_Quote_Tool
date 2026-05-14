@@ -806,6 +806,30 @@
         </div>
       </div>
 
+      <div id="labourHoursWrap" class="hidden" hidden>
+        <div class="field-group">
+          <label class="field-label">How long will this take?</label>
+          <div class="opt-row">
+            <button class="opt-btn" data-sel="labourHours" data-val="1">1 hr</button>
+            <button class="opt-btn is-active" data-sel="labourHours" data-val="2">2 hrs</button>
+            <button class="opt-btn" data-sel="labourHours" data-val="3">3 hrs</button>
+            <button class="opt-btn" data-sel="labourHours" data-val="4">4 hrs</button>
+            <button class="opt-btn" data-sel="labourHours" data-val="5">5 hrs</button>
+            <button class="opt-btn" data-sel="labourHours" data-val="6">6 hrs</button>
+          </div>
+          <select id="labourHours" hidden aria-hidden="true">
+            <option value="1">1 hr</option>
+            <option value="2" selected>2 hrs</option>
+            <option value="3">3 hrs</option>
+            <option value="4">4 hrs</option>
+            <option value="5">5 hrs</option>
+            <option value="6">6 hrs</option>
+            <option value="8">Full day (8 hrs)</option>
+          </select>
+          <div class="hint" id="labourRateHint"></div>
+        </div>
+      </div>
+
       <div id="descWrap" class="hidden" hidden>
         <div class="field-group">
           <label class="field-label" for="jobDesc">Anything else we should know?</label>

@@ -21,6 +21,11 @@ twoManSurcharge:  20,     // £ added if two-person team requested
 stairsPerFloor:   5,      // £ per floor at pickup + drop-off
 gardenMileagePerMile:   0.00,   // £ per charged mile for gardening work
 
+// ── Hourly labour rate ────────────────────────────────────────
+// Used for tip runs, marketplace pickups, shop runs, student moves
+// and any 'other' job. Mileage is charged on top.
+labourPerHour:    20,     // £/hr — general labour rate
+
 
 // ── Base call-out fees by job type ────────────────────────────
 baseFees: {
@@ -72,18 +77,19 @@ BEDROOM_LOAD_MULTIPLIERS: {
 disposalMinPct: 0.26,
 disposalVat: 0.20,     // 25% of published rate (minimum load)
 disposal: {
-general:   { label: "General Waste",              ratePerTonne: 192.50 },
-soil:      { label: "Soil / Inert",               ratePerTonne:  69.75 },
-hardcore:  { label: "Hardcore",                   ratePerTonne:  25.75 },
-plaster:   { label: "Plasterboard",               ratePerTonne: 105.00 },
-wood:      { label: "Mixed Wood",                 ratePerTonne:  91.00 },
-mdf:       { label: "MDF",                        ratePerTonne: 175.00 },
-metal:     { label: "Metals",                     ratePerTonne:  27.00 },
-plastics:  { label: "Rigid / Agricultural Plastics", ratePerTonne: 186.23 },
-green:     { label: "Green Material",             ratePerTonne:  90.00 },
-cardboard: { label: "Cardboard (clean)",          ratePerTonne:  25.00 },
-dmr:       { label: "Dry Mixed Recycling",        ratePerTonne: 145.00 },
-wuds:      { label: "WUDs & POPs",                ratePerTonne: 345.00 },
+general:   { label: "General Waste",                                  ratePerTonne: 192.50 },
+sofas:     { label: "Sofas, Mattresses & Upholstered Furniture",      ratePerTonne: 345.00 },
+soil:      { label: "Soil / Inert",                                   ratePerTonne:  69.75 },
+hardcore:  { label: "Hardcore",                                       ratePerTonne:  25.75 },
+plaster:   { label: "Plasterboard",                                   ratePerTonne: 105.00 },
+wood:      { label: "Mixed Wood",                                     ratePerTonne:  91.00 },
+mdf:       { label: "MDF",                                            ratePerTonne: 175.00 },
+metal:     { label: "Metals",                                         ratePerTonne:  27.00 },
+plastics:  { label: "Rigid / Agricultural Plastics",                  ratePerTonne: 186.23 },
+green:     { label: "Green Material",                                 ratePerTonne:  90.00 },
+cardboard: { label: "Cardboard (clean)",                              ratePerTonne:  25.00 },
+dmr:       { label: "Dry Mixed Recycling",                            ratePerTonne: 145.00 },
+wuds:      { label: "Other WUDs / POPs (treated wood, chemicals etc)",ratePerTonne: 345.00 },
 },
 
 // ── IKEA / flat pack assembly ─────────────────────────────────
