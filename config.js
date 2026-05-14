@@ -25,6 +25,7 @@ gardenMileagePerMile:   0.00,   // £ per charged mile for gardening work
 // Used for tip runs, marketplace pickups, shop runs, student moves
 // and any 'other' job. Mileage is charged on top.
 labourPerHour:    20,     // £/hr — general labour rate
+loadingMins:      30,     // minutes of loading/unloading added to driving time
 
 
 // ── Base call-out fees by job type ────────────────────────────
