@@ -498,6 +498,7 @@ function hideAll(){
     const mode=CFG.bikeCollectionMode||'flat';
     const waive=Number(CFG.bikeCollectionWaivedAbove||60);
     if(mode==='flat'){
+    if(mode==='flat'){
       const fee=Number(CFG.bikeCollectionFlatFee||5);
       els.bikeCollectionHint.textContent='£'+fee.toFixed(2)+' collect & return fee — waived on jobs over £'+waive;
     }else{
@@ -1209,7 +1210,6 @@ function hideAll(){
     const loopMiles=round1(milesObj&&milesObj.loop||0);
     const noteC=milesObj&&milesObj.noteCharged||'';
     const noteL=milesObj&&milesObj.noteLoop||'';
-    const pcHome=postcode(CFG.homeAddress);
     const pcTip=postcode(CFG.waterbeachAddress);
     const pcPickup=postcode((els.addrPickup&&els.addrPickup.value)||'');
     const pcDrop=postcode((els.addrDrop&&els.addrDrop.value)||'');
@@ -1268,15 +1268,15 @@ function hideAll(){
     if(jt==='bags'){
       bags.lines.forEach(l=>lines.push(l));
     }else if(jt==='tip'){
-      const tipRoute=[pcHome,pcPickup,pcTip,pcHome].filter(Boolean).join(' → ');
+      const tipRoute=["H&D HQ",pcPickup,pcTip+" (Waterbeach)","H&D HQ"].filter(Boolean).join(' → ');
       lines.push("Total journey: "+loopMiles.toFixed(1)+" miles"+(tipRoute?" ("+tipRoute+")":""));
-      const tipChRoute=[pcHome,pcPickup,pcTip].filter(Boolean).join(' → ');
+      const tipChRoute=["H&D HQ",pcPickup,pcTip+" (Waterbeach)"].filter(Boolean).join(' → ');
       lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile"+(tipChRoute?" ("+tipChRoute+")":""));
       lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" ("+Math.round(drivingMins)+" min drive + "+loadingMins+" min loading) @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
       lines.push("Mileage: £"+mileageCost.toFixed(2));
     }else{
       const genRoute=(jt==='move'||jt==='fb'||jt==='student'||jt==='shop'||jt==='other'||jt==='ikea')
-        ?[pcHome,pcPickup,pcDrop,pcHome].filter(Boolean).join(' → ')
+        ?["H&D HQ",pcPickup,pcDrop,"H&D HQ"].filter(Boolean).join(' → ')
         :'';
       lines.push("Charged: "+loopMiles.toFixed(1)+" miles"+(genRoute?" ("+genRoute+")":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile");
       if(isHourly){
@@ -1440,5 +1440,3 @@ function hideAll(){
   if(els.btnWA) els.btnWA.addEventListener('click',sendWhatsApp);
   hideAll(); setUI();
   renderList($('ikeaList'),$('ikeaTimeHint'),[]);
-  renderList($('flatList'),$('flatTimeHint'),[]);
-})();
