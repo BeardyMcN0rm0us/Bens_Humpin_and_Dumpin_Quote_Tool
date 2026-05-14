@@ -11,6 +11,7 @@ window.BHD = Object.assign({
   twoManSurcharge: 20,
   stairsPerFloor: 5,
   labourPerHour: 20,
+  loadingMins: 30,
 
   baseFees:{
     default:15,
@@ -218,7 +219,6 @@ window.BHD = Object.assign({
     twoManWrap:$('twoManWrap'), twoMan:$('twoMan'),
     stairsWrap:$('stairsWrap'), stairsPickup:$('stairsPickup'), stairsDrop:$('stairsDrop'),
     wasteWrap:$('wasteWrap'), wasteType:$('wasteType'),
-    labourHoursWrap:$('labourHoursWrap'), labourHours:$('labourHours'), labourRateHint:$('labourRateHint'),
     descWrap:$('descWrap'), jobDesc:$('jobDesc'),
     btnCalc:$('btnCalc'), routeHint:$('routeHint'),
     breakdown:$('breakdown'), total:$('total'),
@@ -391,17 +391,10 @@ window.BHD = Object.assign({
   let lastJobType='';
   function clearAddresses(){if(els.addrPickup) els.addrPickup.value=''; if(els.addrDrop) els.addrDrop.value='';}
 
-  function updateLabourHint(){
-    if(!els.labourRateHint||!els.labourHours) return;
-    const hrs=parseFloat(els.labourHours.value||2)||2;
-    const rate=Number(CFG.labourPerHour||20);
-    els.labourRateHint.textContent='£'+rate+'/hr × '+hrs+' hr'+(hrs!==1?'s':'')+' = £'+(hrs*rate).toFixed(2)+' labour (mileage added on top)';
-  }
-
-  function hideAll(){
+function hideAll(){
     [els.pickupField,els.addrDropWrap,els.wasteWrap,els.twoManWrap,els.stairsWrap,els.shopTimeWrap,
      els.ikeaModeWrap,els.ikeaStoreWrap,els.ikeaItemsWrap,els.descWrap,els.flatpackItemsWrap,
-     els.houseMoveBedroomsWrap,els.lutonWrap,els.labourHoursWrap].forEach(hide);
+     els.houseMoveBedroomsWrap,els.lutonWrap].forEach(hide);
     const hayWrap=$('hayWrap'); if(hayWrap) hide(hayWrap);
     const bagsWrap=$('bagsWrap'); if(bagsWrap) hide(bagsWrap);
     const businessWrap=$('businessWrap'); if(businessWrap) hide(businessWrap);
@@ -721,22 +714,19 @@ window.BHD = Object.assign({
     hideAll();
     if(!v){if(els.routeHint) els.routeHint.textContent="Choose a job type to start."; return;}
     if(v==='tip'){
-      show(els.pickupField); show(els.wasteWrap); show(els.labourHoursWrap);
+      show(els.pickupField); show(els.wasteWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Collection to Waterbeach.";
-      updateLabourHint();
     }else if(v==='move'){
       show(els.pickupField); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.houseMoveBedroomsWrap); show(els.lutonWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
       if(els.lutonCost&&!els.lutonCost.value) els.lutonCost.value=Number(CFG.LUTON_HIRE_COST||0);
       updateLutonHint();
     }else if(v==='fb'||v==='student'){
-      show(els.pickupField); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap); show(els.labourHoursWrap);
+      show(els.pickupField); show(els.addrDropWrap); show(els.twoManWrap); show(els.stairsWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
-      updateLabourHint();
     }else if(v==='shop'){
-      show(els.pickupField); show(els.addrDropWrap); show(els.shopTimeWrap); show(els.labourHoursWrap);
+      show(els.pickupField); show(els.addrDropWrap); show(els.shopTimeWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Shop to Delivery.";
-      updateLabourHint();
     }else if(v==='ikea'){
       show(els.pickupField); show(els.ikeaModeWrap); show(els.ikeaStoreWrap); show(els.addrDropWrap);
       if(els.ikeaMode&&els.ikeaMode.value==='collectBuild'){
@@ -768,9 +758,8 @@ window.BHD = Object.assign({
       if(els.routeHint) els.routeHint.textContent="Fill in the details below to get an instant estimate.";
       updateBikeUI();
     }else{
-      show(els.pickupField); show(els.addrDropWrap); show(els.labourHoursWrap); show(els.descWrap);
+      show(els.pickupField); show(els.addrDropWrap); show(els.descWrap);
       if(els.routeHint) els.routeHint.textContent="Mileage: Home to Pickup to Delivery.";
-      updateLabourHint();
     }
   }
 
@@ -830,11 +819,13 @@ window.BHD = Object.assign({
 
   function routeP(req){
     return new Promise(res=>{
-      if(!directions){res({miles:0,legs:[]});return;}
+      if(!directions){res({miles:0,legs:[],durationMins:0});return;}
       directions.route(req,(r,s)=>{
-        if(s!=="OK"){res({miles:0,legs:[]});return;}
-        const miles=metersToMiles(legsMeters(r.routes[0].legs));
-        res({miles,legs:r.routes[0].legs});
+        if(s!=="OK"){res({miles:0,legs:[],durationMins:0});return;}
+        const legs=r.routes[0].legs;
+        const miles=metersToMiles(legsMeters(legs));
+        const durationMins=legs.reduce((s,l)=>s+((l.duration&&l.duration.value)||0),0)/60;
+        res({miles,legs,durationMins});
       });
     });
   }
@@ -900,7 +891,7 @@ window.BHD = Object.assign({
     }
     if(!pickup){if(els.routeHint) els.routeHint.textContent="Enter collection address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
     if(jt!=="tip"&&!drop){if(els.routeHint) els.routeHint.textContent="Enter delivery address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
-    let charged=0,loop=0,noteC='',noteL='';
+    let charged=0,loop=0,noteC='',noteL='',drivingMins=0;
     if(jt==='tip'){
       const toPickup=await routeP({origin:home,destination:pickup,travelMode:'DRIVING'});
       if(toPickup.miles<=50){
@@ -912,14 +903,16 @@ window.BHD = Object.assign({
       }
       const loopRes=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:tip,stopover:true}],travelMode:'DRIVING'});
       loop=loopRes.miles; noteL='Home to Collection to Waterbeach and back';
+      drivingMins=loopRes.durationMins;
     }else{
       const ch=await routeP({origin:home,destination:drop,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
       charged=ch.miles; noteC='Home to Pickup to Delivery';
       const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:'DRIVING'});
       loop=lp.miles; noteL='Home to Pickup to Delivery and back';
+      drivingMins=lp.durationMins;
     }
     if(els.routeHint) els.routeHint.textContent=(jt==='tip')?"Charged route: "+round1(charged)+" mi — "+noteC+".":"Charged: "+round1(loop)+" mi (full return journey) — "+noteL+".";
-    cb({charged,loop,noteCharged:noteC,noteLoop:noteL});
+    cb({charged,loop,noteCharged:noteC,noteLoop:noteL,drivingMins});
   }
 
   ['gardenHours','gardenTeam','gardenSchedule','gardenDiscountType','gardenSize','gardenFrequency','gardenDayOfWeek','gardenTimeOfDay','gardenStartingWeek','gardenWeekOfMonth'].forEach(id=>{
@@ -930,8 +923,6 @@ window.BHD = Object.assign({
   document.querySelectorAll('input[name="gardenTask"]').forEach(cb=>{
     cb.addEventListener('change', updateGardenUI);
   });
-
-  if(els.labourHours) els.labourHours.addEventListener('change', updateLabourHint);
 
   ['bikeMode','bikePackage','bikeDropoff'].forEach(id=>{
     const el=$(id); if(el) el.addEventListener('change', updateBikeUI);
@@ -1217,7 +1208,9 @@ window.BHD = Object.assign({
     const HOURLY_JOBS=['tip','fb','student','shop','other'];
     const isHourly=HOURLY_JOBS.includes(jt);
     const labourRate=Number(CFG.labourPerHour||20);
-    const labourHrs=isHourly?(parseFloat(els.labourHours&&els.labourHours.value||2)||2):0;
+    const drivingMins=milesObj&&milesObj.drivingMins||0;
+    const loadingMins=Number(CFG.loadingMins||30);
+    const labourHrs=isHourly?round1((drivingMins+loadingMins)/60):0;
     const generalLabourCost=isHourly?labourHrs*labourRate:0;
     const base=isHourly?0:baseFeeFor(jt);
     const vanLoads=(window._wasteAnalysis&&window._wasteAnalysis.van&&window._wasteAnalysis.van.loadsNeeded>1)?window._wasteAnalysis.van.loadsNeeded:1;
@@ -1268,12 +1261,12 @@ window.BHD = Object.assign({
     }else if(jt==='tip'){
       lines.push("Total journey: "+loopMiles.toFixed(1)+" miles ("+noteL+")");
       lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile ("+noteC+")");
-      lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
+      lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" ("+Math.round(drivingMins)+" min drive + "+loadingMins+" min loading) @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
       lines.push("Mileage: £"+mileageCost.toFixed(2));
     }else{
       lines.push("Charged: "+loopMiles.toFixed(1)+" miles ("+noteL+") @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile");
       if(isHourly){
-        lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
+        lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" ("+Math.round(drivingMins)+" min drive + "+loadingMins+" min loading) @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
       }else{
         lines.push("Base fee: £"+base.toFixed(2));
       }
