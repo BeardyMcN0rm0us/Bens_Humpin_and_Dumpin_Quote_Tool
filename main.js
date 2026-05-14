@@ -1153,6 +1153,11 @@ function hideAll(){
     return { lo, hi, subtotal, lines, appliedLabel, appliedDiscount, team, hours, rate, schedule, frequency, gardenSize, weedKillingCost, neighbour1, neighbour2 };
   }
 
+  function postcode(addr){
+    const m=(addr||'').match(/[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}/i);
+    return m?m[0].toUpperCase():'';
+  }
+
   function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
     if(!jt){if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return;}
@@ -1204,6 +1209,10 @@ function hideAll(){
     const loopMiles=round1(milesObj&&milesObj.loop||0);
     const noteC=milesObj&&milesObj.noteCharged||'';
     const noteL=milesObj&&milesObj.noteLoop||'';
+    const pcHome=postcode(CFG.homeAddress);
+    const pcTip=postcode(CFG.waterbeachAddress);
+    const pcPickup=postcode((els.addrPickup&&els.addrPickup.value)||'');
+    const pcDrop=postcode((els.addrDrop&&els.addrDrop.value)||'');
     // Jobs billed by the hour — no base call-out fee
     const HOURLY_JOBS=['tip','fb','student','shop','other'];
     const isHourly=HOURLY_JOBS.includes(jt);
@@ -1259,12 +1268,17 @@ function hideAll(){
     if(jt==='bags'){
       bags.lines.forEach(l=>lines.push(l));
     }else if(jt==='tip'){
-      lines.push("Total journey: "+loopMiles.toFixed(1)+" miles ("+noteL+")");
-      lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile ("+noteC+")");
+      const tipRoute=[pcHome,pcPickup,pcTip,pcHome].filter(Boolean).join(' → ');
+      lines.push("Total journey: "+loopMiles.toFixed(1)+" miles"+(tipRoute?" ("+tipRoute+")":""));
+      const tipChRoute=[pcHome,pcPickup,pcTip].filter(Boolean).join(' → ');
+      lines.push("Charged: "+chargedMiles.toFixed(1)+" miles x "+vanLoads+" load"+(vanLoads>1?"s":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile"+(tipChRoute?" ("+tipChRoute+")":""));
       lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" ("+Math.round(drivingMins)+" min drive + "+loadingMins+" min loading) @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
       lines.push("Mileage: £"+mileageCost.toFixed(2));
     }else{
-      lines.push("Charged: "+loopMiles.toFixed(1)+" miles ("+noteL+") @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile");
+      const genRoute=(jt==='move'||jt==='fb'||jt==='student'||jt==='shop'||jt==='other'||jt==='ikea')
+        ?[pcHome,pcPickup,pcDrop,pcHome].filter(Boolean).join(' → ')
+        :'';
+      lines.push("Charged: "+loopMiles.toFixed(1)+" miles"+(genRoute?" ("+genRoute+")":"")+" @ £"+Number(CFG.mileagePerMile).toFixed(2)+"/mile");
       if(isHourly){
         lines.push("Labour: "+labourHrs+" hr"+(labourHrs!==1?"s":"")+" ("+Math.round(drivingMins)+" min drive + "+loadingMins+" min loading) @ £"+labourRate.toFixed(2)+"/hr = £"+generalLabourCost.toFixed(2));
       }else{
@@ -1391,8 +1405,8 @@ function hideAll(){
       jt==='bike'?bikeDetails:'',
       (jt!=='hay'&&jt!=='flatpack'&&jt!=='business'&&jt!=='bags'&&jt!=='garden'&&jt!=='bike'?"Collection: "+((els.addrPickup&&els.addrPickup.value)||"N/A"):""),
       (jt!=='business'?dest:''),
-      (lines.length?"\nBreakdown:\n- "+lines.join("\n- "):""),
-      (els.total&&els.total.textContent||"")
+      (lines.length?"\nBreakdown:\n- "+lines.join("\n- "):"")
+      ,(els.total&&els.total.textContent||"")
     ].filter(Boolean).join("\n");
     window.open("https://wa.me/"+CFG.whatsappNumber+"?text="+encodeURIComponent(msg),'_blank');
   }
