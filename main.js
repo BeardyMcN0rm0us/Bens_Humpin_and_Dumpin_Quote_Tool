@@ -841,13 +841,46 @@ function hideAll(){
       // or postcode) resolves to the right place instead of failing as
       // ambiguous worldwide.
       if(req&&!req.region) req.region='uk';
-      directions.route(req,(r,s)=>{
-        if(s!=="OK"||!r||!r.routes||!r.routes.length){mapsFailed=true;try{console.warn('[BHD] Directions request failed:',s);}catch(e){}res({miles:0,legs:[],durationMins:0});return;}
-        const legs=r.routes[0].legs;
-        const miles=metersToMiles(legsMeters(legs));
-        const durationMins=legs.reduce((s,l)=>s+((l.duration&&l.duration.value)||0),0)/60;
-        res({miles,legs,durationMins});
-      });
+      // routeP must ALWAYS resolve — if a directions call throws, rejects or
+      // never calls back, getMilesBoth would hang and the quote silently
+      // stalls with no result and no error. Guard every exit.
+      var done=false;
+      function finish(obj,failed){
+        if(done) return;
+        done=true;
+        if(timer) clearTimeout(timer);
+        if(failed) mapsFailed=true;
+        res(obj);
+      }
+      function ok(r,s){
+        if(s!=="OK"||!r||!r.routes||!r.routes.length){
+          try{console.warn('[BHD] Directions request failed:',s);}catch(e){}
+          finish({miles:0,legs:[],durationMins:0},true);
+          return;
+        }
+        var legs=r.routes[0].legs;
+        var miles=metersToMiles(legsMeters(legs));
+        var durationMins=legs.reduce(function(a,l){return a+((l.duration&&l.duration.value)||0);},0)/60;
+        finish({miles:miles,legs:legs,durationMins:durationMins},false);
+      }
+      var timer=setTimeout(function(){
+        try{console.warn('[BHD] Directions request timed out');}catch(e){}
+        finish({miles:0,legs:[],durationMins:0},true);
+      },15000);
+      try{
+        var p=directions.route(req,ok);
+        // Modern Maps API also returns a promise; use it so a result still
+        // comes through even if the legacy callback path misbehaves.
+        if(p&&typeof p.then==='function'){
+          p.then(function(r){ok(r,'OK');},function(err){
+            try{console.warn('[BHD] Directions request rejected:',(err&&err.message)||err);}catch(e){}
+            finish({miles:0,legs:[],durationMins:0},true);
+          });
+        }
+      }catch(e){
+        try{console.warn('[BHD] Directions request threw:',(e&&e.message)||e);}catch(_){}
+        finish({miles:0,legs:[],durationMins:0},true);
+      }
     });
   }
 
