@@ -498,7 +498,6 @@ function hideAll(){
     const mode=CFG.bikeCollectionMode||'flat';
     const waive=Number(CFG.bikeCollectionWaivedAbove||60);
     if(mode==='flat'){
-    if(mode==='flat'){
       const fee=Number(CFG.bikeCollectionFlatFee||5);
       els.bikeCollectionHint.textContent='£'+fee.toFixed(2)+' collect & return fee — waived on jobs over £'+waive;
     }else{
@@ -1414,7 +1413,7 @@ function hideAll(){
   if(els.jobType) ['change','input','click','keyup','blur','focus'].forEach(ev=>els.jobType.addEventListener(ev,setUI));
   if(els.ikeaMode) els.ikeaMode.addEventListener('change',setUI);
   if(els.ikeaItemSel){els.ikeaItemSel.addEventListener('change',toggleIkeaOther); toggleIkeaOther();}
-  if(els.ikeaAddBtn) els.ikeaAddBtn.addEventListener('click',addIkeaItem);
+  if(els.flatAddBtn) els.flatAddBtn.addEventListener('click',addFlatItem);
   if(els.flatItemSel){
     els.flatItemSel.addEventListener('change',()=>{
       const isOther=(els.flatItemSel.value||'').startsWith('other');
@@ -1440,3 +1439,5 @@ function hideAll(){
   if(els.btnWA) els.btnWA.addEventListener('click',sendWhatsApp);
   hideAll(); setUI();
   renderList($('ikeaList'),$('ikeaTimeHint'),[]);
+  renderList($('flatList'),$('flatTimeHint'),[]);
+})();
