@@ -786,6 +786,7 @@ function hideAll(){
   }
 
   let directions=null,autoPickup=null,autoDrop=null,autoBikeAddr=null,autoNeighbour1=null,autoNeighbour2=null,tryCount=0;
+  let mapsFailed=false;
   function attachNeighbourAutocomplete(input,opt){
     if(!input) return null;
     const ac=new google.maps.places.Autocomplete(input,Object.assign({},opt,{fields:["formatted_address","geometry","address_components"]}));
@@ -817,11 +818,27 @@ function hideAll(){
   }
   const poll=setInterval(()=>{if(initMaps()) clearInterval(poll); else{tryCount++; if(tryCount%5===0&&els.routeHint) els.routeHint.textContent='Loading Google Maps...';}},300);
 
+  // Resolves once the Directions service is ready, or after timeoutMs if Maps
+  // never loads. Without this, clicking Calculate before the async Maps script
+  // has loaded leaves `directions` null and every route silently returns 0.
+  function whenMapsReady(timeoutMs){
+    return new Promise(resolve=>{
+      initMaps();
+      if(directions){resolve(true);return;}
+      const start=Date.now();
+      const t=setInterval(()=>{
+        initMaps();
+        if(directions){clearInterval(t);resolve(true);}
+        else if(Date.now()-start>=timeoutMs){clearInterval(t);resolve(false);}
+      },200);
+    });
+  }
+
   function routeP(req){
     return new Promise(res=>{
-      if(!directions){res({miles:0,legs:[],durationMins:0});return;}
+      if(!directions){mapsFailed=true;try{console.warn('[BHD] Google Maps not loaded — cannot calculate route');}catch(e){}res({miles:0,legs:[],durationMins:0});return;}
       directions.route(req,(r,s)=>{
-        if(s!=="OK"){res({miles:0,legs:[],durationMins:0});return;}
+        if(s!=="OK"||!r||!r.routes||!r.routes.length){mapsFailed=true;try{console.warn('[BHD] Directions request failed:',s);}catch(e){}res({miles:0,legs:[],durationMins:0});return;}
         const legs=r.routes[0].legs;
         const miles=metersToMiles(legsMeters(legs));
         const durationMins=legs.reduce((s,l)=>s+((l.duration&&l.duration.value)||0),0)/60;
@@ -831,6 +848,7 @@ function hideAll(){
   }
 
   async function getMilesBoth(cb){
+    mapsFailed=false;
     const jt=(els.jobType&&els.jobType.value)||"";
     const home=CFG.homeAddress, tip=CFG.waterbeachAddress;
     const pickup=(els.addrPickup&&els.addrPickup.value||"").trim();
@@ -1171,6 +1189,20 @@ function hideAll(){
       return;
     }
 
+    // A route was attempted but Maps gave us nothing. Without this guard the
+    // quote proceeds with 0 miles / 0 minutes and shows a nonsense low total
+    // (e.g. £10 for a 150-mile job). Garden pricing is unaffected when the
+    // garden mileage rate is 0, so let that case through.
+    if(mapsFailed){
+      const gRate=Number(CFG.gardenMileagePerMile!=null?CFG.gardenMileagePerMile:(CFG.mileagePerMile||0));
+      if(!(jt==='garden'&&gRate===0)){
+        if(els.routeHint) els.routeHint.textContent=directions
+          ?"⚠ Couldn't calculate the route — please check the collection and delivery addresses are valid and try again."
+          :"⚠ Google Maps didn't load — check your internet connection, refresh the page, then try again.";
+        return;
+      }
+    }
+
     if(jt==='garden'){
       const chargedMiles=round1(milesObj&&milesObj.charged||0);
       const loopMiles=round1(milesObj&&milesObj.loop||0);
@@ -1430,7 +1462,7 @@ function hideAll(){
     els.btnCalc.textContent='Calculating…';
     els.btnCalc.disabled=true;
     if(els.routeHint) els.routeHint.textContent="Calculating...";
-    initMaps();
+    await whenMapsReady(8000);
     const miles=await new Promise(resolve=>getMilesBoth(resolve));
     calculate(miles);
     els.btnCalc.innerHTML='&#129518;&nbsp;&nbsp;Calculate My Quote';
