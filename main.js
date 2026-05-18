@@ -837,6 +837,10 @@ function hideAll(){
   function routeP(req){
     return new Promise(res=>{
       if(!directions){mapsFailed=true;try{console.warn('[BHD] Google Maps not loaded — cannot calculate route');}catch(e){}res({miles:0,legs:[],durationMins:0});return;}
+      // Bias geocoding to the UK so vague input (a town or area with no street
+      // or postcode) resolves to the right place instead of failing as
+      // ambiguous worldwide.
+      if(req&&!req.region) req.region='uk';
       directions.route(req,(r,s)=>{
         if(s!=="OK"||!r||!r.routes||!r.routes.length){mapsFailed=true;try{console.warn('[BHD] Directions request failed:',s);}catch(e){}res({miles:0,legs:[],durationMins:0});return;}
         const legs=r.routes[0].legs;
