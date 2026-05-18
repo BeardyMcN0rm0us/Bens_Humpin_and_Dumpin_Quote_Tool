@@ -802,14 +802,29 @@ function hideAll(){
     });
     return ac;
   }
+  // Remember the exact point the customer picked from the autocomplete so the
+  // route uses those coordinates instead of re-geocoding the text (which can
+  // land on the wrong place and fail with ZERO_RESULTS).
+  function attachPlaceCapture(ac,input){
+    if(!ac||!input) return;
+    ac.addListener('place_changed',function(){
+      var place=ac.getPlace()||{};
+      var loc=place.geometry&&place.geometry.location;
+      if(loc){ input.dataset.lat=loc.lat(); input.dataset.lng=loc.lng(); }
+      else { delete input.dataset.lat; delete input.dataset.lng; }
+    });
+    input.addEventListener('input',function(){
+      delete input.dataset.lat; delete input.dataset.lng;
+    });
+  }
   function initMaps(){
     try{
       if(!window.google||!google.maps) return false;
       if(!directions) directions=new google.maps.DirectionsService();
       const opt={fields:["formatted_address","geometry"],componentRestrictions:{country:["gb"]},types:["geocode"]};
-      if(!autoPickup&&els.addrPickup)   autoPickup=new google.maps.places.Autocomplete(els.addrPickup,opt);
-      if(!autoDrop&&els.addrDrop)       autoDrop=new google.maps.places.Autocomplete(els.addrDrop,opt);
-      if(!autoBikeAddr&&els.bikeAddr)   autoBikeAddr=new google.maps.places.Autocomplete(els.bikeAddr,opt);
+      if(!autoPickup&&els.addrPickup){  autoPickup=new google.maps.places.Autocomplete(els.addrPickup,opt); attachPlaceCapture(autoPickup,els.addrPickup); }
+      if(!autoDrop&&els.addrDrop){      autoDrop=new google.maps.places.Autocomplete(els.addrDrop,opt); attachPlaceCapture(autoDrop,els.addrDrop); }
+      if(!autoBikeAddr&&els.bikeAddr){  autoBikeAddr=new google.maps.places.Autocomplete(els.bikeAddr,opt); attachPlaceCapture(autoBikeAddr,els.bikeAddr); }
       if(!autoNeighbour1&&els.gardenNeighbour1) autoNeighbour1=attachNeighbourAutocomplete(els.gardenNeighbour1,opt);
       if(!autoNeighbour2&&els.gardenNeighbour2) autoNeighbour2=attachNeighbourAutocomplete(els.gardenNeighbour2,opt);
       if(els.routeHint&&tryCount>0) els.routeHint.textContent="Maps ready — enter addresses.";
@@ -884,12 +899,24 @@ function hideAll(){
     });
   }
 
+  // Use the coordinates captured from the autocomplete when available; fall
+  // back to the typed text otherwise.
+  function routeLoc(input,fallback){
+    if(input&&input.dataset&&input.dataset.lat&&input.dataset.lng){
+      var lat=parseFloat(input.dataset.lat),lng=parseFloat(input.dataset.lng);
+      if(isFinite(lat)&&isFinite(lng)) return {lat:lat,lng:lng};
+    }
+    return fallback;
+  }
+
   async function getMilesBoth(cb){
     mapsFailed=false;
     const jt=(els.jobType&&els.jobType.value)||"";
     const home=CFG.homeAddress, tip=CFG.waterbeachAddress;
     const pickup=(els.addrPickup&&els.addrPickup.value||"").trim();
     const drop=(els.addrDrop&&els.addrDrop.value||"").trim();
+    const pickupLoc=routeLoc(els.addrPickup,pickup);
+    const dropLoc=routeLoc(els.addrDrop,drop);
     if(jt==='business'){
       cb({charged:0,loop:0,noteCharged:'To be confirmed',noteLoop:''}); return;
     }
@@ -899,7 +926,7 @@ function hideAll(){
     }
     if(jt==='garden'){
       if(!pickup){if(els.routeHint) els.routeHint.textContent="Enter the garden address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''}); return;}
-      const loop=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
+      const loop=await routeP({origin:home,destination:home,waypoints:[{location:pickupLoc,stopover:true}],travelMode:'DRIVING'});
       const loopMiles=round1(loop.miles);
       if(els.routeHint) els.routeHint.textContent="Garden job: "+loopMiles+" miles return (Home to Garden and back).";
       cb({charged:loopMiles,loop:loopMiles,noteCharged:'Home to Garden and back',noteLoop:'Home to Garden and back'});
@@ -910,12 +937,12 @@ function hideAll(){
       const hayTypeEl=$('hayType');
       const hayType=(hayTypeEl&&hayTypeEl.value)||'rental';
       if(hayType==='rental'){
-        const loop=await routeP({origin:home,destination:home,waypoints:[{location:drop,stopover:true}],travelMode:'DRIVING'});
+        const loop=await routeP({origin:home,destination:home,waypoints:[{location:dropLoc,stopover:true}],travelMode:'DRIVING'});
         const loopMiles=round1(loop.miles);
         if(els.routeHint) els.routeHint.textContent="Hay rental: "+loopMiles+" miles return (delivery + collection).";
         cb({charged:loopMiles,loop:loopMiles,noteCharged:'Home to Delivery and back (delivery + collection)',noteLoop:'Home to Delivery and back'});
       }else{
-        const oneWay=await routeP({origin:home,destination:drop,travelMode:'DRIVING'});
+        const oneWay=await routeP({origin:home,destination:dropLoc,travelMode:'DRIVING'});
         const oneMiles=round1(oneWay.miles);
         if(els.routeHint) els.routeHint.textContent="Hay sale: "+oneMiles+" miles one-way delivery.";
         cb({charged:oneMiles,loop:oneMiles,noteCharged:'Home to Delivery (one-way)',noteLoop:'Home to Delivery'});
@@ -924,8 +951,8 @@ function hideAll(){
     }
     if(jt==='flatpack'){
       if(!drop){if(els.routeHint) els.routeHint.textContent="Enter destination address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
-      const oneWay=await routeP({origin:home,destination:drop,travelMode:'DRIVING'});
-      const loop=await routeP({origin:home,destination:home,waypoints:[{location:drop,stopover:true}],travelMode:'DRIVING'});
+      const oneWay=await routeP({origin:home,destination:dropLoc,travelMode:'DRIVING'});
+      const loop=await routeP({origin:home,destination:home,waypoints:[{location:dropLoc,stopover:true}],travelMode:'DRIVING'});
       const charged=(oneWay.miles>15)?ceil0(oneWay.miles):0;
       if(els.routeHint) els.routeHint.textContent="Flatpack: "+(charged>0?"Charging one-way":"No mileage")+" — "+charged+" mi.";
       cb({charged,loop:round1(loop.miles),noteCharged:charged>0?'Home to Destination (over 15mi)':'No mileage billed (under 15mi)',noteLoop:'Home to Destination and back'});
@@ -938,7 +965,8 @@ function hideAll(){
       }
       const bikeAddr=(els.bikeAddr&&els.bikeAddr.value||'').trim();
       if(!bikeAddr){if(els.routeHint) els.routeHint.textContent="Enter your address for collection."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
-      const loop=await routeP({origin:home,destination:home,waypoints:[{location:bikeAddr,stopover:true}],travelMode:'DRIVING'});
+      const bikeLoc=routeLoc(els.bikeAddr,bikeAddr);
+      const loop=await routeP({origin:home,destination:home,waypoints:[{location:bikeLoc,stopover:true}],travelMode:'DRIVING'});
       const loopMiles=round1(loop.miles);
       if(els.routeHint) els.routeHint.textContent="Collection: "+loopMiles+" miles return.";
       cb({charged:loopMiles,loop:loopMiles,noteCharged:'Home to your address and back',noteLoop:'Home to your address and back'});
@@ -948,21 +976,21 @@ function hideAll(){
     if(jt!=="tip"&&!drop){if(els.routeHint) els.routeHint.textContent="Enter delivery address."; cb({charged:0,loop:0,noteCharged:'',noteLoop:''});return;}
     let charged=0,loop=0,noteC='',noteL='',drivingMins=0;
     if(jt==='tip'){
-      const toPickup=await routeP({origin:home,destination:pickup,travelMode:'DRIVING'});
+      const toPickup=await routeP({origin:home,destination:pickupLoc,travelMode:'DRIVING'});
       if(toPickup.miles<=50){
-        const toTip=await routeP({origin:home,destination:tip,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
+        const toTip=await routeP({origin:home,destination:tip,waypoints:[{location:pickupLoc,stopover:true}],travelMode:'DRIVING'});
         charged=toTip.miles; noteC='Home to Collection to Waterbeach';
       }else{
-        const thru=await routeP({origin:home,destination:tip,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
+        const thru=await routeP({origin:home,destination:tip,waypoints:[{location:pickupLoc,stopover:true}],travelMode:'DRIVING'});
         charged=thru.miles; noteC='Home to Collection to Waterbeach';
       }
-      const loopRes=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:tip,stopover:true}],travelMode:'DRIVING'});
+      const loopRes=await routeP({origin:home,destination:home,waypoints:[{location:pickupLoc,stopover:true},{location:tip,stopover:true}],travelMode:'DRIVING'});
       loop=loopRes.miles; noteL='Home to Collection to Waterbeach and back';
       drivingMins=loopRes.durationMins;
     }else{
-      const ch=await routeP({origin:home,destination:drop,waypoints:[{location:pickup,stopover:true}],travelMode:'DRIVING'});
+      const ch=await routeP({origin:home,destination:dropLoc,waypoints:[{location:pickupLoc,stopover:true}],travelMode:'DRIVING'});
       charged=ch.miles; noteC='Home to Pickup to Delivery';
-      const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickup,stopover:true},{location:drop,stopover:true}],travelMode:'DRIVING'});
+      const lp=await routeP({origin:home,destination:home,waypoints:[{location:pickupLoc,stopover:true},{location:dropLoc,stopover:true}],travelMode:'DRIVING'});
       loop=lp.miles; noteL='Home to Pickup to Delivery and back';
       drivingMins=lp.durationMins;
     }
