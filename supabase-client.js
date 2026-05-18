@@ -36,11 +36,35 @@
     _readyCbs.forEach(function (f) { try { f(); } catch (e) { console.error('[BHDdb] onReady cb:', e); } });
     _readyCbs = [];
   }
+  function whenReady() {
+    return new Promise(function (resolve) { onReady(resolve); });
+  }
+
+  /* supabase-js v2 resolves with { data, error } — it does NOT reject on a
+     database/RLS error. Without checking error here every failed write is
+     completely invisible. */
+  function logErr(op, error) {
+    if (!error) return false;
+    console.error('[BHDdb] ' + op + ' failed:',
+      (error.message || error),
+      (error.details ? '— ' + error.details : ''),
+      (error.hint ? '(hint: ' + error.hint + ')' : ''),
+      (error.code ? '[' + error.code + ']' : ''));
+    return true;
+  }
 
   function initSession() {
     client.auth.getSession().then(function (res) {
       if (res.data && res.data.session) { _fireReady(); return; }
-      return client.auth.signInAnonymously().then(function () { _fireReady(); });
+      return client.auth.signInAnonymously().then(function (r) {
+        if (r && r.error) {
+          console.error('[BHDdb] Anonymous sign-in failed — there is no Supabase ' +
+            'session, so nothing will be saved to the database. Enable ' +
+            '"Allow anonymous sign-ins" under Supabase → Authentication → ' +
+            'Sign In / Providers. Detail:', r.error.message || r.error);
+        }
+        _fireReady();
+      });
     }).catch(function (e) {
       console.error('[BHDdb] session init error:', e);
       _fireReady();  // don't block the app
@@ -194,59 +218,76 @@
 
   /* ── quotes ───────────────────────────────────────────────── */
   function saveQuote(q) {
-    return getUid().then(function (uid) {
-      if (!uid) return;
-      return client.from('records').upsert(quoteToRow(q, uid), { onConflict: 'id' });
+    return whenReady().then(getUid).then(function (uid) {
+      if (!uid) { console.warn('[BHDdb] saveQuote skipped — no Supabase session'); return; }
+      return client.from('records').upsert(quoteToRow(q, uid), { onConflict: 'id' })
+        .then(function (r) { logErr('saveQuote', r && r.error); return r; });
     }).catch(function (e) { console.error('[BHDdb] saveQuote:', e); });
   }
 
   function deleteQuote(id) {
-    return client.from('records').delete().eq('id', id).eq('record_type', 'quote')
+    return whenReady().then(function () {
+      return client.from('records').delete().eq('id', id).eq('record_type', 'quote');
+    }).then(function (r) { logErr('deleteQuote', r && r.error); return r; })
       .catch(function (e) { console.error('[BHDdb] deleteQuote:', e); });
   }
 
   function loadQuotes() {
-    return client.from('records').select('*').eq('record_type', 'quote')
-      .order('created_at', { ascending: false })
-      .then(function (r) { return (r.data || []).map(rowToQuote); })
-      .catch(function (e) { console.error('[BHDdb] loadQuotes:', e); return []; });
+    return whenReady().then(function () {
+      return client.from('records').select('*').eq('record_type', 'quote')
+        .order('created_at', { ascending: false });
+    }).then(function (r) {
+      logErr('loadQuotes', r && r.error);
+      return (r.data || []).map(rowToQuote);
+    }).catch(function (e) { console.error('[BHDdb] loadQuotes:', e); return []; });
   }
 
   /* ── bookings ─────────────────────────────────────────────── */
   function saveBooking(b) {
-    return getUid().then(function (uid) {
-      if (!uid) return;
-      return client.from('records').upsert(bookingToRow(b, uid), { onConflict: 'id' });
+    return whenReady().then(getUid).then(function (uid) {
+      if (!uid) { console.warn('[BHDdb] saveBooking skipped — no Supabase session'); return; }
+      return client.from('records').upsert(bookingToRow(b, uid), { onConflict: 'id' })
+        .then(function (r) { logErr('saveBooking', r && r.error); return r; });
     }).catch(function (e) { console.error('[BHDdb] saveBooking:', e); });
   }
 
   function updateBooking(id, patch) {
     var row = patchToRow(patch);
     if (!Object.keys(row).length) return Promise.resolve();
-    return client.from('records').update(row).eq('id', id)
+    return whenReady().then(function () {
+      return client.from('records').update(row).eq('id', id);
+    }).then(function (r) { logErr('updateBooking', r && r.error); return r; })
       .catch(function (e) { console.error('[BHDdb] updateBooking:', e); });
   }
 
   function deleteBooking(id) {
-    return client.from('records').delete().eq('id', id).eq('record_type', 'booking')
+    return whenReady().then(function () {
+      return client.from('records').delete().eq('id', id).eq('record_type', 'booking');
+    }).then(function (r) { logErr('deleteBooking', r && r.error); return r; })
       .catch(function (e) { console.error('[BHDdb] deleteBooking:', e); });
   }
 
   function loadBookings() {
-    return client.from('records').select('*').eq('record_type', 'booking')
-      .neq('status', 'removed')
-      .order('created_at', { ascending: false })
-      .then(function (r) { return (r.data || []).map(rowToBooking); })
-      .catch(function (e) { console.error('[BHDdb] loadBookings:', e); return []; });
+    return whenReady().then(function () {
+      return client.from('records').select('*').eq('record_type', 'booking')
+        .neq('status', 'removed')
+        .order('created_at', { ascending: false });
+    }).then(function (r) {
+      logErr('loadBookings', r && r.error);
+      return (r.data || []).map(rowToBooking);
+    }).catch(function (e) { console.error('[BHDdb] loadBookings:', e); return []; });
   }
 
   /* ── admin queries ────────────────────────────────────────── */
   function loadAllBookings() {
-    return client.from('records').select('*').eq('record_type', 'booking')
-      .neq('status', 'removed')
-      .order('created_at', { ascending: false })
-      .then(function (r) { return (r.data || []).map(rowToBooking); })
-      .catch(function (e) { console.error('[BHDdb] loadAllBookings:', e); return []; });
+    return whenReady().then(function () {
+      return client.from('records').select('*').eq('record_type', 'booking')
+        .neq('status', 'removed')
+        .order('created_at', { ascending: false });
+    }).then(function (r) {
+      logErr('loadAllBookings', r && r.error);
+      return (r.data || []).map(rowToBooking);
+    }).catch(function (e) { console.error('[BHDdb] loadAllBookings:', e); return []; });
   }
 
   /* ── real-time: watch a booking's status ──────────────────── */
