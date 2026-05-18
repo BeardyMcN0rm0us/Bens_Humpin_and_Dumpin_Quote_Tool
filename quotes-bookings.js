@@ -68,9 +68,11 @@
       list.unshift(q);
       if (list.length > MAX_QUOTES) list = list.slice(0, MAX_QUOTES);
       writeJSON(QUOTES_KEY, list);
+      if (window.BHDdb) window.BHDdb.saveQuote(q);
     },
     deleteQuote: function (id) {
       writeJSON(QUOTES_KEY, Store.quotes().filter(function (x) { return x.id !== id; }));
+      if (window.BHDdb) window.BHDdb.deleteQuote(id);
     },
     saveBooking: function (b) {
       var list = Store.bookings();
@@ -78,6 +80,7 @@
       list.unshift(b);
       if (list.length > MAX_BOOKINGS) list = list.slice(0, MAX_BOOKINGS);
       writeJSON(BOOKINGS_KEY, list);
+      if (window.BHDdb) window.BHDdb.saveBooking(b);
     },
     updateBooking: function (id, patch) {
       var list = Store.bookings();
@@ -85,9 +88,11 @@
         if (list[i].id === id) { Object.assign(list[i], patch); break; }
       }
       writeJSON(BOOKINGS_KEY, list);
+      if (window.BHDdb) window.BHDdb.updateBooking(id, patch);
     },
     deleteBooking: function (id) {
       writeJSON(BOOKINGS_KEY, Store.bookings().filter(function (x) { return x.id !== id; }));
+      if (window.BHDdb) window.BHDdb.deleteBooking(id);
     },
     saveContact: function (c) { writeJSON(CONTACT_KEY, c); },
     adminBookings: function () { return readJSON(ADMIN_BOOKINGS_KEY, []) || []; },
@@ -97,6 +102,7 @@
       list.unshift(b);
       if (list.length > MAX_BOOKINGS) list = list.slice(0, MAX_BOOKINGS);
       writeJSON(ADMIN_BOOKINGS_KEY, list);
+      if (window.BHDdb) window.BHDdb.saveBooking(b);
     },
     updateAdminBooking: function (id, patch) {
       var list = Store.adminBookings();
@@ -104,6 +110,7 @@
         if (list[i].id === id) { Object.assign(list[i], patch); break; }
       }
       writeJSON(ADMIN_BOOKINGS_KEY, list);
+      if (window.BHDdb) window.BHDdb.updateBooking(id, patch);
     }
   };
   window.BHDStore = Store;
@@ -319,7 +326,15 @@
         var correct = String((window.BHD && window.BHD.adminPin) || '010203');
         if (inp.value === correct) {
           adminUnlocked = true;
-          openAdminDashboard();
+          if (window.BHDdb) {
+            modal.close();
+            window.BHDdb.checkAdmin().then(function (isAdmin) {
+              if (isAdmin) { openAdminDashboard(); }
+              else { openAdminSignIn(); }
+            });
+          } else {
+            openAdminDashboard();
+          }
         } else {
           inp.value = '';
           $('adminPinErr').textContent = 'Incorrect PIN — try again';
@@ -329,10 +344,10 @@
     });
   }
 
-  function openAdminDashboard() {
-    var all = Store.adminBookings().filter(function (b) { return b.status !== 'removed'; }).slice().sort(function (a, b) {
-      return new Date(b.receivedAt || b.createdAt || 0) - new Date(a.receivedAt || a.createdAt || 0);
-    });
+  var _adminAll = [];
+
+  function renderAdminDashboard(all) {
+    _adminAll = all;
     var pending   = all.filter(function (b) { return b.status === 'pending';   }).length;
     var confirmed = all.filter(function (b) { return b.status === 'confirmed'; }).length;
     var html;
@@ -384,18 +399,86 @@
       card.querySelectorAll('[data-adm-act]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var act = btn.getAttribute('data-adm-act');
-          var b = Store.adminBookings().filter(function (x) { return x.id === id; })[0];
+          var b = _adminAll.filter(function (x) { return x.id === id; })[0] ||
+                  Store.adminBookings().filter(function (x) { return x.id === id; })[0];
           if (!b) return;
           if (act === 'review') {
             renderBenReview(b);
           } else if (act === 'del') {
             if (!confirm('Remove this booking from your list?')) return;
-            // soft-delete: mark removed so it doesn't clutter the list
             Store.updateAdminBooking(id, { status: 'removed' });
             refreshCounts();
             openAdminDashboard();
           }
         });
+      });
+    });
+  }
+
+  function openAdminDashboard() {
+    if (window.BHDdb) {
+      modal.open('&#128203; All Bookings', '<div style="padding:24px;text-align:center;color:var(--clr-muted,#666)">Loading&#8230;</div>');
+      window.BHDdb.loadAllBookings().then(function (bookings) {
+        renderAdminDashboard(bookings);
+      }).catch(function () {
+        renderAdminDashboard(Store.adminBookings().filter(function (b) { return b.status !== 'removed'; }));
+      });
+      return;
+    }
+    renderAdminDashboard(Store.adminBookings().filter(function (b) { return b.status !== 'removed'; }).slice().sort(function (a, b) {
+      return new Date(b.receivedAt || b.createdAt || 0) - new Date(a.receivedAt || a.createdAt || 0);
+    }));
+  }
+
+  function openAdminSignIn() {
+    var html =
+      '<div style="text-align:center;padding:12px 0 4px">' +
+        '<div style="font-size:2rem;margin-bottom:8px">&#128101;</div>' +
+        '<p style="font-weight:600;margin:0 0 16px">Sign in as Ben</p>' +
+      '</div>' +
+      '<form id="bhdAdminSignInForm" class="bhd-form" novalidate>' +
+        '<label class="field-label">Email' +
+          '<input type="email" id="asiEmail" autocomplete="email" required>' +
+        '</label>' +
+        '<label class="field-label">Password' +
+          '<input type="password" id="asiPass" autocomplete="current-password" required>' +
+        '</label>' +
+        '<div class="bhd-form-msg" id="asiErr" hidden></div>' +
+        '<div class="bhd-form-actions">' +
+          '<button type="submit" class="btn btn-primary">Sign in</button>' +
+          '<button type="button" class="btn btn-ghost" data-bhd-close>Cancel</button>' +
+        '</div>' +
+      '</form>';
+    modal.open('Admin Sign In', html);
+    var form = $('bhdAdminSignInForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = ($('asiEmail') && $('asiEmail').value.trim()) || '';
+      var pass  = ($('asiPass')  && $('asiPass').value)         || '';
+      var errEl = $('asiErr');
+      if (!email || !pass) {
+        errEl.textContent = 'Please enter email and password.';
+        errEl.removeAttribute('hidden');
+        return;
+      }
+      var submitBtn = form.querySelector('[type=submit]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+      window.BHDdb.adminSignIn(email, pass).then(function (ok) {
+        if (ok) {
+          openAdminDashboard();
+        } else {
+          errEl.textContent = 'Not authorised as admin.';
+          errEl.removeAttribute('hidden');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign in';
+        }
+      }).catch(function (err) {
+        errEl.textContent = (err && err.message) || 'Sign-in failed — check email and password.';
+        errEl.removeAttribute('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
       });
     });
   }
@@ -1286,6 +1369,6 @@
   }
 
   // Public API for debugging / future hooks
-  window.BHDBooking = { open: openBookingModal, list: openBookingsModal };
+  window.BHDBooking = { open: openBookingModal, list: openBookingsModal, _refreshCounts: refreshCounts };
   window.BHDQuotes = { save: saveCurrentQuote, list: openQuotesModal, send: sendQuotesToBen };
 })();
