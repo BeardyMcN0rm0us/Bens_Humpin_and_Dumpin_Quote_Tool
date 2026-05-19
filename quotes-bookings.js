@@ -393,12 +393,16 @@
     '</li>';
   }
 
+  function admMapFail(el, msg) {
+    el.classList.add('adm-map-fail');
+    el.textContent = msg;
+  }
+
   function renderDayMap(mapId, stops) {
     var el = document.getElementById(mapId);
     if (!el) return;
     if (!window.google || !window.google.maps) {
-      el.classList.add('adm-map-fail');
-      el.textContent = 'Map needs Google Maps — use the route link below.';
+      admMapFail(el, 'Map needs Google Maps — reopen the schedule once it loads.');
       return;
     }
     var homeAddr = (window.BHD && window.BHD.homeAddress) || '';
@@ -407,6 +411,21 @@
         zoom: 9, center: { lat: 52.4, lng: 0.1 },
         mapTypeControl: false, streetViewControl: false, fullscreenControl: false
       });
+      if (stops.length < 2) {
+        new google.maps.Geocoder().geocode(
+          { address: stops[0], region: 'uk' },
+          function (res, status) {
+            if (status === 'OK' && res && res[0]) {
+              map.setCenter(res[0].geometry.location);
+              map.setZoom(13);
+              new google.maps.Marker({ map: map, position: res[0].geometry.location });
+            } else {
+              admMapFail(el, 'Map preview unavailable for this address.');
+            }
+          }
+        );
+        return;
+      }
       var dr = new google.maps.DirectionsRenderer({ map: map });
       var ds = new google.maps.DirectionsService();
       var wp = stops.map(function (s) { return { location: s, stopover: true }; });
@@ -417,14 +436,10 @@
         travelMode: 'DRIVING', region: 'uk'
       }, function (res, status) {
         if (status === 'OK' && res) { dr.setDirections(res); }
-        else {
-          el.classList.add('adm-map-fail');
-          el.textContent = 'Route preview unavailable — use the link below.';
-        }
+        else { admMapFail(el, 'Route preview unavailable — use the link below.'); }
       });
     } catch (e) {
-      el.classList.add('adm-map-fail');
-      el.textContent = 'Route preview unavailable.';
+      admMapFail(el, 'Map preview unavailable.');
     }
   }
 
@@ -464,18 +479,18 @@
           '<div class="adm-day-head">' + esc(admDayHeading(day.iso)) +
             '<span class="adm-day-count">' + day.jobs.length + ' job' + (day.jobs.length > 1 ? 's' : '') + '</span>' +
           '</div>';
-        if (day.jobs.length >= 2) {
-          var stops = day.jobs.map(function (j) { return (j.address || '').trim(); }).filter(Boolean);
+        var stops = day.jobs.map(function (j) { return (j.address || '').trim(); }).filter(Boolean);
+        if (stops.length) {
+          var mapId = 'admMap-' + day.key;
+          html += '<div class="adm-route">' +
+            '<div class="adm-map" id="' + esc(mapId) + '"></div>';
           if (stops.length >= 2) {
-            var mapId = 'admMap-' + day.key;
             var linkStops = homeAddr ? [homeAddr].concat(stops).concat([homeAddr]) : stops;
-            html += '<div class="adm-route">' +
-              '<div class="adm-map" id="' + esc(mapId) + '"></div>' +
-              '<a class="btn btn-ghost btn-sm adm-route-link" target="_blank" rel="noopener" href="' +
-                esc(googleRouteUrl(linkStops)) + '">&#128506; Open full route in Google Maps</a>' +
-            '</div>';
-            mapJobs.push({ mapId: mapId, stops: stops });
+            html += '<a class="btn btn-ghost btn-sm adm-route-link" target="_blank" rel="noopener" href="' +
+              esc(googleRouteUrl(linkStops)) + '">&#128506; Open full route in Google Maps</a>';
           }
+          html += '</div>';
+          mapJobs.push({ mapId: mapId, stops: stops });
         }
         html += '<ul class="bhd-list">';
         day.jobs.forEach(function (b) { html += renderAdminJobCard(b); });
