@@ -143,10 +143,32 @@ window.BHD = Object.assign({
     return '·';
   }
 
+  // The headline total is rounded to the nearest £5, so exact £ sub-figures
+  // in the breakdown never sum to it and look wrong. Keep the job facts —
+  // distance, route, time, items — and strip every £ amount.
+  function factLine(s){
+    s=String(s||'').trim();
+    if(!s) return '';
+    if(/^Minimum charge applied/i.test(s)) return '';
+    s=s
+      .replace(/\s*\(range[^)]*\)/gi,'')
+      .replace(/\s*\(job over[^)]*\)/gi,'')
+      .replace(/\s*[@×]\s*[-−]?£[\d.,]+(?:\s*\/\s*[A-Za-z]+)*/g,'')
+      .replace(/\s*[=:]\s*[-−]?£[\d.,]+(?:\s*\/\s*[A-Za-z]+)*/g,'')
+      .replace(/\s*[-−]?£[\d.,]+(?:\s*\/\s*[A-Za-z]+)*/g,'')
+      .replace(/\(\s*\d*\s*[x×]?\s*\)/g,'')
+      .replace(/\s{2,}/g,' ')
+      .replace(/\s+([)\].,])/g,'$1')
+      .replace(/[\s:×@/–-]+$/,'')
+      .trim();
+    if(/^(Mileage|Base fee|Stairs)$/i.test(s)) return '';
+    return s.replace(/^Charged:/,'Distance:');
+  }
+
   const setBreakdownLines=(el,entries)=>{
     if(!el) return;
     el.innerHTML='';
-    (entries||[]).forEach((entry,idx)=>{
+    (entries||[]).map(factLine).filter(Boolean).forEach((entry,idx)=>{
       const row=document.createElement('div');
       row.className='bd-line br-line';
       row.style.setProperty('--i',idx);
@@ -1128,7 +1150,7 @@ function hideAll(){
     const baseAmount = rate * hours;
 
     const lines=[];
-    lines.push('Labour: £'+rate+'/hr × '+hours+' hr'+(hours!==1?'s':'')+' = £'+baseAmount.toFixed(2));
+    lines.push('Labour: '+hours+' hr'+(hours!==1?'s':'')+' on site');
 
     if(schedule==='ongoing'){
       const dayOfWeek=(els.gardenDayOfWeek&&els.gardenDayOfWeek.value)||'';
