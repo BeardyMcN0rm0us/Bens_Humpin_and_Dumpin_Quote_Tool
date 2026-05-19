@@ -244,15 +244,6 @@
             <div id="gardenWrap" class="hidden" hidden>
 
   <div class="field-group">
-    <label class="field-label">Preferred date &amp; time</label>
-    <input type="hidden" id="gardenDateTime">
-    <div class="inline-fields">
-      <input type="date" id="gardenDate">
-      <input type="time" id="gardenTime" min="08:30" max="17:00" step="1800">
-    </div>
-  </div>
-
-  <div class="field-group">
     <label class="field-label">One-off or ongoing?</label>
     <div class="opt-row">
       <button class="opt-btn is-active" data-sel="gardenSchedule" data-val="oneoff">One-off</button>
@@ -1290,67 +1281,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_API_KEY__&libraries=places&v=weekly&callback=voidFunc"></script>
 <script>function voidFunc(){}</script>
-<script>
-(function () {
-
-  function nextWorkingDayISO() {
-    var d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
-    return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart(2, '0') + '-' +
-      String(d.getDate()).padStart(2, '0');
-  }
-
-  function syncGardenDateTime() {
-    var dateEl = document.getElementById('gardenDate');
-    var timeEl = document.getElementById('gardenTime');
-    var hidden = document.getElementById('gardenDateTime');
-    var hoursEl = document.getElementById('gardenHours');
-    if (!dateEl || !timeEl || !hidden) return;
-    hidden.value = dateEl.value && timeEl.value ? dateEl.value + ' ' + timeEl.value : '';
-    if (hoursEl) {
-      if (timeEl.value === '17:00') {
-        hoursEl.max = '1';
-        if (parseFloat(hoursEl.value) > 1) hoursEl.value = '1';
-      } else {
-        hoursEl.removeAttribute('max');
-      }
-    }
-  }
-
-  function initGardenPicker() {
-    var dateEl = document.getElementById('gardenDate');
-    var timeEl = document.getElementById('gardenTime');
-    if (!dateEl || dateEl.dataset.init) return;
-    dateEl.dataset.init = '1';
-
-    var nwd = nextWorkingDayISO();
-    dateEl.min   = nwd;
-    dateEl.value = nwd;
-    timeEl.value = '08:30';
-
-    dateEl.addEventListener('change', function() {
-      var d = new Date(dateEl.value + 'T00:00:00');
-      if (d.getDay() === 0) {
-        d.setDate(d.getDate() + 1);
-        dateEl.value = d.getFullYear() + '-' +
-          String(d.getMonth() + 1).padStart(2, '0') + '-' +
-          String(d.getDate()).padStart(2, '0');
-      }
-      syncGardenDateTime();
-    });
-
-    timeEl.addEventListener('change', syncGardenDateTime);
-    syncGardenDateTime();
-  }
-
-  initGardenPicker();
-  document.addEventListener('DOMContentLoaded', initGardenPicker);
-  new MutationObserver(initGardenPicker).observe(document.body, { childList: true, subtree: true });
-
-})();
-</script>
 </body>
 </html>
