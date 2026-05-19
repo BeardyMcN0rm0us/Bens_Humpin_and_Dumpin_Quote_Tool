@@ -346,52 +346,143 @@
 
   var _adminAll = [];
 
+  /* ── admin schedule helpers ──────────────────────────────────── */
+  function admPad(n) { return String(n).padStart(2, '0'); }
+  function admLocalKey(d) { return d.getFullYear() + '-' + admPad(d.getMonth() + 1) + '-' + admPad(d.getDate()); }
+  function admStartOfToday() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function admDayKey(iso) { var d = new Date(iso); return isNaN(d.getTime()) ? String(iso || '') : admLocalKey(d); }
+  function admTime(iso) { var d = new Date(iso); return isNaN(d.getTime()) ? '' : admPad(d.getHours()) + ':' + admPad(d.getMinutes()); }
+  function admDayHeading(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso || '');
+    var label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    var today = new Date(), tom = new Date(); tom.setDate(tom.getDate() + 1);
+    if (admLocalKey(d) === admLocalKey(today)) return 'Today · ' + label;
+    if (admLocalKey(d) === admLocalKey(tom))   return 'Tomorrow · ' + label;
+    return label;
+  }
+  // Apple Maps takes a single destination (no multi-stop via URL); Google
+  // Maps is used for the whole-day route link because it supports waypoints.
+  function appleMapsUrl(addr) { return 'https://maps.apple.com/?daddr=' + encodeURIComponent(addr); }
+  function googleRouteUrl(stops) {
+    return 'https://www.google.com/maps/dir/' + stops.map(function (s) { return encodeURIComponent(s); }).join('/');
+  }
+
+  function renderAdminJobCard(b) {
+    var statusClass = 'bhd-status bhd-status-' + (b.status || 'pending');
+    var canReview = b.status === 'pending' || b.status === 'suggested';
+    var addr = (b.address || '').trim();
+    var tel = normalizePhone(b.phone);
+    return '<li class="bhd-card adm-job" data-adm-id="' + esc(b.id) + '">' +
+      '<div class="bhd-card-head">' +
+        '<strong>' + esc(admTime(b.whenISO) || '—') + ' &middot; ' + esc(b.name || 'Customer') + '</strong>' +
+        '<span class="' + esc(statusClass) + '">' + esc(b.status || 'pending') + '</span>' +
+      '</div>' +
+      '<div class="bhd-meta">' + esc(b.jobLabel || b.jobType || '') +
+        (b.total ? ' &middot; <strong>' + esc(b.total) + '</strong>' : '') + '</div>' +
+      (tel ? '<div class="bhd-meta">&#128222; <a href="tel:+' + esc(tel) + '">' + esc(displayPhone(b.phone)) + '</a></div>' : '') +
+      (b.email ? '<div class="bhd-meta">&#9993; <a href="mailto:' + esc(b.email) + '">' + esc(b.email) + '</a></div>' : '') +
+      (addr ? '<div class="bhd-meta">&#128205; ' + esc(addr) +
+        ' <a class="adm-nav" target="_blank" rel="noopener" href="' + esc(appleMapsUrl(addr)) + '">Navigate &#9656;</a></div>' : '') +
+      (b.notes ? '<div class="bhd-meta adm-notes">&#128221; ' + esc(b.notes) + '</div>' : '') +
+      '<div class="bhd-meta adm-id">' + esc(b.id) + '</div>' +
+      '<div class="bhd-card-actions">' +
+        (canReview ? '<button class="btn btn-primary btn-sm" type="button" data-adm-act="review">Review &rarr;</button>' : '') +
+        '<button class="btn btn-ghost btn-sm" type="button" data-adm-act="del">Remove</button>' +
+      '</div>' +
+    '</li>';
+  }
+
+  function renderDayMap(mapId, stops) {
+    var el = document.getElementById(mapId);
+    if (!el) return;
+    if (!window.google || !window.google.maps) {
+      el.classList.add('adm-map-fail');
+      el.textContent = 'Map needs Google Maps — use the route link below.';
+      return;
+    }
+    var homeAddr = (window.BHD && window.BHD.homeAddress) || '';
+    try {
+      var map = new google.maps.Map(el, {
+        zoom: 9, center: { lat: 52.4, lng: 0.1 },
+        mapTypeControl: false, streetViewControl: false, fullscreenControl: false
+      });
+      var dr = new google.maps.DirectionsRenderer({ map: map });
+      var ds = new google.maps.DirectionsService();
+      var wp = stops.map(function (s) { return { location: s, stopover: true }; });
+      ds.route({
+        origin: homeAddr || stops[0],
+        destination: homeAddr || stops[stops.length - 1],
+        waypoints: homeAddr ? wp : wp.slice(1, -1),
+        travelMode: 'DRIVING', region: 'uk'
+      }, function (res, status) {
+        if (status === 'OK' && res) { dr.setDirections(res); }
+        else {
+          el.classList.add('adm-map-fail');
+          el.textContent = 'Route preview unavailable — use the link below.';
+        }
+      });
+    } catch (e) {
+      el.classList.add('adm-map-fail');
+      el.textContent = 'Route preview unavailable.';
+    }
+  }
+
   function renderAdminDashboard(all) {
-    _adminAll = all;
-    var pending   = all.filter(function (b) { return b.status === 'pending';   }).length;
-    var confirmed = all.filter(function (b) { return b.status === 'confirmed'; }).length;
-    var html;
-    if (!all.length) {
+    _adminAll = all || [];
+    var homeAddr = (window.BHD && window.BHD.homeAddress) || '';
+    var today = admStartOfToday();
+    var upcoming = _adminAll.filter(function (b) {
+      if (!b || b.status === 'removed' || !b.whenISO) return false;
+      var d = new Date(b.whenISO);
+      return !isNaN(d.getTime()) && d >= today;
+    }).sort(function (a, b) { return new Date(a.whenISO) - new Date(b.whenISO); });
+
+    var html, mapJobs = [];
+    if (!upcoming.length) {
       html =
         '<div class="bhd-empty-state">' +
-          '<span class="bhd-empty-icon">&#128203;</span>' +
-          '<div class="bhd-empty-title">No bookings yet</div>' +
-          '<div class="bhd-empty-sub">Customer booking requests will appear here when you tap their links.</div>' +
+          '<span class="bhd-empty-icon">&#128197;</span>' +
+          '<div class="bhd-empty-title">No upcoming jobs</div>' +
+          '<div class="bhd-empty-sub">Confirmed and pending bookings from today onwards appear here, grouped by day.</div>' +
         '</div>';
     } else {
-      var summary = all.length + ' total';
-      if (pending)   summary += ' &nbsp;·&nbsp; <strong style="color:#c0392b">' + pending + ' pending</strong>';
-      if (confirmed) summary += ' &nbsp;·&nbsp; <span style="color:#27ae60">' + confirmed + ' confirmed</span>';
-      html =
-        '<div style="font-size:0.85rem;color:var(--clr-muted,#666);margin-bottom:12px">' + summary + '</div>' +
-        '<ul class="bhd-list">' +
-        all.map(function (b) {
-          var statusClass = 'bhd-status bhd-status-' + (b.status || 'pending');
-          var whenStr = b.whenISO ? fmtDate(b.whenISO) : '(no date)';
-          var canReview = b.status === 'pending' || b.status === 'suggested';
-          return '<li class="bhd-card" data-adm-id="' + esc(b.id) + '">' +
-            '<div class="bhd-card-head">' +
-              '<strong>' + esc(b.name || 'Customer') + '</strong>' +
-              '<span class="' + esc(statusClass) + '">' + esc(b.status || 'pending') + '</span>' +
-            '</div>' +
-            '<div class="bhd-meta">&#128197; ' + esc(whenStr) + '</div>' +
-            '<div class="bhd-meta">' + esc(b.jobLabel || b.jobType || '') +
-              (b.total ? ' &nbsp;&middot;&nbsp; <strong>' + esc(b.total) + '</strong>' : '') + '</div>' +
-            '<div class="bhd-meta">' + esc(b.id) +
-              (b.phone   ? ' &nbsp;&middot;&nbsp; ' + esc(displayPhone(b.phone)) : '') +
-              (b.address ? ' &nbsp;&middot;&nbsp; &#128205; ' + esc(b.address)   : '') +
-            '</div>' +
-            '<div class="bhd-card-actions">' +
-              (canReview
-                ? '<button class="btn btn-primary btn-sm" type="button" data-adm-act="review">Review &rarr;</button>'
-                : '') +
-              '<button class="btn btn-ghost btn-sm" type="button" data-adm-act="del">Remove</button>' +
-            '</div>' +
-          '</li>';
-        }).join('') +
-        '</ul>';
+      var pending = upcoming.filter(function (b) { return b.status === 'pending'; }).length;
+      var days = [], byKey = {};
+      upcoming.forEach(function (b) {
+        var k = admDayKey(b.whenISO);
+        if (!byKey[k]) { byKey[k] = { key: k, iso: b.whenISO, jobs: [] }; days.push(byKey[k]); }
+        byKey[k].jobs.push(b);
+      });
+      html = '<div class="adm-summary">' +
+        upcoming.length + ' upcoming job' + (upcoming.length > 1 ? 's' : '') +
+        ' &middot; ' + days.length + ' day' + (days.length > 1 ? 's' : '') +
+        (pending ? ' &middot; <strong style="color:#c0392b">' + pending + ' pending</strong>' : '') +
+        '</div>';
+      days.forEach(function (day) {
+        html += '<section class="adm-day">' +
+          '<div class="adm-day-head">' + esc(admDayHeading(day.iso)) +
+            '<span class="adm-day-count">' + day.jobs.length + ' job' + (day.jobs.length > 1 ? 's' : '') + '</span>' +
+          '</div>';
+        if (day.jobs.length >= 2) {
+          var stops = day.jobs.map(function (j) { return (j.address || '').trim(); }).filter(Boolean);
+          if (stops.length >= 2) {
+            var mapId = 'admMap-' + day.key;
+            var linkStops = homeAddr ? [homeAddr].concat(stops).concat([homeAddr]) : stops;
+            html += '<div class="adm-route">' +
+              '<div class="adm-map" id="' + esc(mapId) + '"></div>' +
+              '<a class="btn btn-ghost btn-sm adm-route-link" target="_blank" rel="noopener" href="' +
+                esc(googleRouteUrl(linkStops)) + '">&#128506; Open full route in Google Maps</a>' +
+            '</div>';
+            mapJobs.push({ mapId: mapId, stops: stops });
+          }
+        }
+        html += '<ul class="bhd-list">';
+        day.jobs.forEach(function (b) { html += renderAdminJobCard(b); });
+        html += '</ul></section>';
+      });
     }
-    modal.open('&#128203; All Bookings', html);
+    modal.open('&#128197; Schedule', html);
     var body = $('bhdModalBody');
     if (!body) return;
     body.querySelectorAll('.bhd-card').forEach(function (card) {
@@ -413,6 +504,11 @@
         });
       });
     });
+    if (mapJobs.length) {
+      setTimeout(function () {
+        mapJobs.forEach(function (m) { renderDayMap(m.mapId, m.stops); });
+      }, 180);
+    }
   }
 
   function openAdminDashboard() {
