@@ -160,7 +160,8 @@
         k: 'cust', id: arr[1], act: arr[2],
         dt: expandDate(arr[3]), nt: arr[4] || '',
         svc: arr[5] || '', est: arr[6] || '',
-        n: arr[7] || '', qid: arr[8] || ''
+        n: arr[7] || '', qid: arr[8] || '',
+        jt: arr[9] || ''
       };
     }
     return { k: 'ben2', id: arr[1], act: arr[2], dt: expandDate(arr[3]) };
@@ -191,6 +192,12 @@
       arr[7] = snap.name || '';
       arr[8] = snap.quoteId || '';
     }
+    // Revise carries the *new* service & price in arr[5/6/9] so the
+    // customer's app can show the revision even when the original
+    // booking record isn't on that device.
+    if (opts && opts.newLabel != null)   arr[5] = opts.newLabel;
+    if (opts && opts.newTotal != null)   arr[6] = opts.newTotal;
+    if (opts && opts.newJobType != null) arr[9] = opts.newJobType;
     return appUrl() + '?bhd=' + encodeArr(arr);
   }
   function buildBenReplyLink(action, id, opts) {
@@ -375,7 +382,7 @@
 
   function renderAdminJobCard(b) {
     var statusClass = 'bhd-status bhd-status-' + (b.status || 'pending');
-    var canReview = b.status === 'pending' || b.status === 'suggested';
+    var canReview = b.status === 'pending' || b.status === 'suggested' || b.status === 'revised';
     var addr = (b.address || '').trim();
     var tel = normalizePhone(b.phone);
     return '<li class="bhd-card adm-job" data-adm-id="' + esc(b.id) + '">' +
@@ -983,6 +990,7 @@
         '<button class="btn btn-whatsapp" type="button" id="benAccept">✅ Accept</button>' +
         '<button class="btn btn-ghost"    type="button" id="benDecline">❌ Decline</button>' +
         '<button class="btn btn-primary"  type="button" id="benSuggest">🕐 Suggest new time</button>' +
+        '<button class="btn btn-primary"  type="button" id="benRevise">✏️ Revise job &amp; price</button>' +
       '</div>';
     modal.open('Booking request from ' + (b.name || 'customer'), html);
     var body = $('bhdModalBody');
@@ -990,6 +998,7 @@
     body.querySelector('#benAccept').addEventListener('click', function () { benAccept(b); });
     body.querySelector('#benDecline').addEventListener('click', function () { benDecline(b); });
     body.querySelector('#benSuggest').addEventListener('click', function () { benSuggest(b); });
+    body.querySelector('#benRevise').addEventListener('click', function () { benRevise(b); });
   }
   function benAccept(b) {
     Store.updateAdminBooking(b.id, { status: 'confirmed', decidedAt: new Date().toISOString() });
@@ -1064,6 +1073,71 @@
       waOpen(b.phone, msg);
       modal.close();
       toast({ icon: '🕐', body: 'Suggestion sent', sub: 'Awaiting customer response', timeout: 4000 });
+    });
+  }
+
+  function benRevise(b) {
+    var currentType = b.jobType || '';
+    var currentTotal = ((b.total || '').match(/[\d.]+/) || [''])[0];
+    var typeOptions = Object.keys(JOB_LABELS).map(function (k) {
+      return '<option value="' + esc(k) + '"' + (k === currentType ? ' selected' : '') + '>' + esc(JOB_LABELS[k]) + '</option>';
+    }).join('');
+    var html =
+      '<p class="hint" style="margin-bottom:10px">Customer booked: <strong>' +
+        esc(b.jobLabel || b.jobType || '') + '</strong>' +
+        (b.total ? ' at <strong>' + esc(b.total) + '</strong>' : '') +
+        '. Correct the service or price below — the customer accepts or declines on WhatsApp.</p>' +
+      '<form id="bhdReviseForm" class="bhd-form" novalidate>' +
+        '<label class="field-label">New service' +
+          '<select id="rvType" required>' + typeOptions + '</select>' +
+        '</label>' +
+        '<label class="field-label">New total (&pound;)' +
+          '<input type="number" id="rvTotal" min="0" step="1" required value="' + esc(currentTotal) + '">' +
+        '</label>' +
+        '<label class="field-label">Note for customer <span class="bhd-optional">(optional)</span>' +
+          '<textarea id="rvNote" rows="2" placeholder="e.g. This looks like a full house move, not a tip run — price reflects the bigger van and time on the job."></textarea>' +
+        '</label>' +
+        '<div class="bhd-form-msg" id="rvErr" hidden></div>' +
+        '<div class="bhd-form-actions">' +
+          '<button type="submit" class="btn btn-primary">Send revision</button>' +
+          '<button type="button" class="btn btn-ghost" id="rvBack">Back</button>' +
+        '</div>' +
+      '</form>';
+    modal.open('Revise job & price', html);
+    var body = $('bhdModalBody');
+    if (!body) return;
+    body.querySelector('#rvBack').addEventListener('click', function () { renderBenReview(b); });
+    body.querySelector('#bhdReviseForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var jt = $('rvType').value;
+      var totalN = parseInt($('rvTotal').value, 10);
+      var note = $('rvNote').value.trim();
+      var err = $('rvErr');
+      function fail(m) { err.textContent = m; err.removeAttribute('hidden'); }
+      if (!jt || !JOB_LABELS[jt]) return fail('Pick a service.');
+      if (!(totalN > 0)) return fail('Enter a price greater than zero.');
+      var newLabel = JOB_LABELS[jt];
+      var newTotal = '£' + totalN;
+      Store.updateAdminBooking(b.id, {
+        status: 'revised',
+        revisedJobLabel: newLabel,
+        revisedJobType: jt,
+        revisedTotal: newTotal,
+        revisedNote: note,
+        decidedAt: new Date().toISOString()
+      });
+      var link = buildCustLink('revise', b.id, {
+        note: note, newLabel: newLabel, newJobType: jt, newTotal: newTotal
+      }, b);
+      var msg = "✏️ " + (b.name ? 'Hi ' + b.name + ', ' : '') +
+        "I've revised booking " + b.id + ":" +
+        "\n• Service: " + newLabel +
+        "\n• Price: " + newTotal +
+        (note ? "\n• Note: " + note : '') +
+        "\n\n👉 Accept or decline in your app:\n" + link;
+      waOpen(b.phone, msg);
+      modal.close();
+      toast({ icon: '✏️', body: 'Revision sent', sub: 'Awaiting customer response', timeout: 4500 });
     });
   }
 
@@ -1171,6 +1245,15 @@
         suggestedNote: p.nt || '',
         decidedAt: new Date().toISOString()
       });
+    } else if (p.act === 'revise') {
+      Store.updateBooking(p.id, {
+        status: 'revised',
+        revisedJobLabel: p.svc || '',
+        revisedJobType: p.jt || '',
+        revisedTotal: p.est || '',
+        revisedNote: p.nt || '',
+        decidedAt: new Date().toISOString()
+      });
     }
     refreshCounts();
 
@@ -1207,6 +1290,13 @@
           openUrl,
           []
         );
+      } else if (p.act === 'revise') {
+        showCrossContextPanel(
+          '✏️', 'Ben Revised Your Booking',
+          (p.svc || '') + (p.est ? ' · ' + p.est : '') + (p.nt ? ' — ' + p.nt : ''),
+          openUrl,
+          []
+        );
       }
       return;
     }
@@ -1232,6 +1322,15 @@
               waOpen(num, "Hi Ben, about booking " + p.id + " — when could you fit it in?");
             } },
           { label: 'My bookings', ghost: true, onClick: openBookingsModal }
+        ],
+        timeout: 9000
+      });
+    } else if (p.act === 'revise') {
+      toast({
+        icon: '✏️', body: 'Ben revised your booking',
+        sub: (p.svc || '') + (p.est ? ' · ' + p.est : '') + (p.nt ? ' — ' + p.nt : ''),
+        actions: [
+          { label: 'Respond', onClick: openBookingsModal }
         ],
         timeout: 9000
       });
@@ -1273,6 +1372,23 @@
     } else if (p.act === 'reject-suggest') {
       Store.updateAdminBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
       toast({ icon: '❌', body: (b.name || 'Customer') + ' declined the new time', timeout: 6000 });
+    } else if (p.act === 'accept-revise') {
+      Store.updateAdminBooking(p.id, {
+        status: 'confirmed',
+        jobLabel: b.revisedJobLabel || b.jobLabel,
+        jobType:  b.revisedJobType  || b.jobType,
+        total:    b.revisedTotal    || b.total,
+        decidedAt: new Date().toISOString()
+      });
+      var b3 = Store.adminBookings().filter(function (x) { return x.id === p.id; })[0];
+      toast({
+        icon: '✅', body: (b.name || 'Customer') + ' accepted the revision',
+        sub: (b3.jobLabel || '') + (b3.total ? ' · ' + b3.total : ''),
+        timeout: 7000
+      });
+    } else if (p.act === 'reject-revise') {
+      Store.updateAdminBooking(p.id, { status: 'declined', decidedAt: new Date().toISOString() });
+      toast({ icon: '❌', body: (b.name || 'Customer') + ' declined the revision', timeout: 6000 });
     }
   }
   function handleDeeplink() {
@@ -1320,6 +1436,34 @@
     modal.close();
     toast({ icon: '❌', body: 'Suggestion declined', sub: 'Reply opened in WhatsApp', timeout: 5000 });
   }
+  function customerAcceptRevision(b) {
+    Store.updateBooking(b.id, {
+      status: 'confirmed',
+      jobLabel: b.revisedJobLabel || b.jobLabel,
+      jobType:  b.revisedJobType  || b.jobType,
+      total:    b.revisedTotal    || b.total,
+      confirmedAt: new Date().toISOString()
+    });
+    refreshCounts();
+    var link = buildBenReplyLink('accept-revise', b.id);
+    var num = (window.BHD && window.BHD.whatsappNumber) || '';
+    var msg = "✅ Accepting your revision for booking " + b.id + ": " +
+      (b.revisedJobLabel || '') + (b.revisedTotal ? ' at ' + b.revisedTotal : '') +
+      ".\n\n👉 Update your app:\n" + link;
+    waOpen(num, msg);
+    modal.close();
+    toast({ icon: '✅', body: 'Revision accepted', sub: 'Reply opened in WhatsApp', timeout: 5000 });
+  }
+  function customerRejectRevision(b) {
+    Store.updateBooking(b.id, { status: 'declined', decidedAt: new Date().toISOString() });
+    refreshCounts();
+    var link = buildBenReplyLink('reject-revise', b.id);
+    var num = (window.BHD && window.BHD.whatsappNumber) || '';
+    var msg = "❌ Sorry, the revised job/price for booking " + b.id + " doesn't work for me.\n\n👉 Update your app:\n" + link;
+    waOpen(num, msg);
+    modal.close();
+    toast({ icon: '❌', body: 'Revision declined', sub: 'Reply opened in WhatsApp', timeout: 5000 });
+  }
 
   /* ── bookings list modal ─────────────────────────────────────── */
   function openBookingsModal() {
@@ -1347,6 +1491,19 @@
                 '</div>' +
               '</div>'
             : '';
+          var revisedBanner = (b.status === 'revised')
+            ? '<div class="bhd-suggest-banner">' +
+                '<div class="bhd-meta"><strong>Ben revised this:</strong> ' +
+                  esc(b.revisedJobLabel || '') +
+                  (b.revisedTotal ? ' · ' + esc(b.revisedTotal) : '') +
+                  (b.revisedNote ? ' — ' + esc(b.revisedNote) : '') +
+                '</div>' +
+                '<div class="bhd-card-actions">' +
+                  '<button class="btn btn-whatsapp btn-sm" type="button" data-act="acceptRevise">✅ Accept</button>' +
+                  '<button class="btn btn-ghost btn-sm" type="button" data-act="rejectRevise">❌ Decline</button>' +
+                '</div>' +
+              '</div>'
+            : '';
           var canIcs = b.status === 'confirmed' || b.status === 'pending';
           return '<li class="bhd-card" data-id="' + esc(b.id) + '">' +
             '<div class="bhd-card-head">' +
@@ -1362,6 +1519,7 @@
             '</div>' +
             (b.total ? '<div class="bhd-meta"><strong>' + esc(b.total) + '</strong></div>' : '') +
             suggestedBanner +
+            revisedBanner +
             '<div class="bhd-card-actions">' +
               '<button class="btn btn-whatsapp btn-sm" type="button" data-act="wa">💬 Resend to Ben</button>' +
               (canIcs ? '<button class="btn btn-ghost btn-sm" type="button" data-act="ics">📅 Calendar</button>' : '') +
@@ -1399,6 +1557,11 @@
           } else if (act === 'rejectSuggest') {
             if (!confirm('Decline Ben\'s suggested time? He\'ll be notified.')) return;
             customerRejectSuggestion(b);
+          } else if (act === 'acceptRevise') {
+            customerAcceptRevision(b);
+          } else if (act === 'rejectRevise') {
+            if (!confirm('Decline Ben\'s revised job/price? He\'ll be notified.')) return;
+            customerRejectRevision(b);
           }
         });
       });
