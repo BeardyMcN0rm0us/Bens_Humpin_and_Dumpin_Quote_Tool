@@ -1241,6 +1241,22 @@ function hideAll(){
     return m?m[0].toUpperCase():'';
   }
 
+  // A short label for a route stop: the postcode if the address has one,
+  // otherwise the most place-name-like part of the address, so the
+  // breakdown always names the stop instead of dropping it.
+  function placeLabel(addr){
+    addr=String(addr||'').trim();
+    if(!addr) return '';
+    const pc=postcode(addr);
+    if(pc) return pc;
+    let parts=addr.split(',').map(s=>s.trim())
+      .filter(s=>s && !/^(uk|united kingdom|england|gb|great britain)$/i.test(s));
+    if(!parts.length) parts=[addr];
+    const named=parts.find(p=>/[a-z]/i.test(p) && !/^\d+[a-z]?$/i.test(p));
+    const label=named||parts[0];
+    return label.length>28?label.slice(0,27)+'…':label;
+  }
+
   /* ── form validation ─────────────────────────────────────────── */
   function fieldVal(el){ return el ? String(el.value || '').trim() : ''; }
   function countChecked(name){ return document.querySelectorAll('input[name="'+name+'"]:checked').length; }
@@ -1390,9 +1406,9 @@ function hideAll(){
     const loopMiles=round1(milesObj&&milesObj.loop||0);
     const noteC=milesObj&&milesObj.noteCharged||'';
     const noteL=milesObj&&milesObj.noteLoop||'';
-    const pcTip=postcode(CFG.waterbeachAddress);
-    const pcPickup=postcode((els.addrPickup&&els.addrPickup.value)||'');
-    const pcDrop=postcode((els.addrDrop&&els.addrDrop.value)||'');
+    const pcTip=placeLabel(CFG.waterbeachAddress);
+    const pcPickup=placeLabel((els.addrPickup&&els.addrPickup.value)||'');
+    const pcDrop=placeLabel((els.addrDrop&&els.addrDrop.value)||'');
     // Jobs billed by the hour — no base call-out fee
     const HOURLY_JOBS=['tip','fb','student','shop','other'];
     const isHourly=HOURLY_JOBS.includes(jt);
