@@ -1667,3 +1667,33 @@ body.bhd-modal-open { overflow: hidden; }
 .adm-job .adm-nav { font-weight: 800; white-space: nowrap; }
 .adm-notes { font-style: italic; }
 .adm-id { opacity: 0.5; font-size: 0.68rem; }
+
+/* ── form sub-section headings ───────────────────────────────── */
+.form-subhead {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+  margin: 28px 0 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.form-subhead:first-child { margin-top: 8px; }
+
+/* ── required-field validation highlight ─────────────────────── */
+.field-group.field-invalid { scroll-margin-top: 96px; }
+.field-group.field-invalid > .field-label { color: #f15a4a; }
+.field-group.field-invalid input,
+.field-group.field-invalid textarea,
+.field-group.field-invalid select,
+.field-group.field-invalid .opt-row {
+  border-color: #f15a4a;
+  box-shadow: 0 0 0 3px rgba(241,90,74,0.18);
+}
+
+/* ── build tag when shown inside the help panel ──────────────── */
+.help-panel .build-tag {
+  display: inline-block;
+  margin-top: 18px;
+}

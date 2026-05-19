@@ -222,7 +222,7 @@ window.BHD = Object.assign({
     descWrap:$('descWrap'), jobDesc:$('jobDesc'),
     btnCalc:$('btnCalc'), routeHint:$('routeHint'),
     breakdown:$('breakdown'), total:$('total'),
-    quoteId:$('quoteId'), btnWA:$('btnWhatsApp'),
+    quoteId:$('quoteId'), btnWA:$('btnWhatsApp'), btnBookNow:$('btnBookNow'),
     buildTag:$('buildTag'),
     // Garden
     gardenWrap:$('gardenWrap'),
@@ -1241,6 +1241,82 @@ function hideAll(){
     return m?m[0].toUpperCase():'';
   }
 
+  /* ── form validation ─────────────────────────────────────────── */
+  function fieldVal(el){ return el ? String(el.value || '').trim() : ''; }
+  function countChecked(name){ return document.querySelectorAll('input[name="'+name+'"]:checked').length; }
+
+  // Returns {el,msg} for the first required field the customer hasn't filled,
+  // or null when the form has enough to quote.
+  function firstMissing(jt){
+    if(jt==='garden'){
+      if(!fieldVal(els.addrPickup)) return {el:els.addrPickup, msg:'Add the garden address so we can quote the travel.'};
+      if(!fieldVal(els.gardenSize)) return {el:els.gardenSize, msg:'Pick a garden size.'};
+      if(!countChecked('gardenTask')) return {el:document.querySelector('input[name="gardenTask"]'), msg:'Tick at least one garden task.'};
+      return null;
+    }
+    if(jt==='bike'){
+      if(!fieldVal(els.bikeAddr)) return {el:els.bikeAddr, msg:'Add your address for bike collection.'};
+      if(els.bikeMode && els.bikeMode.value==='items' && !countChecked('bikeService'))
+        return {el:document.querySelector('input[name="bikeService"]'), msg:'Tick at least one thing that needs doing.'};
+      return null;
+    }
+    if(jt==='business'){
+      var bp=$('businessProposal');
+      if(bp && !fieldVal(bp)) return {el:bp, msg:'Tell Ben what you have in mind.'};
+      return null;
+    }
+    if(jt==='bags'){
+      if(parseInt(fieldVal($('bagsCount'))||'0',10)<1) return {el:$('bagsCount'), msg:'Enter how many bags.'};
+      return null;
+    }
+    var needPickup={tip:1,move:1,fb:1,shop:1,student:1,other:1};
+    var needDrop={move:1,fb:1,shop:1,ikea:1,flatpack:1,hay:1,student:1,other:1};
+    if(jt==='ikea' && !fieldVal(els.ikeaStore)) return {el:els.ikeaStore, msg:'Choose an IKEA store.'};
+    if(needPickup[jt] && !fieldVal(els.addrPickup)) return {el:els.addrPickup, msg:'Add the collection address.'};
+    if(needDrop[jt] && !fieldVal(els.addrDrop)) return {el:els.addrDrop, msg:'Add the delivery address.'};
+    if(jt==='move' && !fieldVal(els.houseMoveBedrooms)) return {el:els.houseMoveBedrooms, msg:'Choose the number of bedrooms.'};
+    if(jt==='flatpack' && !flatBasket.length) return {el:els.flatItemSel, msg:'Add at least one item to build.'};
+    if(jt==='ikea' && els.ikeaMode && els.ikeaMode.value==='collectBuild' && !ikeaBasket.length)
+      return {el:els.ikeaItemSel, msg:'Add at least one assembly item.'};
+    if(jt==='hay'){
+      var hayTypeEl=$('hayType'), balesN=parseInt(fieldVal($('hayBales'))||'0',10);
+      if(hayTypeEl && hayTypeEl.value==='rental' && balesN<10)
+        return {el:$('hayBales'), msg:'Hay rental is a minimum of 10 bales.'};
+    }
+    return null;
+  }
+
+  // Scrolls to, highlights and focuses a required field the customer skipped.
+  function flagField(el){
+    if(!el) return;
+    var group=el.closest('.field-group')||el;
+    group.classList.add('field-invalid');
+    group.scrollIntoView({behavior:'smooth', block:'center'});
+    var focusEl=el;
+    var hiddenish=el.hidden||(el.getAttribute&&el.getAttribute('aria-hidden')==='true');
+    if(hiddenish) focusEl=group.querySelector('.opt-btn, input:not([type=hidden]), textarea, select:not([hidden])')||el;
+    try{ focusEl.focus({preventScroll:true}); }catch(e){}
+    function clear(){ group.classList.remove('field-invalid'); }
+    group.addEventListener('input', clear, {once:true});
+    group.addEventListener('click', clear, {once:true});
+  }
+
+  // Business quotes are "price on request" — there is no firm slot to book,
+  // so they get the WhatsApp CTA; every priced job gets the Book CTA instead.
+  // When the bookings feature is switched off, WhatsApp is the only CTA.
+  function setPanel3CTA(jt){
+    var feats=(window.BHD&&window.BHD.features)||{};
+    var showBook=(feats.quotesBookings!==false) && jt!=='business';
+    if(els.btnBookNow){
+      els.btnBookNow.classList.toggle('hidden', !showBook);
+      if(showBook) els.btnBookNow.removeAttribute('hidden'); else els.btnBookNow.setAttribute('hidden','');
+    }
+    if(els.btnWA){
+      els.btnWA.classList.toggle('hidden', showBook);
+      if(showBook) els.btnWA.setAttribute('hidden',''); else els.btnWA.removeAttribute('hidden');
+    }
+  }
+
   function calculate(milesObj){
     const jt=(els.jobType&&els.jobType.value)||"";
     if(!jt){if(els.routeHint) els.routeHint.textContent="Pick a job type first."; return;}
@@ -1249,7 +1325,7 @@ function hideAll(){
       if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt), 'Ben will review your proposal and get back to you with a price.']);
       if(els.total){els.total.textContent="Price on request"; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
-      if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
+      setPanel3CTA(jt);
       if(window.goTo) window.goTo(3);
       return;
     }
@@ -1264,6 +1340,14 @@ function hideAll(){
         if(els.routeHint) els.routeHint.textContent=directions
           ?"⚠ Couldn't calculate the route — please check the collection and delivery addresses are valid and try again."
           :"⚠ Google Maps didn't load — check your internet connection, refresh the page, then try again.";
+        if(window.bhdToast) window.bhdToast({
+          icon:'⚠',
+          body:directions?'Check the addresses':"Maps didn't load",
+          sub:directions
+            ?"We couldn't route between those addresses — double-check the collection and delivery details."
+            :'Check your connection, refresh the page, then try again.',
+          timeout:5500
+        });
         return;
       }
     }
@@ -1284,7 +1368,7 @@ function hideAll(){
       if(els.breakdown) setBreakdownLines(els.breakdown, lines);
       if(els.total){els.total.textContent="£"+exact; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
-      if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
+      setPanel3CTA(jt);
       if(window.goTo) window.goTo(3);
       return;
     }
@@ -1297,7 +1381,7 @@ function hideAll(){
       if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt)].concat(q.lines));
       if(els.total){els.total.textContent='£'+lo+'–£'+hi; els.total.classList.add('show');}
       if(els.quoteId) els.quoteId.textContent='Quote ID — '+quoteId();
-      if(els.btnWA){els.btnWA.removeAttribute('hidden');els.btnWA.classList.remove('hidden');}
+      setPanel3CTA(jt);
       if(window.goTo) window.goTo(3);
       return;
     }
@@ -1406,7 +1490,7 @@ function hideAll(){
     if(els.breakdown) setBreakdownLines(els.breakdown, ['Service: '+jobLabel(jt)].concat(lines));
     if(els.total){els.total.textContent="£"+low+"–£"+high; els.total.classList.add('show');}
     if(els.quoteId) els.quoteId.textContent="Quote ID — "+quoteId();
-    if(els.btnWA){els.btnWA.removeAttribute('hidden'); els.btnWA.classList.remove('hidden');}
+    setPanel3CTA(jt);
     if(window.goTo) window.goTo(3);
   }
 
@@ -1524,6 +1608,13 @@ function hideAll(){
   if(els.lutonNeeded) els.lutonNeeded.addEventListener('change',updateLutonHint);
   if(els.lutonCost) els.lutonCost.addEventListener('input',updateLutonHint);
   if(els.btnCalc) els.btnCalc.addEventListener('click',async()=>{
+    const jtNow=(els.jobType&&els.jobType.value)||'';
+    const miss=firstMissing(jtNow);
+    if(miss){
+      if(window.bhdToast) window.bhdToast({icon:'✏️',body:'One more thing',sub:miss.msg,timeout:4500});
+      flagField(miss.el);
+      return;
+    }
     els.btnCalc.textContent='Calculating…';
     els.btnCalc.disabled=true;
     if(els.routeHint) els.routeHint.textContent="Calculating...";
