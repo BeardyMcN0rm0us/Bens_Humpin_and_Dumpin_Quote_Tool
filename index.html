@@ -10,25 +10,24 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=r428">
+<link rel="stylesheet" href="style.css?v=r430">
 </head>
 <body>
 
 <div class="app-header">
   <div class="header-inner">
-    <img src="icon-192.png" alt="logo" id="adminTrigger">
+    <img src="icon-192.png" alt="logo" id="adminTrigger" title="Ben's Humpin' &amp; Dumpin'">
     <div class="header-title">
       <h1>Humpin' &amp; Dumpin'</h1>
       <div class="sub">Instant Estimate</div>
     </div>
-    <div class="build-tag" id="buildTag">r428</div>
   </div>
-  <div class="progress-bar">
-    <div class="prog-step" id="pStep1"><div class="prog-dot">1</div><div class="prog-label">Job</div></div>
+  <div class="progress-bar" role="list" aria-label="Quote progress">
+    <div class="prog-step" id="pStep1" role="listitem"><div class="prog-dot">1</div><div class="prog-label">Job</div></div>
     <div class="prog-line" id="pLine1"></div>
-    <div class="prog-step" id="pStep2"><div class="prog-dot">2</div><div class="prog-label">Details</div></div>
+    <div class="prog-step" id="pStep2" role="listitem"><div class="prog-dot">2</div><div class="prog-label">Details</div></div>
     <div class="prog-line" id="pLine2"></div>
-    <div class="prog-step" id="pStep3"><div class="prog-dot">3</div><div class="prog-label">Quote</div></div>
+    <div class="prog-step" id="pStep3" role="listitem"><div class="prog-dot">3</div><div class="prog-label">Quote</div></div>
   </div>
 </div>
 
@@ -109,7 +108,7 @@
             <option value="no">No thanks</option>
           </select>
         </div>
-        <div class="field-group">
+        <div class="field-group hidden" hidden>
           <label class="field-label" for="lutonCost">Hire &pound;/day</label>
           <input id="lutonCost" type="number" min="0" step="1"/>
         </div>
@@ -243,6 +242,8 @@
 
             <div id="gardenWrap" class="hidden" hidden>
 
+  <div class="form-subhead">Scheduling</div>
+
   <div class="field-group">
     <label class="field-label">One-off or ongoing?</label>
     <div class="opt-row">
@@ -278,9 +279,17 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label" for="gardenDayOfWeek">Preferred day</label>
-      <select id="gardenDayOfWeek">
-        <option value="Mon">Monday</option>
+      <label class="field-label">Preferred day</label>
+      <div class="opt-row">
+        <button type="button" class="opt-btn is-active" data-sel="gardenDayOfWeek" data-val="Mon">Mon</button>
+        <button type="button" class="opt-btn" data-sel="gardenDayOfWeek" data-val="Tue">Tue</button>
+        <button type="button" class="opt-btn" data-sel="gardenDayOfWeek" data-val="Wed">Wed</button>
+        <button type="button" class="opt-btn" data-sel="gardenDayOfWeek" data-val="Thu">Thu</button>
+        <button type="button" class="opt-btn" data-sel="gardenDayOfWeek" data-val="Fri">Fri</button>
+        <button type="button" class="opt-btn" data-sel="gardenDayOfWeek" data-val="Sat">Sat</button>
+      </div>
+      <select id="gardenDayOfWeek" hidden aria-hidden="true">
+        <option value="Mon" selected>Monday</option>
         <option value="Tue">Tuesday</option>
         <option value="Wed">Wednesday</option>
         <option value="Thu">Thursday</option>
@@ -313,6 +322,8 @@
       </select>
     </div>
   </div>
+
+  <div class="form-subhead">Garden details</div>
 
   <div class="field-group">
     <label class="field-label">Garden size</label>
@@ -365,6 +376,8 @@
       placeholder="Anything else? e.g. size of garden, access notes, special instructions…"></textarea>
   </div>
   
+  <div class="form-subhead">Team, hours &amp; pricing</div>
+
   <div class="field-group">
   <label class="field-label">Team size</label>
   <div class="opt-row">
@@ -390,8 +403,13 @@
 
   <div class="field-group">
     <label class="field-label">Discount</label>
-    <select id="gardenDiscountType">
-      <option value="none">No discount</option>
+    <div class="opt-row">
+      <button type="button" class="opt-btn is-active" data-sel="gardenDiscountType" data-val="none">None</button>
+      <button type="button" class="opt-btn" data-sel="gardenDiscountType" data-val="pensioner">Pensioner &mdash; 10% off</button>
+      <button type="button" class="opt-btn" data-sel="gardenDiscountType" data-val="neighbour">Neighbour</button>
+    </div>
+    <select id="gardenDiscountType" hidden aria-hidden="true">
+      <option value="none" selected>No discount</option>
       <option value="pensioner">Pensioner Discount (10% off)</option>
       <option value="neighbour">Neighbour Discount</option>
     </select>
@@ -825,16 +843,13 @@
       <div id="breakdown" class="breakdown-body"></div>
     </details>
     <div class="quote-cta">
-      <button id="btnWhatsApp" class="btn btn-whatsapp hidden" hidden type="button">&#128172;&nbsp;&nbsp;Send to Ben on WhatsApp</button>
-      <p class="quote-note">WhatsApp opens with your full quote prefilled.<br>Ben will confirm the final price.</p>
-    </div>
-    <div class="start-over">
-      <button class="btn btn-ghost" id="btnStartOver" type="button">Start a new quote</button>
+      <button id="btnBookNow" class="btn btn-primary" type="button">
+        <span class="btn-emoji" aria-hidden="true">&#128197;</span><span>Book this job</span>
+      </button>
+      <button id="btnWhatsApp" class="btn btn-whatsapp hidden" hidden type="button">&#128172;&nbsp;&nbsp;Message Ben on WhatsApp</button>
+      <p class="quote-note">Ben confirms the final price and slot before anything is locked in.</p>
     </div>
     <div class="quote-actions">
-      <button id="btnBookNow" class="btn btn-primary" type="button">
-        <span class="btn-emoji" aria-hidden="true">&#128197;</span><span>Book&nbsp;job</span>
-      </button>
       <button id="btnSaveQuote" class="btn btn-ghost" type="button">
         <span class="btn-emoji" aria-hidden="true">&#128190;</span><span>Save&nbsp;quote</span>
       </button>
@@ -844,6 +859,9 @@
         </svg>
         <span>Share</span>
       </button>
+    </div>
+    <div class="start-over">
+      <button class="btn btn-ghost btn-sm" id="btnStartOver" type="button">Start a new quote</button>
     </div>
   </div>
 
@@ -885,6 +903,7 @@
     <p class="hint" style="margin-top:8px">Estimate only &mdash; final price confirmed after photos &amp; access check.</p>
     <h3>Why choose Ben?</h3>
     <p class="hint">All waste goes to Waterbeach Waste Management Park &mdash; fully licensed. Cheaper operators often dump illegally, which can be traced back to <em>you</em>. We don't do that.</p>
+    <div class="build-tag" id="buildTag">r430</div>
   </div>
 </div>
 
@@ -924,12 +943,12 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="supabase-client.js?v=r429"></script>
+<script defer src="supabase-client.js?v=r430"></script>
 <script src="shop-items.js"></script>
-<script src="config.js?v=r428"></script>
-<script src="main.js?v=r428" defer></script>
-<script src="enhance.js?v=r428" defer></script>
-<script src="quotes-bookings.js?v=r428" defer></script>
+<script src="config.js?v=r430"></script>
+<script src="main.js?v=r430" defer></script>
+<script src="enhance.js?v=r430" defer></script>
+<script src="quotes-bookings.js?v=r430" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -954,6 +973,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if(!el) return;
       el.classList.toggle('is-active', i+1===n);
       el.classList.toggle('is-done', i+1<n);
+      if(i+1===n) el.setAttribute('aria-current','step');
+      else el.removeAttribute('aria-current');
     });
     ['pLine1','pLine2'].forEach(function(id,i) {
       var el = document.getElementById(id);
@@ -999,10 +1020,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.querySelectorAll('.opt-btn').forEach(function(btn) {
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-active') ? 'true' : 'false');
     btn.addEventListener('click', function() {
       var row = btn.closest('.opt-row');
-      if(row) row.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('is-active'); });
+      if(row) row.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
       btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed','true');
       var selId = btn.dataset.sel;
       if(selId) {
         var sel = document.getElementById(selId);
@@ -1255,7 +1278,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if(data && data.display_name) {
               var addr = data.display_name;
               var pickup = document.getElementById('addrPickup');
-              if(pickup) pickup.value = addr;
+              if(pickup) {
+                pickup.value = addr;
+                pickup.dataset.lat = lat;
+                pickup.dataset.lng = lng;
+              }
               locationHint.textContent = 'Location set.';
             } else {
               locationHint.textContent = 'Could not find address for your location.';
