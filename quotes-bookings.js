@@ -411,23 +411,28 @@
         zoom: 9, center: { lat: 52.4, lng: 0.1 },
         mapTypeControl: false, streetViewControl: false, fullscreenControl: false
       });
+      var ds = new google.maps.DirectionsService();
+      // The app's Maps key has the Directions API but not the Geocoding API,
+      // so a lone stop is located by routing home → stop and dropping a pin
+      // at the leg's end point rather than calling the Geocoder directly.
       if (stops.length < 2) {
-        new google.maps.Geocoder().geocode(
-          { address: stops[0], region: 'uk' },
-          function (res, status) {
-            if (status === 'OK' && res && res[0]) {
-              map.setCenter(res[0].geometry.location);
-              map.setZoom(13);
-              new google.maps.Marker({ map: map, position: res[0].geometry.location });
-            } else {
-              admMapFail(el, 'Map preview unavailable for this address.');
-            }
+        ds.route({
+          origin: homeAddr || stops[0],
+          destination: stops[0],
+          travelMode: 'DRIVING', region: 'uk'
+        }, function (res, status) {
+          if (status === 'OK' && res && res.routes[0]) {
+            var dest = res.routes[0].legs[0].end_location;
+            map.setCenter(dest);
+            map.setZoom(13);
+            new google.maps.Marker({ map: map, position: dest });
+          } else {
+            admMapFail(el, 'Map preview unavailable for this address.');
           }
-        );
+        });
         return;
       }
       var dr = new google.maps.DirectionsRenderer({ map: map });
-      var ds = new google.maps.DirectionsService();
       var wp = stops.map(function (s) { return { location: s, stopover: true }; });
       ds.route({
         origin: homeAddr || stops[0],
