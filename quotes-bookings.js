@@ -238,7 +238,12 @@
     var addrPickup = ($('addrPickup') && $('addrPickup').value) || '';
     var addrDrop = ($('addrDrop') && $('addrDrop').value) || '';
     var bikeAddr = ($('bikeAddr') && $('bikeAddr').value) || '';
-    var jobDesc = ($('jobDesc') && $('jobDesc').value) || '';
+    // Each job type has its own notes box; read the one that belongs to this
+    // job so hidden fields from a previously-selected type don't leak through.
+    var notesId = jobType === 'garden' ? 'gardenOther'
+                : jobType === 'bike'   ? 'bikeNotes'
+                :                        'jobDesc';
+    var notes = ($(notesId) && $(notesId).value) || '';
     return {
       id: id,
       savedAt: new Date().toISOString(),
@@ -250,7 +255,9 @@
       addrPickup: addrPickup,
       addrDrop: addrDrop,
       bikeAddr: bikeAddr,
-      notes: jobDesc
+      notes: notes,
+      preferredDate: ($('gardenDate') && $('gardenDate').value) || '',
+      preferredTime: ($('gardenTime') && $('gardenTime').value) || ''
     };
   }
 
@@ -736,6 +743,12 @@
       String(today.getMonth() + 1).padStart(2, '0') + '-' +
       String(today.getDate()).padStart(2, '0');
 
+    // Carry over a date/time the customer already picked on the quote (garden
+    // jobs). Skip a stale date — e.g. an old saved quote — so it can't land
+    // before today's min and silently fail validation.
+    var prefDate = (snap.preferredDate && snap.preferredDate >= minDate) ? snap.preferredDate : '';
+    var prefTime = snap.preferredTime || '';
+
     var html =
       '<div class="bhd-booking-summary">' +
         '<div><span class="bhd-label">Service</span><strong>' + esc(snap.jobLabel) + '</strong></div>' +
@@ -746,10 +759,12 @@
       '<form id="bhdBookingForm" class="bhd-form" novalidate>' +
         '<div class="bhd-grid2">' +
           '<label class="field-label">Preferred date' +
-            '<input type="date" id="bkDate" min="' + minDate + '" required>' +
+            '<input type="date" id="bkDate" min="' + minDate + '" required' +
+              (prefDate ? ' value="' + esc(prefDate) + '"' : '') + '>' +
           '</label>' +
           '<label class="field-label">Preferred time' +
-            '<input type="time" id="bkTime" required>' +
+            '<input type="time" id="bkTime" required' +
+              (prefTime ? ' value="' + esc(prefTime) + '"' : '') + '>' +
           '</label>' +
         '</div>' +
         '<label class="field-label">Your name' +
