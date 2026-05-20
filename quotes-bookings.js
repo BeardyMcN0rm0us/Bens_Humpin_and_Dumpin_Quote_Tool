@@ -1609,29 +1609,10 @@
     });
     safeWire($('btnMyQuotes'),   'Saved quotes',  openQuotesModal);
     safeWire($('btnMyBookings'), 'My bookings',   openBookingsModal);
-    wireAdminLongPress($('adminTrigger'));
-  }
-
-  // Admin opens on a long-press of the logo so customers don't trigger it
-  // with an ordinary tap.
-  function wireAdminLongPress(el) {
-    if (!el) { console.warn('[BHD] missing element: Admin'); return; }
-    var timer = null, fired = false;
-    function start() {
-      fired = false;
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        fired = true;
-        try { if (adminUnlocked) openAdminDashboard(); else openAdminPinModal(); }
-        catch (err) { console.error('[BHD] Admin error', err); }
-      }, 650);
-    }
-    function cancel() { clearTimeout(timer); }
-    el.addEventListener('pointerdown', start);
-    el.addEventListener('pointerup', cancel);
-    el.addEventListener('pointerleave', cancel);
-    el.addEventListener('pointercancel', cancel);
-    el.addEventListener('click', function (e) { if (fired) { e.preventDefault(); e.stopPropagation(); } });
+    safeWire($('adminTrigger'),  'Admin', function () {
+      if (adminUnlocked) openAdminDashboard();
+      else openAdminPinModal();
+    });
   }
 
   /* ── init ────────────────────────────────────────────────────── */
