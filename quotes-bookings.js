@@ -460,6 +460,21 @@
     }
   }
 
+  function mirrorCloudToAdminLocal(cloudList) {
+    if (!Array.isArray(cloudList)) return;
+    var local = Store.adminBookings();
+    var byId = {};
+    local.forEach(function (b) { if (b && b.id) byId[b.id] = b; });
+    cloudList.forEach(function (b) {
+      if (!b || !b.id) return;
+      byId[b.id] = Object.assign({}, byId[b.id] || {}, b);
+    });
+    var merged = Object.keys(byId).map(function (k) { return byId[k]; }).sort(function (a, b) {
+      return new Date(b.receivedAt || b.createdAt || 0) - new Date(a.receivedAt || a.createdAt || 0);
+    });
+    try { localStorage.setItem(ADMIN_BOOKINGS_KEY, JSON.stringify(merged)); } catch (e) {}
+  }
+
   function computeLocalOnlyBookings(cloudList) {
     var cloudIds = {};
     (cloudList || []).forEach(function (b) { if (b && b.id) cloudIds[b.id] = true; });
@@ -596,6 +611,7 @@
     if (window.BHDdb) {
       modal.open('&#128203; All Bookings', '<div style="padding:24px;text-align:center;color:var(--clr-muted,#666)">Loading&#8230;</div>');
       window.BHDdb.loadAllBookings().then(function (bookings) {
+        mirrorCloudToAdminLocal(bookings);
         renderAdminDashboard(bookings);
       }).catch(function () {
         renderAdminDashboard(Store.adminBookings().filter(function (b) { return b.status !== 'removed'; }));
