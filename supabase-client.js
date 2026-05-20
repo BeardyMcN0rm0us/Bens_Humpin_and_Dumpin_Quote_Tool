@@ -292,6 +292,21 @@
     }).catch(function (e) { console.error('[BHDdb] loadBookings:', e); return []; });
   }
 
+  function pushLocalBookings(bookings) {
+    return whenReady().then(getUid).then(function (uid) {
+      if (!uid) return { ok: 0, fail: 0, reason: 'no-session' };
+      var ok = 0, fail = 0;
+      var jobs = (bookings || []).filter(Boolean).map(function (b) {
+        return client.from('records').upsert(bookingToRow(b, uid), { onConflict: 'id' })
+          .then(function (r) {
+            if (r && r.error) { logErr('pushLocalBookings', r.error); fail++; }
+            else { ok++; }
+          });
+      });
+      return Promise.all(jobs).then(function () { return { ok: ok, fail: fail }; });
+    });
+  }
+
   /* ── admin queries ────────────────────────────────────────── */
   function loadAllBookings() {
     return whenReady().then(function () {
@@ -400,6 +415,9 @@
     deleteBooking:          deleteBooking,
     loadBookings:           loadBookings,
     loadAllBookings:        loadAllBookings,
+    pushLocalBookings:      pushLocalBookings,
+    getAdminEmail:          getAdminEmail,
+    sendPasswordReset:      sendPasswordReset,
     subscribeBookingStatus: subscribeBookingStatus,
     syncToLocal:            syncToLocal
   };
