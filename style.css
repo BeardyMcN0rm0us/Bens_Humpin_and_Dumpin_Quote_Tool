@@ -1631,6 +1631,19 @@ body.bhd-modal-open { overflow: hidden; }
 }
 
 /* ── admin schedule dashboard ─────────────────────────────────── */
+.adm-sync-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: rgba(255,178,107,0.10);
+  border: 1px solid rgba(255,178,107,0.32);
+  border-radius: var(--r-sm, 12px);
+}
+.adm-sync-banner .adm-sync-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.adm-sync-banner .adm-sync-text strong { color: var(--ink); font-size: 0.88rem; }
+.adm-sync-banner .adm-sync-text span { color: var(--ink2); font-size: 0.78rem; }
+.adm-sync-banner .btn { flex: 0 0 auto; }
 .adm-summary {
   color: var(--ink2);
   font-size: 0.82rem; font-weight: 700;

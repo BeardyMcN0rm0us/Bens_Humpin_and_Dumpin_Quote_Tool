@@ -460,10 +460,18 @@
     }
   }
 
+  function computeLocalOnlyBookings(cloudList) {
+    var cloudIds = {};
+    (cloudList || []).forEach(function (b) { if (b && b.id) cloudIds[b.id] = true; });
+    var local = Store.adminBookings().filter(function (b) { return b && b.id && b.status !== 'removed'; });
+    return local.filter(function (b) { return !cloudIds[b.id]; });
+  }
+
   function renderAdminDashboard(all) {
     _adminAll = all || [];
     var homeAddr = (window.BHD && window.BHD.homeAddress) || '';
     var today = admStartOfToday();
+    var localOnly = computeLocalOnlyBookings(_adminAll);
     var upcoming = _adminAll.filter(function (b) {
       if (!b || b.status === 'removed' || !b.whenISO) return false;
       var d = new Date(b.whenISO);
@@ -514,9 +522,50 @@
         html += '</ul></section>';
       });
     }
+    if (localOnly.length) {
+      html = '<div class="adm-sync-banner" id="admSyncBanner">' +
+          '<div class="adm-sync-text">' +
+            '<strong>' + localOnly.length + ' booking' + (localOnly.length > 1 ? 's' : '') + ' on this device only</strong>' +
+            '<span>Not yet saved to the cloud &mdash; other devices can\'t see them.</span>' +
+          '</div>' +
+          '<button type="button" class="btn btn-primary btn-sm" id="admSyncBtn">' +
+            'Sync to cloud' +
+          '</button>' +
+        '</div>' + html;
+    }
     modal.open('&#128197; Schedule', html);
     var body = $('bhdModalBody');
     if (!body) return;
+    var syncBtn = body.querySelector('#admSyncBtn');
+    if (syncBtn) syncBtn.addEventListener('click', function () {
+      if (!window.BHDdb || !window.BHDdb.pushLocalBookings) {
+        toast({ icon: '⚠', body: 'Cloud unavailable', sub: 'Supabase client not loaded.', timeout: 4000 });
+        return;
+      }
+      syncBtn.disabled = true;
+      syncBtn.textContent = 'Syncing…';
+      window.BHDdb.pushLocalBookings(localOnly).then(function (res) {
+        if (res && res.reason === 'no-session') {
+          toast({ icon: '⚠', body: 'Not signed in to cloud', sub: 'Sign in as admin and try again.', timeout: 5000 });
+          syncBtn.disabled = false;
+          syncBtn.textContent = 'Sync to cloud';
+          return;
+        }
+        var ok = (res && res.ok) || 0, fail = (res && res.fail) || 0;
+        toast({
+          icon: fail ? '⚠' : '✅',
+          body: fail ? (ok + ' synced, ' + fail + ' failed') : (ok + ' booking' + (ok !== 1 ? 's' : '') + ' synced'),
+          sub: fail ? 'Check console for details.' : 'Other devices will see them now.',
+          timeout: 5000
+        });
+        openAdminDashboard();
+      }).catch(function (e) {
+        console.error('[admin] pushLocalBookings:', e);
+        toast({ icon: '⚠', body: 'Sync failed', sub: (e && e.message) || 'See console.', timeout: 5000 });
+        syncBtn.disabled = false;
+        syncBtn.textContent = 'Sync to cloud';
+      });
+    });
     body.querySelectorAll('.bhd-card').forEach(function (card) {
       var id = card.getAttribute('data-adm-id');
       card.querySelectorAll('[data-adm-act]').forEach(function (btn) {
