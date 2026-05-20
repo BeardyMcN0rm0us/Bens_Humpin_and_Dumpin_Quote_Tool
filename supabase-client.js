@@ -216,6 +216,20 @@
 
   function getAdminStatus() { return _adminStatus; }
 
+  function getAdminEmail() {
+    return client.auth.getUser().then(function (r) {
+      var u = r.data && r.data.user;
+      if (!u || u.is_anonymous) return null;
+      return u.email || null;
+    }).catch(function () { return null; });
+  }
+
+  function sendPasswordReset(email) {
+    var redirect = (window.location.origin || '') + (window.location.pathname || '');
+    return client.auth.resetPasswordForEmail(email, { redirectTo: redirect })
+      .then(function (r) { if (r.error) throw r.error; return true; });
+  }
+
   /* ── quotes ───────────────────────────────────────────────── */
   function saveQuote(q) {
     return whenReady().then(getUid).then(function (uid) {
